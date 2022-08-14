@@ -44,6 +44,8 @@
 #define SDRPLAY_API_VERSION   (float)(3.07)
 #elif SDRPLAY3PAR_VERNR == 309
 #define SDRPLAY_API_VERSION   (float)(3.09)
+#elif SDRPLAY3PAR_VERNR == 310
+#define SDRPLAY_API_VERSION   (float)(3.10)
 #endif
 
 // API Constants
@@ -183,7 +185,7 @@ typedef struct
     unsigned char hwVer;
     sdrplay_api_TunerSelectT tuner;
     sdrplay_api_RspDuoModeT rspDuoMode;
-#if SDRPLAY3PAR_VERNR == 309
+#if SDRPLAY3PAR_VERNR >= 309
     unsigned char valid;
 #endif
     double rspDuoSampleFreq;
@@ -1649,7 +1651,7 @@ static uint8_t lna_states_rspdx_0_12[] = { 0, 3, 6, 9, 12, 15, 24, 27, 30, 33, 3
 #if SDRPLAY3PAR_VERNR == 307
 static int num_lna_states_rspdx_12_60 = 20;
 static uint8_t lna_states_rspdx_12_60[] = { 0, 3, 6, 9, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60 };
-#elif SDRPLAY3PAR_VERNR == 309
+#elif SDRPLAY3PAR_VERNR >= 309
 static int num_lna_states_rspdx_12_50 = 20;
 static uint8_t lna_states_rspdx_12_50[] = { 0, 3, 6, 9, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60 };
 static int num_lna_states_rspdx_50_60 = 25;
@@ -1846,7 +1848,7 @@ static double sdrplay3_select_rf_gain_band_rspdx(int *line)
     lir_text(3, line[0], "F=RF gain reduction band 1000-2000 MHz");
     line[0] += 2;
     lir_text(3, line[0], "Select RF gain reduction band (A-F) =>");
-#elif SDRPLAY3PAR_VERNR == 309
+#elif SDRPLAY3PAR_VERNR >= 309
     lir_text(3, line[0], "B=RF gain reduction band 12-50 MHz");
     line[0]++;
     lir_text(3, line[0], "C=RF gain reduction band 50-60 MHz");
@@ -1886,7 +1888,7 @@ static double sdrplay3_select_rf_gain_band_rspdx(int *line)
         case 'F':
           freq = 1200e6;
           break;
-#elif SDRPLAY3PAR_VERNR == 309
+#elif SDRPLAY3PAR_VERNR >= 309
         case 'C':
           freq = 55e6;
           break;
@@ -1986,7 +1988,7 @@ static uint8_t *sdrplay3_find_lna_states(double freq, int *p_num_lna_states)
     } else if (freq < 60e6) {
       *p_num_lna_states = num_lna_states_rspdx_12_60;
       return lna_states_rspdx_12_60;
-#elif SDRPLAY3PAR_VERNR == 309
+#elif SDRPLAY3PAR_VERNR >= 309
     } else if (freq < 50e6) {
       *p_num_lna_states = num_lna_states_rspdx_12_50;
       return lna_states_rspdx_12_50;
