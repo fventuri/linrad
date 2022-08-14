@@ -1,0 +1,116 @@
+The morse decoding algorithms in Linrad are designed to work with weak
+non-perfect signals that may suffer from QSB, chirp and other problems.
+For decoding, the baseband time-domain signal is computed at three
+different bandwidths: 
+
+baseb[] is the signal in the bandwidth bw selected by the operator. 
+
+baseb_carrier[] is the signal in a coh_factor narrower bandwidth than bw.
+it should contain the carrier of the morse coded signal which should
+essentially be a 100% AM modulated carrier (on-off keying)
+
+baseb_wb[] is the signal in a bandwidth that is at least 2 times larger
+than bw.
+
+The three signals are in complex format. The phases of baseb and baseb_wb
+are rotated by to be the same as for baseb_carrier in order to put all
+the signal in I while ideally Q should be zero. For real signals, Q will
+contain the FM (frequency modulation) component (chirp) that the signal
+might have.
+
+*************************  step 1 **************************** 
+Find a first value for the morse code clock frequency. We need to know
+the duration in sampling points of a morse code dot. (cwbit_pts)
+
+By taking the power spectrum of the I component of baseb_wb[], averaged
+over a time corresponding to 150 dots in a string of dots we
+get a spectrum that has peaks corresponding to the morse code clock
+frequency, its harmonics and sub-harmonics. This spectrum is stored
+in keying_spectrum[] which is computed in mix2.c.
+
+The routine evaluate_keying_spectrum() tries to determine which peak
+in keying_spectrum[] that corresponds to the fundamental of the morse
+code clock. It is called when a time corresponding to 50 dots has
+elapsed.
+
+*************************** step 2 ***************************
+Construct the ideal time function for a morse code dash that has
+passed through the user selected baseband filter.
+This is done in make_ideal_waveform()
+
+*************************** step 3 ***************************
+Collect the average waveform for those regions in time where
+the power detector has found that the signal is above normal
+for a time that is reasonably close to 3*cwbit points. We only
+include waveforms that are reasonably close to the ideal waveform 
+in this average. The power detector output is in baseb_ramp.
+
+*************************** step 4 ***************************
+Use the average of dashes collected in step 3 to compute a more
+accurate value for cwbit_pts
+
+*************************** step 5 ***************************
+Step through all the data and see how well long regions in baseb_ramp
+(the power detector) fit to the real average shape of dashes that
+was collected in step 3. Store position and other data in the
+structure cw[] for those dashes that fit well.
+
+*************************** step 6 ***************************
+Collect a new average shape for dashes from those that were 
+stored in cw[]. Use the new average for an improved value for
+cwbit pts. 
+
+*************************** step 7 ***************************
+Collect the average shape of dashes in the wider bandwidth. (Before
+this point, all waveforms are in the user selected bandwidth.)
+The phase of the dash waveform has to be close to zero on the
+average, but it may vary from the beginning to the end of a
+dash. Characerize the variation with time of the phase with
+two parameters, (the first and the second derivatives) that
+describe how the frequency drifts during the duration of a dash.
+Use these parameters to set up a reference function that should
+be close to the real one, but with the noise eliminated.
+Also make a guess for the average dot waveform by using
+the phase variation during a dash and assuming the dot
+lasts 3 times shorter than a dash.
+The function used is get_wb_average_dashes()
+
+*************************** step 8 ***************************
+Interpolate the phase and amplitude over short gaps between
+already established dashes. Use the now known shapes of dashes 
+and dots to evaluate the complex amplitude we would attribute
+to dots or a dash in the short region and compare to the
+interpolated complex amplitude. Also use total power within
+all the time slots corresponding to the morse symbol clock.
+Take a decision what pattern to store if one possibillity
+seems much better than all other alternatives. The routine
+doing this is short_region_guesses()
+
+*************************** step 9 ***************************
+Check whether there is a large gap somewhere. If there is,
+compute the average waveform from the dashes after the
+long gap in case there are many enough. Step through the
+data and add or remove dashes in accordance with the possibly
+different new waveform. This procedure is intended to clear
+out old data that might have been collected from a different
+station that we failed to detect. Compute new average
+waveforms and set cw_detect_flag to CWDETECT_WAVEFORM_ESTABLISHED
+
+*************************** step 10 ***************************
+Look for detected spaces or word separators between which there
+is a short gap of undecoded signal. Fit a complex amplitude
+(least squares) to the decoded signal surrounding the undecoded
+gap up to 10 symbol clock ticks away from both ends of the
+undecoded gap. Make all possible guesses for 4 symbol clock
+ticks into the gap from both sides. Exclude all guesses that
+are not compatible with the Morse code alphabet. Compute S/N
+for all the acceptable guesses and select the one that gives
+the best S/N. Add dots, dashes, spaces and word separators
+accordingly. The routine is character_guesses()
+Iterate the guesses routines while updating the average waveform.
+
+*************************** step 11 ***************************
+Construct the complex amplitude over longer time spans using
+the guessed keying information. This carrier should be more
+accurate than the carrier in baseb_carrier[]. Use this new
+carrier to perform a new detection from scratch.

@@ -1,0 +1,2576 @@
+# Copyright (c) <2012> <Leif Asbrink>
+#
+# Permission is hereby granted, free of charge, to any person 
+# obtaining a copy of this software and associated documentation 
+# files (the "Software"), to deal in the Software without restriction, 
+# including without limitation the rights to use, copy, modify, 
+# merge, publish, distribute, sublicense, and/or sell copies of 
+# the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be 
+# included in all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+# OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+# NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+# WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE 
+# OR OTHER DEALINGS IN THE SOFTWARE.
+
+#
+# -----------     Compilers     ----------------
+# Use gcc to compile files for Linux.
+CC?=gcc
+# Name the output files *.ol instead of *.o
+# so we definitely know it is for Linux.
+# (*.o files can be present by mistake)
+LCC     = ${CC} -D_FILE_OFFSET_BITS=64 -DLUSERS_DEF=0 -DWUSERS_DEF=0
+WCC	= i686-w64-mingw32-gcc -march=i686 -D_FILE_OFFSET_BITS=64 -DLUSERS_DEF=0 -DWUSERS_DEF=0
+WCC64	= x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 -DLUSERS_DEF=0 -DWUSERS_DEF=0
+WINWCC  = i686-w64-mingw32-gcc -march=i686 -D_FILE_OFFSET_BITS=64 -DLUSERS_DEF=0 -DWUSERS_DEF=0
+WINWCC64 = x86_64-w64-mingw32-gcc -march=x86-64 -D_FILE_OFFSET_BITS=64 -DLUSERS_DEF=0 -DWUSERS_DEF=0
+NASML	= nasm -w-orphan-labels @ELF32@ -s 
+NASMW	= nasm -w-orphan-labels -fwin32 -s 
+WINNASM = nasm -w-orphan-labels -fwin32 -s
+NASML64	= nasm -w-orphan-labels @ELF64@ -s
+NASMW64	= nasm -w-orphan-labels -fwin64 -s 
+WINNASM64 = nasm -w-orphan-labels -fwin64 -s
+# Use the mingw cross compiler for Windows
+# Name the output files *.ow instead of *.o
+# so we definitely know it is for Windows.
+# (*.o files can be present by mistake)
+# Always use the same flags.
+# -Wconversion -Wno-sign-conversion -Wunreachable-code
+ifneq ($(OS),Windows_NT)
+    OS=$(shell uname)
+endif
+ifeq ($(OS), Darwin)
+    LIBMACOSX = -framework IOKit -framework CoreFoundation
+endif
+
+CFL	= -g -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
+-DHAVE_SHM=@LIBXEXT32_OK@ -Wimplicit -Wbad-function-cast -DOSSD=@OSSHDR32@ \
+-DHAVE_X11=@X11_32_ALL_OK@ -DIA64=0 -Wnested-externs -DHAVE_OSS=@OSS32_H@ \
+@DARWIN@ @OCLPROGS32@ -DSERVER=0 -DHAVE_SVGALIB=@CONSOLE32_OK@ \
+-DHAVE_CUFFT=@CUFFT32_OK@ \
+-Wreturn-type -Wformat -m32 -Wunused -Wcomment -Wchar-subscripts -Wshadow \
+-Wuninitialized -Wparentheses -Wstrict-prototypes -Werror -ffast-math \
+-Wundef -fomit-frame-pointer -c -o
+
+CFLN	= -g -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
+-DHAVE_SHM=@LIBXEXT32_OK@ -DHAVE_SVGALIB=@CONSOLE32_OK@ -Wimplicit \
+-DHAVE_X11=@X11_32_ALL_OK@ -DIA64=0 -DHAVE_OSS=@OSS32_H@ -DOSSD=@OSSHDR32@ \
+@DARWIN@ @OCLPROGS32@ -DSERVER=0 -DHAVE_CUFFT=@CUFFT32_OK@ \
+-Wconversion \
+-Wreturn-type -Wformat -m32 -Wunused -Wcomment -Wchar-subscripts -Wshadow \
+-Wuninitialized -Wparentheses -Wstrict-prototypes -Werror -ffast-math \
+-Wundef -fomit-frame-pointer -c -o
+
+CFLOCL	= -g -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
+-DHAVE_SHM=@LIBXEXT32_OK@ -Wimplicit -Wbad-function-cast -DOSSD=@OSSHDR32@ \
+-DHAVE_X11=@X11_32_ALL_OK@ -DIA64=0 -Wnested-externs -DHAVE_OSS=@OSS32_H@ \
+@DARWIN@ -DSERVER=0 -DHAVE_SVGALIB=@CONSOLE32_OK@ \
+@OCLPROGS32@ -DCL_USE_DEPRECATED_OPENCL_1_2_APIS -DHAVE_CUFFT=@CUFFT32_OK@ \
+-Wreturn-type -Wformat -m32 -Wunused -Wcomment -Wchar-subscripts -Wshadow \
+-Wuninitialized -Wparentheses -Werror -ffast-math \
+-Wundef -fomit-frame-pointer -c -o
+
+CFW	= -g -DOSNUM=2 -W -Wall -Wimplicit -DIA64=0 -DHAVE_CUFFT=0 \
+-DCPU=CPU_INTEL -DSERVER=0 -DHAVE_OSS=0 -DOPENCL_PRESENT=0 \
+-m32 -Wreturn-type -Wformat -Wunused -Wcomment -Wchar-subscripts \
+-Wshadow -Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
+-ffast-math -Wundef -fomit-frame-pointer -c -o
+
+# -fsyntax-only -pedantic -pedantic-errors -w -Wextra -Wall -Waddress -Waggrega
+
+CFWN	= -g -DOSNUM=2 -W -Wall -Wimplicit -DIA64=0 -DHAVE_CUFFT=0 \
+-DCPU=CPU_INTEL -DSERVER=0 -DHAVE_OSS=0 -DOPENCL_PRESENT=0 \
+-m32 -Wreturn-type -Wformat -Wunused -Wcomment -Wchar-subscripts \
+-Wconversion \
+-Wshadow -Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
+-ffast-math -Wundef -fomit-frame-pointer -c -o
+
+CFW64	= -g -DOSNUM=2 -W -Wall -Wimplicit -DIA64=1 -DHAVE_CUFFT=0 \
+-DCPU=CPU_INTEL -DSERVER=0 -DHAVE_OSS=0 -DOPENCL_PRESENT=0 \
+-m64 -Wreturn-type -Wformat -Wunused -Wcomment -Wchar-subscripts \
+-Wshadow -Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
+-ffast-math -Wundef -fomit-frame-pointer -c -o
+
+CFL64	= -g -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
+-DCPU=@CPU@ -DHAVE_SHM=@LIBXEXT64_OK@ -DHAVE_X11=@X11_64_ALL_OK@ \
+-DIA64=1 @DARWIN@ -DSERVER=0 -DHAVE_SVGALIB=@CONSOLE64_OK@ \
+@OCLPROGS64@ -DHAVE_CUFFT=@CUFFT64_OK@ \
+-Wimplicit -Wreturn-type -Wformat -m64 -Wunused -Wcomment -DOSSD=@OSSHDR64@ \
+-Wchar-subscripts -Wshadow -Wuninitialized -Wparentheses @OSSINC64@ \
+-Wstrict-prototypes -Werror -ffast-math -Wundef -fomit-frame-pointer \
+-c -o
+
+CFLN64	= -g -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
+-DCPU=@CPU@ -DHAVE_SHM=@LIBXEXT64_OK@ -DHAVE_SVGALIB=@CONSOLE64_OK@ \
+-DIA64=1 @DARWIN@ -DSERVER=0 -DHAVE_X11=@X11_64_ALL_OK@ \
+-DHAVE_CUFFT=@CUFFT64_OK@ -DOSSD=@OSSHDR64@ @OSSINC64@ @OCLPROGS64@ \
+-Wconversion -Wimplicit -Wreturn-type -Wformat -m64 -Wunused -Wcomment \
+-Wchar-subscripts -Wshadow -Wuninitialized -Wparentheses \
+-Wstrict-prototypes -Werror -ffast-math -Wundef -fomit-frame-pointer \
+-c -o
+
+CFLOCL64	= -g -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
+-DCPU=@CPU@ -DHAVE_SHM=@LIBXEXT64_OK@ -DHAVE_X11=@X11_64_ALL_OK@ \
+-DIA64=1 @DARWIN@ -DSERVER=0 -DHAVE_SVGALIB=@CONSOLE64_OK@ \
+@OCLPROGS64@ -DCL_USE_DEPRECATED_OPENCL_1_2_APIS -DHAVE_CUFFT=@CUFFT64_OK@ \
+-Wimplicit -Wreturn-type -Wformat -m64 -Wunused -Wcomment -DOSSD=@OSSHDR64@ \
+-Wchar-subscripts -Wshadow -Wuninitialized -Wparentheses @OSSINC64@ \
+-Werror -ffast-math -Wundef -fomit-frame-pointer \
+-c -o
+
+# Define dependencies for routines used both in Linux and Windows
+
+ADTEST=Makefile adtest.c globdef.h uidef.h fft1def.h screendef.h osnum.h \
+	thrdef.h powtdef.h lscreen.h wscreen.h
+AFC_GRAPH=Makefile afc_graph.c globdef.h uidef.h fft1def.h fft2def.h vernr.h \
+	seldef.h llsqdef.h sigdef.h screendef.h thrdef.h wscreen.h \
+	osnum.h lscreen.h
+AFCSUB=Makefile afcsub.c globdef.h uidef.h fft1def.h fft2def.h screendef.h vernr.h \
+	seldef.h llsqdef.h osnum.h 
+AFEDRI=Makefile afedri.c globdef.h uidef.h fft1def.h sdrdef.h vernr.h screendef.h \
+	osnum.h hidapi.h options.h bufbars.h wscreen.h lscreen.h
+AFFINITY=Makefile affinity.c globdef.h uidef.h thrdef.h osnum.h 
+AIRSPY=Makefile airspy.c timing_setup.c input_speed.c globdef.h uidef.h screendef.h \
+	usbdefs.h hwaredef.h options.h bufbars.h wscreen.h lscreen.h \
+	osnum.h fft1def.h
+AIRSPYHF=Makefile airspyhf.c timing_setup.c input_speed.c globdef.h uidef.h \
+	screendef.h usbdefs.h hwaredef.h options.h bufbars.h wscreen.h \
+	lscreen.h sdrdef.h seldef.h osnum.h fft1def.h
+BASEB_GRAPH=Makefile baseb_graph.c globdef.h uidef.h fft1def.h screendef.h vernr.h \
+	sigdef.h seldef.h fft2def.h fft3def.h graphcal.h osnum.h \
+	thrdef.h options.h bufbars.h wscreen.h lscreen.h
+BLADERF=Makefile bladerf.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	screendef.h fft1def.h screendef.h thrdef.h vernr.h osnum.h \
+	hwaredef.h options.h bufbars.h wscreen.h lscreen.h
+BLANK1=Makefile blank1.c globdef.h uidef.h screendef.h blnkdef.h fft1def.h \
+	fft2def.h thrdef.h osnum.h 
+BLNKVAR=Makefile blnkvar.c globdef.h blnkdef.h osnum.h 
+BUF=Makefile buf.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	seldef.h blnkdef.h sigdef.h hwaredef.h oclprogs.h thrdef.h \
+	osnum.h 
+CALIBRATE=Makefile calibrate.c globdef.h uidef.h fft1def.h screendef.h caldef.h \
+	fft2def.h thrdef.h keyboard_def.h wscreen.h lscreen.h osnum.h 
+CALIQ=Makefile caliq.c globdef.h uidef.h fft1def.h caldef.h thrdef.h osnum.h \
+	keyboard_def.h wscreen.h lscreen.h
+CALSUB2=Makefile calsub2.c globdef.h uidef.h fft1def.h fft2def.h llsqdef.h caldef.h \
+	keyboard_def.h wscreen.h lscreen.h osnum.h 
+CALSUB=Makefile calsub.c globdef.h uidef.h fft1def.h fft2def.h caldef.h osnum.h \
+	thrdef.h wscreen.h lscreen.h
+CALVAR=Makefile calvar.c globdef.h caldef.h osnum.h 
+CLOUDIQ=Makefile cloudiq.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	thrdef.h fft1def.h screendef.h hwaredef.h vernr.h osnum.h \
+	options.h bufbars.h wscreen.h lscreen.h
+COH_OSC=Makefile coh_osc.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
+	wscreen.h lscreen.h osnum.h 
+COHERENT=Makefile coherent.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
+	fft3def.h options.h bufbars.h thrdef.h wscreen.h lscreen.h osnum.h 
+COHSUB=Makefile cohsub.c globdef.h uidef.h sigdef.h screendef.h fft1def.h options.h \
+	bufbars.h osnum.h 
+CSPLIT=Makefile csplit.c globdef.h uidef.h osnum.h fft1def.h
+CUDA=Makefile cuda.c osnum.h 
+CWDETECT=Makefile cwdetect.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
+	options.h bufbars.h llsqdef.h fft3def.h osnum.h 
+CWSPEED=Makefile cwspeed.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
+	options.h bufbars.h llsqdef.h osnum.h 
+ELAD=Makefile elad.c loadusb.h globdef.h options.h bufbars.h uidef.h screendef.h \
+	fft1def.h usbdefs.h vernr.h thrdef.h lscreen.h osnum.h 
+ELEKTOR=Makefile elektor.c globdef.h uidef.h fft1def.h screendef.h seldef.h \
+	thrdef.h loadusb.h wscreen.h lscreen.h osnum.h 
+EME=Makefile eme.c globdef.h uidef.h screendef.h keyboard_def.h thrdef.h wscreen.h \
+	lscreen.h osnum.h 
+EXCALIBUR=Makefile excalibur.c timing_setup.c input_speed.c globdef.h uidef.h \
+	thrdef.h sdrdef.h fft1def.h screendef.h vernr.h osnum.h  \
+	options.h bufbars.h wscreen.h lscreen.h
+EXTIO=Makefile extio.c globdef.h timing_setup.c input_speed.c uidef.h screendef.h \
+	hwaredef.h seldef.h thrdef.h fft1def.h keyboard_def.h osnum.h  \
+	options.h bufbars.h
+FCDPP=Makefile fcdpp.c fcdpp.c globdef.h uidef.h screendef.h seldef.h osnum.h \
+	thrdef.h wscreen.h lscreen.h fft1def.h
+FFT0=Makefile fft0.c globdef.h uidef.h fft1def.h fft2def.h osnum.h 
+FFT1=Makefile fft1.c globdef.h uidef.h fft1def.h screendef.h caldef.h oclprogs.h \
+	seldef.h thrdef.h options.h bufbars.h hwaredef.h osnum.h 
+FFT1_RE=Makefile fft1_re.c globdef.h uidef.h fft1def.h osnum.h 
+FFT1VAR=Makefile fft1var.c globdef.h fft1def.h osnum.h 
+FFT2=Makefile fft2.c globdef.h uidef.h seldef.h fft1def.h fft2def.h screendef.h \
+	sigdef.h thrdef.h osnum.h 
+FFT2VAR=Makefile fft2var.c globdef.h fft2def.h osnum.h 
+FFT3=Makefile fft3.c globdef.h uidef.h seldef.h fft3def.h screendef.h sigdef.h \
+	thrdef.h osnum.h fft1def.h
+FFT3VAR=Makefile fft3var.c globdef.h fft3def.h osnum.h 
+FONTS=Makefile fonts.c globdef.h uidef.h screendef.h osnum.h 
+FM=Makefile fm.c globdef.h uidef.h fft1def.h fft3def.h sigdef.h seldef.h screendef.h \
+	options.h bufbars.h osnum.h 
+FREQ_CONTROL=Makefile freq_control.c globdef.h uidef.h seldef.h screendef.h hwaredef.h \
+	fft1def.h thrdef.h sdrdef.h wscreen.h lscreen.h osnum.h 
+GIFSAVE=Makefile gifsave.c globdef.h uidef.h thrdef.h options.h osnum.h \
+	bufbars.h wscreen.h lscreen.h
+HELP=Makefile help.c globdef.h uidef.h fft1def.h screendef.h seldef.h sigdef.h \
+	thrdef.h vernr.h options.h bufbars.h wscreen.h lscreen.h osnum.h
+ifeq ($(OS), Darwin)
+HID=Makefile hidmac.c hidapi.h
+else
+HID=Makefile hid.c hidapi.h osnum.h
+endif
+HIDWIN=Makefile hidwin.c hidapi.h
+HIRES_GRAPH=Makefile hires_graph.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	blnkdef.h seldef.h graphcal.h vernr.h thrdef.h sigdef.h osnum.h \
+	wscreen.h lscreen.h
+HTML_SERVER=Makefile html_server.c httpd.h globdef.h osnum.h
+HTTPD=Makefile httpd.c httpd.h
+HWAREDRIVER=Makefile hwaredriver.c globdef.h uidef.h hwaredef.h  fft1def.h \
+	wse_sdrxx.c seldef.h screendef.h thrdef.h sdrdef.h osnum.h \
+	txdef.h
+LFXSYS=Makefile lfxsys.c globdef.h uidef.h thrdef.h options.h osnum.h \
+        wscreen.h lscreen.h keyboard_def.h screendef.h xdef.h \
+	vernr.h sdrdef.h
+LLSQ=Makefile llsq.c globdef.h uidef.h llsqdef.h osnum.h 
+LLSQVAR=Makefile llsqvar.c globdef.h llsqdef.h osnum.h
+LOADALSA=Makefile loadalsa.c loadalsa.h osnum.h
+LOADUSB=Makefile loadusb.c loadusb.h uidef.h options.h bufbars.h wscreen.h lscreen.h osnum.h
+LSDR=Makefile lsdr.c globdef.h uidef.h sdrdef.h osnum.h
+KEYBOARD_VAR=Makefile keyboard_var.c keyboard_def.h
+MENU=Makefile menu.c globdef.h uidef.h fft1def.h fft2def.h screendef.h powtdef.h \
+	vernr.h sigdef.h seldef.h thrdef.h sdrdef.h caldef.h osnum.h \
+	keyboard_def.h txdef.h options.h bufbars.h padef.h sdrdef.h \
+	hwaredef.h fft3def.h padef.h loadalsa.h oclprogs.h
+METER_GRAPH=Makefile meter_graph.c globdef.h uidef.h sigdef.h screendef.h \
+	thrdef.h vernr.h fft1def.h wscreen.h lscreen.h osnum.h
+MIRICS=Makefile mirics.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
+	options.h bufbars.h wscreen.h lscreen.h
+MIX1=Makefile mix1.c globdef.h uidef.h seldef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h osnum.h
+MIX2=Makefile mix2.c globdef.h uidef.h fft1def.h fft3def.h sigdef.h seldef.h \
+	screendef.h blnkdef.h options.h osnum.h
+MODESUB=Makefile modesub.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h thrdef.h \
+	 seldef.h sigdef.h screendef.h vernr.h options.h osnum.h \
+	bufbars.h keyboard_def.h blnkdef.h caldef.h txdef.h \
+	padef.h sdrdef.h wscreen.h lscreen.h wdef.h
+MORSE=Makefile morse.c globdef.h uidef.h fft1def.h sigdef.h screendef.h osnum.h
+MOUSE=Makefile mouse.c globdef.h uidef.h screendef.h keyboard_def.h thrdef.h osnum.h
+NETWORK=Makefile network.c globdef.h uidef.h fft1def.h screendef.h fft2def.h vernr.h \
+	caldef.h thrdef.h keyboard_def.h seldef.h options.h bufbars.h \
+	sigdef.h wscreen.h lscreen.h timing_setup.c input_speed.c osnum.h 
+OCLPROGS=Makefile oclprogs.c oclprogs.h globdef.h uidef.h osnum.h
+OPENHPSDR=Makefile openhpsdr.c globdef.h uidef.h fft1def.h screendef.h fft2def.h vernr.h \
+        caldef.h thrdef.h keyboard_def.h seldef.h options.h osnum.h \
+                sigdef.h wscreen.h lscreen.h screendef.h
+PA=Makefile pa.c globdef.h uidef.h padef.h thrdef.h sigdef.h \
+	fft1def.h keyboard_def.h screendef.h txdef.h options.h bufbars.h \
+	wscreen.h lscreen.h osnum.h
+PAVAR=Makefile pavar.c padef.h
+PALETTE=Makefile palette.c globdef.h screendef.h osnum.h
+PCIE9842=Makefile pcie9842.c timing_setup.c input_speed.c globdef.h uidef.h options.h \
+	bufbars.h screendef.h thrdef.h vernr.h sdrdef.h usbdefs.h \
+	fft1def.h osnum.h
+PERSEUS=Makefile perseus.c timing_setup.c input_speed.c globdef.h uidef.h vernr.h \
+	thrdef.h sdrdef.h fft1def.h screendef.h options.h bufbars.h \
+	wscreen.h lscreen.h osnum.h
+POL_GRAPH=Makefile pol_graph.c globdef.h uidef.h screendef.h vernr.h thrdef.h \
+	seldef.h wscreen.h lscreen.h osnum.h fft1def.h
+POWTIM=Makefile powtim.c globdef.h uidef.h sigdef.h fft1def.h fft2def.h screendef.h \
+	thrdef.h seldef.h powtdef.h wscreen.h lscreen.h osnum.h
+POWTVAR=Makefile powtvar.c powtdef.h
+RADAR=Makefile radar.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h hwaredef.h thrdef.h vernr.h \
+	keyboard_def.h options.h bufbars.h blnkdef.h txdef.h \
+	wscreen.h lscreen.h osnum.h
+RTL2832=Makefile rtl2832.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	fft1def.h screendef.h thrdef.h options.h vernr.h hwaredef.h osnum.h
+RXIN=Makefile rxin.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h hwaredef.h thrdef.h options.h bufbars.h \
+	txdef.h osnum.h
+RXOUT=Makefile rxout.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h thrdef.h txdef.h options.h \
+	bufbars.h osnum.h
+SCREEN=Makefile screen.c globdef.h uidef.h screendef.h fft1def.h fft2def.h fft3def.h \
+	blnkdef.h sigdef.h seldef.h thrdef.h hwaredef.h  \
+	txdef.h options.h bufbars.h lscreen.h wscreen.h osnum.h
+SCREENSUB=Makefile screensub.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	seldef.h graphcal.h screendef.h sigdef.h thrdef.h osnum.h \
+	options.h bufbars.h wscreen.h lscreen.h
+SCREENVAR=Makefile screenvar.c globdef.h screendef.h osnum.h
+SDR14=Makefile sdr14.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	thrdef.h fft1def.h screendef.h vernr.h options.h bufbars.h \
+	wscreen.h lscreen.h osnum.h
+SDRIP=Makefile sdrip.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	thrdef.h fft1def.h screendef.h hwaredef.h vernr.h \
+	options.h bufbars.h wscreen.h lscreen.h osnum.h
+SDRPLAY2=Makefile sdrplay2.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
+	options.h bufbars.h wscreen.h lscreen.h
+SDRPLAY3=Makefile sdrplay3.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
+	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
+	options.h bufbars.h wscreen.h lscreen.h
+SDRVAR=Makefile sdrvar.c globdef.h sdrdef.h osnum.h
+SELLIM=Makefile sellim.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
+	 osnum.h
+SELVAR=Makefile selvar.c globdef.h seldef.h osnum.h
+SI570=Makefile si570.c globdef.h uidef.h screendef.h usbdefs.h options.h bufbars.h \
+	loadusb.h thrdef.h wscreen.h lscreen.h osnum.h
+SIGANAL_GRAPH=Makefile siganal_graph.c globdef.h osnum.h uidef.h screendef.h \
+	thrdef.h vernr.h seldef.h sigdef.h fft3def.h
+SIGVAR=Makefile sigvar.c globdef.h sigdef.h osnum.h
+SOFT66=Makefile soft66.c globdef.h uidef.h screendef.h usbdefs.h loadusb.h \
+	options.h bufbars.h wscreen.h lscreen.h osnum.h fft1def.h
+SOUNDCARD=Makefile soundcard.c globdef.h uidef.h loadalsa.h wscreen.h lscreen.h \
+	osnum.h fft1def.h
+SPUR=Makefile spur.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
+	sigdef.h thrdef.h osnum.h
+SPURSUB=Makefile spursub.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
+	osnum.h
+THRVAR=Makefile thrvar.c globdef.h thrdef.h osnum.h
+TIMF2=Makefile timf2.c globdef.h uidef.h fft1def.h osnum.h
+TIMING=Makefile timing.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h sigdef.h \
+	screendef.h thrdef.h wscreen.h lscreen.h osnum.h
+TUNE=Makefile tune.c globdef.h uidef.h fft1def.h fft3def.h screendef.h sigdef.h \
+	seldef.h hwaredef.h  caldef.h thrdef.h sdrdef.h wscreen.h \
+	lscreen.h osnum.h
+TX=Makefile tx.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h \
+	options.h bufbars.h keyboard_def.h osnum.h
+TX_GRAPH=Makefile tx_graph.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h \
+	keyboard_def.h padef.h wscreen.h lscreen.h wscreen.h lscreen.h \
+	osnum.h
+TXSSB=Makefile txssb.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h osnum.h \
+	sdrdef.h keyboard_def.h options.h bufbars.h wscreen.h lscreen.h
+TXTEST=Makefile txtest.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h thrdef.h osnum.h
+TXVAR=Makefile txvar.c globdef.h txdef.h osnum.h
+UI=Makefile ui.c globdef.h uidef.h screendef.h vernr.h sigdef.h fft1def.h fft2def.h \
+	thrdef.h caldef.h powtdef.h keyboard_def.h sdrdef.h txdef.h \
+	options.h seldef.h lscreen.h wscreen.h wdef.h osnum.h
+UIVAR=Makefile uivar.c globdef.h uidef.h thrdef.h osnum.h
+USB2LPT=Makefile usb2lpt.c globdef.h uidef.h screendef.h usbdefs.h options.h bufbars.h \
+	loadusb.h sdrdef.h wscreen.h lscreen.h osnum.h
+WCW=Makefile wcw.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	seldef.h sigdef.h thrdef.h sdrdef.h oclprogs.h osnum.h \
+	options.h bufbars.h blnkdef.h wscreen.h lscreen.h
+WIDE_GRAPH=Makefile wide_graph.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	seldef.h graphcal.h vernr.h sigdef.h thrdef.h wscreen.h lscreen.h \
+	sdrdef.h osnum.h
+WSDR=Makefile wsdr.c globdef.h uidef.h thrdef.h wdef.h fft1def.h sdrdef.h \
+	screendef.h options.h wscreen.h osnum.h
+WSE=Makefile wse.c globdef.h sdrdef.h uidef.h screendef.h hwaredef.h txdef.h \
+	fft1def.h thrdef.h loadusb.h wscreen.h lscreen.h osnum.h
+WXSYS=Makefile wxsys.c globdef.h uidef.h thrdef.h keyboard_def.h osnum.h
+
+# ----------  WELCOME MESSAGE FOR THE NEWCOMER ------------------
+default:
+	@echo ""
+	@echo ""
+	@echo "II------  When running under Microsoft Windows  -------II"
+	@echo "II  Install nasm and mingw32 in the folder C:\mingw32  II"
+	@echo "II  Use configure.exe, then make.bat to get linrad.exe II"
+	@echo "II-----------------------------------------------------II"
+	@echo ""
+	@echo "-------------- When running under Linux	-----------------------"
+	@echo ""
+	@echo "To produce a Linrad executable, do one of the following:"
+	@echo "make xlinrad    - Linrad (32 bit) for Linux"
+	@echo "make xlinrad64  - Linrad (64 bit) for Linux"
+	@echo "make linrad.exe - Cross compile for Windows. mingw32 needed."
+	@echo "make linrad64.exe - Cross compile for Windows. mingw32 needed."
+	@echo ""
+	@echo "To produce scripts that install modules at boot time."
+	@echo "(Reboot after sucessful completion of these commands)"
+	@echo "make svgalib    - For svgalib to run as a normal user."
+	@echo "                    svgalib_helper must be in/etc/linrad/xxxx"
+	@echo "make sdr14      - To use the SDR-14 or SDR-IQ from RFSPACE"
+	@echo "--------- other commands: make configure.exe, make sim ---------"
+	@echo "----------------------------------------------------------------"
+
+# ----------  INFORMATION FOR THE EXPERIENCED LINUX USER ------------------
+install:
+	@echo ""
+	@echo ""
+	@echo "-------------------------------------------------------------------"
+	@echo "The Linrad executable(s) are generated in the current"
+	@echo "directory where all the source code resides."
+	@echo "Type make without arguments to see which executables"
+	@echo "could be made (if all supporting packages are installed.)"
+	@echo ""
+	@echo "Linrad saves run-time parameters in the currently logged"
+	@echo "directory and does not copy the executable to $PREFIX/bin"
+	@echo "That means that old installations are in no way affected"
+	@echo "by new installations. "
+	@echo ""
+	@echo "To install a new version, (replace 03.48 by 03.49) do like this:"
+	@echo "  cd /home/user"
+	@echo "  tar xvfj lir03.49.tbz"
+	@echo "  cd linrad-03.49"
+	@echo "  cp ../linrad-03.48/par* ."
+	@echo "  ./configure"
+	@echo "Then follow the instructions."
+	@echo "-------------------------------------------------------------------"
+	@echo ""
+
+clean: dummy.ol
+	@echo ""
+	@echo ""
+	@echo "-------------------------------------------------------------------"
+	@echo "To remove all old object files and to produce new configuration"
+	@echo "dependent files run ./configure "
+	@echo ""
+	@echo "All parameter files par_* and all calibration data dsp_* files"
+	@echo "will be left unchanged."
+	@echo ""
+	@echo "The ./clean command will remove also par* and dsp*"
+	@echo "It is used to create new versions."
+	@echo "-------------------------------------------------------------------"
+	@echo ""
+	
+#The below is to get an output from make clean.
+dummy.ol:
+
+# ---------- Windows specific things compiling under Windows ---------------
+linrad.exe : Makefile wmain.oz keyboard_var.oz uivar.oz fft1var.oz \
+fft3var.oz txvar.oz blnkvar.oz sigvar.oz calvar.oz screenvar.oz sdrvar.oz \
+selvar.oz ui.oz palette.oz menu.oz fft2var.oz thrvar.oz modesub.oz \
+blank1.oz buf.oz afcsub.oz afc_graph.oz adtest.oz powtvar.oz llsqvar.oz \
+calibrate.oz calsub.oz calsub2.oz caliq.oz coh_osc.oz coherent.oz fm.oz \
+cohsub.oz cwspeed.oz cwdetect.oz eme.oz fft0.oz fft1.oz airspy.oz cuda.oz \
+fft1_re.oz fft2.oz fft3.oz spur.oz spursub.oz hwaredriver.oz screensub.oz \
+freq_control.oz gifsave.oz help.oz hires_graph.oz llsq.oz baseb_graph.oz \
+mix1.oz mix2.oz morse.oz mouse.oz pol_graph.oz powtim.oz rxin.oz screen.oz \
+timing.oz timf2.oz tune.oz txtest.oz wcw.oz radar.oz wide_graph.oz split.oz \
+network.oz sdr14.oz sellim.oz simdasm.oz getiq.oz fftasm.oz hware.oz pa.oz \
+fft2mmxa.oz fft2mmxb.oz fft2mmxc.oz wsys.oz winvar.oz wsetad.oz fonts.oz \
+meter_graph.oz tx.oz tx_graph.oz txssb.oz wxsys.oz perseus.oz pavar.oz \
+rxout.oz sdrip.oz wsdr.oz si570.oz soft66.oz usb2lpt.oz excalibur.oz \
+extio.oz wse.oz rtl2832.oz elektor.oz hidwin.oz fcdpp.oz pcie9842.oz \
+bladerf.oz mirics.oz sdrplay2.oz sdrplay3.oz openhpsdr.oz httpd.oz \
+html_server.oz afedri.oz affinity.oz loadusb.oz soundcard.oz cloudiq.oz \
+airspyhf.oz siganal_graph.oz
+
+	$(WINWCC) -mwindows -mconsole -o linrad.exe \
+wmain.oz keyboard_var.oz uivar.oz fft1var.oz fft3var.oz txvar.oz ui.oz \
+blnkvar.oz sigvar.oz screenvar.oz sdrvar.oz calvar.oz selvar.oz palette.oz \
+thrvar.oz fft2var.oz menu.oz modesub.oz blank1.oz powtvar.oz llsqvar.oz \
+calibrate.oz calsub.oz calsub2.oz caliq.oz buf.oz afcsub.oz afc_graph.oz \
+adtest.oz coh_osc.oz coherent.oz cohsub.oz cwspeed.oz cwdetect.oz spur.oz \
+eme.oz fft0.oz fft1.oz fft1_re.oz fft2.oz fft3.oz llsq.oz airspy.oz cuda.oz \
+freq_control.oz gifsave.oz help.oz hires_graph.oz spursub.oz timf2.oz \
+mix1.oz mix2.oz morse.oz mouse.oz pol_graph.oz powtim.oz rxin.oz screen.oz \
+timing.oz tune.oz txtest.oz wcw.oz wide_graph.oz hwaredriver.oz fftasm.oz \
+fft2mmxa.oz fft2mmxb.oz fft2mmxc.oz simdasm.oz getiq.oz wsys.oz hware.oz \
+split.oz baseb_graph.oz network.oz sdr14.oz sellim.oz wsetad.oz fonts.oz \
+meter_graph.oz screensub.oz wxsys.oz winvar.oz perseus.oz radar.oz pavar.oz \
+pa.oz tx.oz tx_graph.oz txssb.oz rxout.oz fm.oz sdrip.oz wsdr.oz wse.oz \
+si570.oz soft66.oz excalibur.oz usb2lpt.oz -lws2_32 -lgdi32 -lwinmm \
+extio.oz rtl2832.oz elektor.oz hidwin.oz fcdpp.oz pcie9842.oz loadusb.oz \
+bladerf.oz mirics.oz sdrplay2.oz sdrplay3.oz openhpsdr.oz httpd.oz \
+html_server.oz afedri.oz affinity.oz soundcard.oz cloudiq.oz airspyhf.oz \
+siganal_graph.oz \
+-lole32 -lsetupapi -lcomdlg32
+
+
+
+split.oz: Makefile splitw.s
+	$(WINNASM) splitw.s -o split.oz
+fft2mmxa.oz: Makefile fft2mmxaw.s
+	$(WINNASM) fft2mmxaw.s -o fft2mmxa.oz
+fft2mmxb.oz: Makefile fft2mmxbw.s
+	$(WINNASM) fft2mmxbw.s -o fft2mmxb.oz
+fft2mmxc.oz: Makefile fft2mmxcw.s
+	$(WINNASM) fft2mmxcw.s -o fft2mmxc.oz
+fftasm.oz: Makefile fftasmw.s
+	$(WINNASM) fftasmw.s -o fftasm.oz
+getiq.oz: Makefile getiqw.s
+	$(WINNASM) getiqw.s -o getiq.oz
+simdasm.oz: Makefile simdasmw.s
+	$(WINNASM) simdasmw.s -o simdasm.oz
+hware.oz: Makefile hwarew.s
+	$(WINNASM) hwarew.s -o hware.oz
+
+wsys.oz: Makefile wsys.c wdef.h globdef.h uidef.h fft1def.h fft2def.h \
+	fft3def.h screendef.h sigdef.h seldef.h blnkdef.h caldef.h txdef.h \
+	sdrdef.h vernr.h keyboard_def.h thrdef.h hwaredef.h osnum.h
+	$(WINWCC) wsys.c $(CFW) wsys.oz
+wxsys.oz: Makefile $(WXSYS)
+	$(WINWCC) wxsys.c $(CFW) wxsys.oz
+wmain.oz: wmain.c wdef.h globdef.h uidef.h screendef.h wscreen.h \
+	vernr.h options.h bufbars.h keyboard_def.h thrdef.h osnum.h
+	$(WINWCC) wmain.c $(CFW) wmain.oz
+winvar.oz: Makefile winvar.c wdef.h globdef.h uidef.h fft1def.h fft2def.h \
+	fft3def.h screendef.h sigdef.h seldef.h blnkdef.h caldef.h txdef.h \
+	vernr.h keyboard_def.h thrdef.h osnum.h
+	$(WINWCC) winvar.c $(CFW) winvar.oz
+wsetad.oz: Makefile wsetad.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h blnkdef.h caldef.h sdrdef.h txdef.h \
+	vernr.h keyboard_def.h hwaredef.h options.h bufbars.h osnum.h \
+	wscreen.h thrdef.h timing_setup.c input_speed.c 
+	$(WINWCC) wsetad.c $(CFW) wsetad.oz
+wsdr.oz: Makefile $(WSDR) 
+	$(WINWCC) wsdr.c $(CFW) wsdr.oz 
+
+
+
+adtest.oz: Makefile $(ADTEST)
+	$(WINWCC) adtest.c $(CFW) adtest.oz
+afc_graph.oz: Makefile $(AFC_GRAPH)
+	$(WINWCC) afc_graph.c $(CFW) afc_graph.oz
+afcsub.oz: Makefile $(AFCSUB)
+	$(WINWCC) afcsub.c $(CFW) afcsub.oz
+afedri.oz: Makefile $(AFEDRI)
+	$(WINWCC) afedri.c $(CFW) afedri.oz
+affinity.oz: Makefile $(AFFFINITY)
+	$(WINWCC) affinity.c $(CFW) affinity.oz
+airspy.oz: $(AIRSPY)
+	$(WINWCC) airspy.c $(CFW) airspy.oz
+airspyhf.oz: $(AIRSPYHF)
+	$(WINWCC) airspyhf.c $(CFW) airspyhf.oz
+baseb_graph.oz: Makefile $(BASEB_GRAPH)
+	$(WINWCC) baseb_graph.c $(CFW) baseb_graph.oz
+buf.oz: Makefile $(BUF)
+	$(WINWCC) buf.c $(CFW) buf.oz
+bladerf.oz: Makefile $(BLADERF)
+	$(WINWCC) bladerf.c $(CFW) bladerf.oz
+blank1.oz: Makefile $(BLANK1)
+	$(WINWCC) blank1.c $(CFW) blank1.oz
+blnkvar.oz: Makefile $(BLNKVAR)
+	$(WINWCC) blnkvar.c $(CFW) blnkvar.oz
+calibrate.oz: Makefile $(CALIBRATE)
+	$(WINWCC) calibrate.c $(CFW) calibrate.oz
+caliq.oz: Makefile $(CALIQ)
+	$(WINWCC) caliq.c $(CFW) caliq.oz
+calsub.oz: Makefile $(CALSUB)
+	$(WINWCC) calsub.c $(CFW) calsub.oz
+calsub2.oz: Makefile $(CALSUB2)
+	$(WINWCC) calsub2.c $(CFW) calsub2.oz
+calvar.oz: Makefile $(CALVAR)
+	$(WINWCC) calvar.c $(CFW) calvar.oz
+cloudiq.oz: Makefile $(CLOUDIQ)
+	$(WINWCC) cloudiq.c $(CFW) cloudiq.oz
+coh_osc.oz: Makefile $(COH_OSC)
+	$(WINWCC) coh_osc.c $(CFW) coh_osc.oz
+coherent.oz: Makefile $(COHERENT)
+	$(WINWCC) coherent.c $(CFW) coherent.oz
+cohsub.oz: Makefile $(COHSUB)
+	$(WINWCC) cohsub.c $(CFW) cohsub.oz
+cuda.oz: $(CUDA)
+	$(WINWCC) cuda.c $(CFW) cuda.oz
+cwspeed.oz: Makefile $(CWSPEED)
+	$(WINWCC) cwspeed.c $(CFW) cwspeed.oz
+cwdetect.oz: Makefile $(CWDETECT)
+	$(WINWCC) cwdetect.c $(CFW) cwdetect.oz
+elektor.oz: Makefile $(ELEKTOR)
+	$(WINWCC) elektor.c $(CFW) elektor.oz
+eme.oz: Makefile $(EME)
+	$(WINWCC) eme.c $(CFW) eme.oz
+excalibur.oz: Makefile $(EXCALIBUR)
+	$(WINWCC) excalibur.c $(CFW) excalibur.oz
+extio.oz: Makefile $(EXTIO)
+	$(WINWCC) extio.c $(CFW) extio.oz
+fcdpp.oz: Makefile $(FCDPP)
+	$(WINWCC) fcdpp.c $(CFW) fcdpp.oz
+fft0.oz: Makefile $(FFT0)
+	$(WINWCC) fft0.c $(CFW) fft0.oz
+fft1.oz: Makefile $(FFT1)
+	$(WINWCC) fft1.c $(CFW) fft1.oz
+fft1_re.oz: Makefile $(FFT1_RE)
+	$(WINWCC) fft1_re.c $(CFW) fft1_re.oz
+fft1var.oz: Makefile $(FFT1VAR)
+	$(WINWCC) fft1var.c $(CFW) fft1var.oz
+fft2.oz: Makefile $(FFT2)
+	$(WINWCC) fft2.c $(CFW) fft2.oz
+fft2var.oz: Makefile $(FFT2VAR)
+	$(WINWCC) fft2var.c $(CFW) fft2var.oz
+fft3.oz: Makefile $(FFT3)
+	$(WINWCC) fft3.c $(CFW) fft3.oz
+fft3var.oz: Makefile $(FFT3VAR)
+	$(WINWCC) fft3var.c $(CFW) fft3var.oz
+fm.oz: Makefile $(FM) 
+	$(WINWCC) fm.c $(CFW) fm.oz
+fonts.oz: Makefile $(FONTS)
+	$(WINWCC) fonts.c $(CFW) fonts.oz
+freq_control.oz: Makefile $(FREQ_CONTROL) 
+	$(WINWCC) freq_control.c $(CFW) freq_control.oz
+gifsave.oz: Makefile $(GIFSAVE)
+	$(WINWCC) gifsave.c $(CFW) gifsave.oz
+help.oz: Makefile $(HELP)
+	$(WINWCC) help.c $(CFW) help.oz
+hidwin.oz: Makefile $(HIDWIN)
+	$(WINWCC) hidwin.c $(CFW) hidwin.oz
+hires_graph.oz: Makefile $(HIRES_GRAPH)
+	$(WINWCC) hires_graph.c $(CFW) hires_graph.oz
+html_server.oz: Makefile $(HTML_SERVER)
+	$(WINWCC) html_server.c $(CFW) html_server.oz
+httpd.oz: Makefile $(HTTPD)
+	$(WINWCC) httpd.c $(CFW) httpd.oz
+hwaredriver.oz: Makefile $(HWAREDRIVER)  wdef.h
+	$(WINWCC) hwaredriver.c -DLUSERS_ROUTINES_PRESENT=0 -DWUSERS_ROUTINES_PRESENT=0 $(CFW) hwaredriver.oz
+keyboard_var.oz: Makefile $(KEYBOARD_VAR)
+	$(WINWCC) keyboard_var.c $(CFW) keyboard_var.oz
+llsq.oz: Makefile $(LLSQ)
+	$(WINWCC) llsq.c $(CFW) llsq.oz
+llsqvar.oz: Makefile $(LLSQVAR)
+	$(WINWCC) llsqvar.c $(CFW) llsqvar.oz
+loadusb.oz: Makefile $(LOADUSB)
+	$(WINWCC) loadusb.c $(CFW) loadusb.oz
+menu.oz: Makefile $(MENU)
+	$(WINWCC) menu.c -DUSERS_EXTRA_PRESENT=0 $(CFW) menu.oz
+meter_graph.oz: Makefile $(METER_GRAPH)
+	$(WINWCC) meter_graph.c $(CFW) meter_graph.oz
+mix1.oz: Makefile $(MIX1)
+	$(WINWCC) mix1.c $(CFW) mix1.oz
+mix2.oz: Makefile $(MIX2)
+	$(WINWCC) mix2.c $(CFW) mix2.oz
+mirics.oz: Makefile $(MIRICS)
+	$(WINWCC) mirics.c $(CFW) mirics.oz
+modesub.oz: Makefile $(MODESUB)
+	$(WINWCC) modesub.c -DUSERS_EXTRA_PRESENT=0 $(CFW) modesub.oz
+morse.oz: Makefile $(MORSE)
+	$(WINWCC) morse.c $(CFW) morse.oz
+mouse.oz: Makefile $(MOUSE)
+	$(WINWCC) mouse.c $(CFW) mouse.oz
+network.oz: Makefile $(NETWORK)
+	$(WINWCC) network.c $(CFW) network.oz
+pa.oz: Makefile $(PA)
+	$(WINWCC) pa.c $(CFW) pa.oz
+openhpsdr.oz: Makefile $(OPENHPSDR)
+	$(WINWCC) openhpsdr.c $(CFW) openhpsdr.oz
+pavar.oz: Makefile $(PAVAR)
+	$(WINWCC) pavar.c $(CFW) pavar.oz
+palette.oz: Makefile $(PALETTE)
+	$(WINWCC) palette.c $(CFW) palette.oz
+pcie9842.oz: Makefile $(PCIE9842)
+	$(WINWCC) pcie9842.c $(CFW) pcie9842.oz
+perseus.oz: Makefile $(PERSEUS)
+	$(WINWCC) perseus.c $(CFW) perseus.oz
+pol_graph.oz: Makefile $(POL_GRAPH)
+	$(WINWCC) pol_graph.c $(CFW) pol_graph.oz
+powtim.oz: Makefile $(POWTIM)
+	$(WINWCC) powtim.c $(CFW) powtim.oz
+powtvar.oz: Makefile $(POWTVAR)
+	$(WINWCC) powtvar.c $(CFW) powtvar.oz
+radar.oz: Makefile $(RADAR)
+	$(WINWCC) radar.c $(CFW) radar.oz
+rtl2832.oz: Makefile $(RTL2832)
+	$(WINWCC) rtl2832.c $(CFW) rtl2832.oz
+rxin.oz: Makefile $(RXIN)
+	$(WINWCC) rxin.c $(CFW) rxin.oz
+rxout.oz: Makefile $(RXOUT)
+	$(WINWCC) rxout.c $(CFW) rxout.oz
+screen.oz: Makefile $(SCREEN)
+	$(WINWCC) screen.c -DUSERS_EXTRA_PRESENT=0 $(CFW) screen.oz
+screensub.oz: Makefile $(SCREENSUB)
+	$(WINWCC) screensub.c $(CFW) screensub.oz
+screenvar.oz: Makefile $(SCREENVAR)
+	$(WINWCC) screenvar.c $(CFW) screenvar.oz
+sdr14.oz: Makefile $(SDR14)
+	$(WINWCC) sdr14.c $(CFW) sdr14.oz
+sdrip.oz: Makefile $(SDRIP)
+	$(WINWCC) sdrip.c $(CFW) sdrip.oz
+sdrplay2.oz: Makefile $(SDRPLAY2)
+	$(WINWCC) sdrplay2.c $(CFW) sdrplay2.oz
+sdrplay3.oz: Makefile $(SDRPLAY3)
+	$(WINWCC) sdrplay3.c $(CFW) sdrplay3.oz
+sdrvar.oz: Makefile $(SDRVAR)
+	$(WINWCC) sdrvar.c $(CFW) sdrvar.oz
+sellim.oz: Makefile $(SELLIM)
+	$(WINWCC) sellim.c $(CFW) sellim.oz
+selvar.oz: Makefile $(SELVAR)
+	$(WINWCC) selvar.c $(CFW) selvar.oz
+si570.oz: Makefile $(SI570)
+	$(WINWCC) si570.c $(CFW) si570.oz
+siganal_graph.oz: Makefile $(SIGANAL_GRAPH)
+	$(WINWCC) siganal_graph.c $(CFW) siganal_graph.oz
+sigvar.oz: Makefile $(SIGVAR)
+	$(WINWCC) sigvar.c $(CFW) sigvar.oz
+soft66.oz: Makefile $(SOFT66)
+	$(WINWCC) soft66.c $(CFW) soft66.oz
+soundcard.oz: Makefile $(SOUNDCARD)
+	$(WINWCC) soundcard.c $(CFW) soundcard.oz
+spur.oz: Makefile $(SPUR)
+	$(WINWCC) spur.c $(CFW) spur.oz
+spursub.oz: Makefile $(SPURSUB)
+	$(WINWCC) spursub.c $(CFW) spursub.oz
+thrvar.oz: Makefile $(THRVAR)
+	$(WINWCC) thrvar.c $(CFW) thrvar.oz
+timing.oz: Makefile $(TIMING)
+	$(WINWCC) timing.c $(CFW) timing.oz
+timf2.oz: Makefile $(TIMF2)
+	$(WINWCC) timf2.c $(CFW) timf2.oz
+tune.oz: Makefile $(TUNE)
+	$(WINWCC) tune.c $(CFW) tune.oz
+tx.oz: Makefile $(TX)
+	$(WINWCC) tx.c $(CFW) tx.oz
+tx_graph.oz: Makefile $(TX_GRAPH)
+	$(WINWCC) tx_graph.c $(CFW) tx_graph.oz
+txssb.oz: Makefile $(TXSSB)
+	$(WINWCC) txssb.c $(CFW) txssb.oz
+txtest.oz: Makefile $(TXTEST)
+	$(WINWCC) txtest.c $(CFW) txtest.oz
+txvar.oz: Makefile $(TXVAR)
+	$(WINWCC) txvar.c $(CFW) txvar.oz
+ui.oz: Makefile $(UI) wdef.h
+	$(WINWCC) ui.c $(CFW) ui.oz
+uivar.oz: Makefile $(UIVAR)
+	$(WINWCC) uivar.c $(CFW) uivar.oz
+usb2lpt.oz: Makefile $(USB2LPT)
+	$(WINWCC) usb2lpt.c $(CFW) usb2lpt.oz
+wcw.oz: Makefile $(WCW)
+	$(WINWCC) wcw.c -DUSERS_EXTRA_PRESENT=0 $(CFW) wcw.oz
+wide_graph.oz: Makefile $(WIDE_GRAPH)
+	$(WINWCC) wide_graph.c $(CFW) wide_graph.oz
+wse.oz: Makefile $(WSE)
+	$(WINWCC) wse.c $(CFW) wse.oz
+
+linrad64.exe : Makefile wmain.ox keyboard_var.ox uivar.ox fft1var.ox \
+fft3var.ox txvar.ox blnkvar.ox sigvar.ox calvar.ox screenvar.ox sdrvar.ox \
+selvar.ox ui.ox palette.ox menu.ox fft2var.ox thrvar.ox modesub.ox \
+blank1.ox buf.ox afcsub.ox afc_graph.ox adtest.ox powtvar.ox llsqvar.ox \
+calibrate.ox calsub.ox calsub2.ox caliq.ox coh_osc.ox coherent.ox fm.ox \
+cohsub.ox cwspeed.ox cwdetect.ox eme.ox fft0.ox fft1.ox airspy.ox cuda.ox \
+fft1_re.ox fft2.ox fft3.ox spur.ox spursub.ox hwaredriver.ox screensub.ox \
+freq_control.ox gifsave.ox help.ox hires_graph.ox llsq.ox baseb_graph.ox \
+mix1.ox mix2.ox morse.ox mouse.ox pol_graph.ox powtim.ox rxin.ox screen.ox \
+timing.ox timf2.ox tune.ox txtest.ox wcw.ox radar.ox wide_graph.ox split.ox \
+network.ox sdr14.ox sellim.ox simdasm.ox getiq.ox fftasm.ox hware.ox pa.ox \
+fft2mmxa.ox fft2mmxb.ox fft2mmxc.ox wsys.ox winvar.ox wsetad.ox fonts.ox \
+meter_graph.ox tx.ox tx_graph.ox txssb.ox wxsys.ox perseus.ox pavar.ox \
+rxout.ox sdrip.ox wsdr.ox si570.ox soft66.ox usb2lpt.ox excalibur.ox \
+extio.ox wse.ox rtl2832.ox elektor.ox hidwin.ox fcdpp.ox pcie9842.ox \
+bladerf.ox mirics.ox sdrplay2.ox sdrplay3.ox openhpsdr.ox httpd.ox \
+html_server.ox afedri.ox affinity.ox loadusb.ox soundcard.ox cloudiq.ox \
+airspyhf.ox siganal_graph.ox
+
+	$(WINWCC64) -mwindows -mconsole -o linrad64.exe \
+wmain.ox keyboard_var.ox uivar.ox fft1var.ox fft3var.ox txvar.ox ui.ox \
+blnkvar.ox sigvar.ox screenvar.ox sdrvar.ox calvar.ox selvar.ox palette.ox \
+thrvar.ox fft2var.ox menu.ox modesub.ox blank1.ox powtvar.ox llsqvar.ox \
+calibrate.ox calsub.ox calsub2.ox caliq.ox buf.ox afcsub.ox afc_graph.ox \
+adtest.ox coh_osc.ox coherent.ox cohsub.ox cwspeed.ox cwdetect.ox spur.ox \
+eme.ox fft0.ox fft1.ox fft1_re.ox fft2.ox fft3.ox llsq.ox airspy.ox cuda.ox \
+freq_control.ox gifsave.ox help.ox hires_graph.ox spursub.ox timf2.ox \
+mix1.ox mix2.ox morse.ox mouse.ox pol_graph.ox powtim.ox rxin.ox screen.ox \
+timing.ox tune.ox txtest.ox wcw.ox wide_graph.ox hwaredriver.ox fftasm.ox \
+fft2mmxa.ox fft2mmxb.ox fft2mmxc.ox simdasm.ox getiq.ox wsys.ox hware.ox \
+split.ox baseb_graph.ox network.ox sdr14.ox sellim.ox wsetad.ox fonts.ox \
+meter_graph.ox screensub.ox wxsys.ox winvar.ox perseus.ox radar.ox pavar.ox \
+pa.ox tx.ox tx_graph.ox txssb.ox rxout.ox fm.ox sdrip.ox wsdr.ox wse.ox \
+si570.ox soft66.ox excalibur.ox usb2lpt.ox -lws2_32 -lgdi32 -lwinmm \
+extio.ox rtl2832.ox elektor.ox hidwin.ox fcdpp.ox pcie9842.ox loadusb.ox \
+bladerf.ox mirics.ox sdrplay2.ox sdrplay3.ox openhpsdr.ox httpd.ox \
+html_server.ox afedri.ox affinity.ox soundcard.ox cloudiq.ox airspyhf.ox \
+siganal_graph.ox -lole32 -lsetupapi -lcomdlg32
+
+
+
+split.ox: Makefile split64.s
+	$(WINNASM64) split64.s -o split.ox
+fft2mmxa.ox: Makefile fft2mmxa64.s
+	$(WINNASM64) fft2mmxa64.s -o fft2mmxa.ox
+fft2mmxb.ox: Makefile fft2mmxb64.s
+	$(WINNASM64) fft2mmxb64.s -o fft2mmxb.ox
+fft2mmxc.ox: Makefile fft2mmxc64.s
+	$(WINNASM64) fft2mmxc64.s -o fft2mmxc.ox
+fftasm.ox: Makefile fftasm64.s
+	$(WINNASM64) fftasm64.s -o fftasm.ox
+getiq.ox: Makefile getiq64.s
+	$(WINNASM64) getiq64.s -o getiq.ox
+simdasm.ox: Makefile simdasm64.s
+	$(WINNASM64) simdasm64.s -o simdasm.ox
+hware.ox: Makefile hware64.s
+	$(WINNASM64) hware64.s -o hware.ox
+
+wsys.ox: Makefile wsys.c wdef.h globdef.h uidef.h fft1def.h fft2def.h \
+	fft3def.h screendef.h sigdef.h seldef.h blnkdef.h caldef.h txdef.h \
+	sdrdef.h vernr.h keyboard_def.h thrdef.h hwaredef.h osnum.h
+	$(WINWCC64) wsys.c $(CFW64) wsys.ox
+wxsys.ox: Makefile $(WXSYS)
+	$(WINWCC64) wxsys.c $(CFW64) wxsys.ox
+wmain.ox: wmain.c wdef.h globdef.h uidef.h screendef.h wscreen.h \
+	vernr.h options.h bufbars.h keyboard_def.h thrdef.h osnum.h
+	$(WINWCC64) wmain.c $(CFW64) wmain.ox
+winvar.ox: Makefile winvar.c wdef.h globdef.h uidef.h fft1def.h fft2def.h \
+	fft3def.h screendef.h sigdef.h seldef.h blnkdef.h caldef.h txdef.h \
+	vernr.h keyboard_def.h thrdef.h osnum.h
+	$(WINWCC64) winvar.c $(CFW64) winvar.ox
+wsetad.ox: Makefile wsetad.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h blnkdef.h caldef.h sdrdef.h txdef.h \
+	vernr.h keyboard_def.h hwaredef.h options.h bufbars.h wscreen.h \
+	thrdef.h timing_setup.c input_speed.c osnum.h 
+	$(WINWCC64) wsetad.c $(CFW64) wsetad.ox
+wsdr.ox: Makefile $(WSDR) 
+	$(WINWCC64) wsdr.c $(CFW64) wsdr.ox 
+
+
+
+adtest.ox: Makefile $(ADTEST)
+	$(WINWCC64) adtest.c $(CFW64) adtest.ox
+afc_graph.ox: Makefile $(AFC_GRAPH)
+	$(WINWCC64) afc_graph.c $(CFW64) afc_graph.ox
+afcsub.ox: Makefile $(AFCSUB)
+	$(WINWCC64) afcsub.c $(CFW64) afcsub.ox
+afedri.ox: Makefile $(AFEDRI)
+	$(WINWCC64) afedri.c $(CFW64) afedri.ox
+affinity.ox: Makefile $(AFFFINITY)
+	$(WINWCC64) affinity.c $(CFW64) affinity.ox
+airspy.ox: $(AIRSPY)
+	$(WINWCC64) airspy.c $(CFW64) airspy.ox
+airspyhf.ox: $(AIRSPYHF)
+	$(WINWCC64) airspyhf.c $(CFW64) airspyhf.ox
+baseb_graph.ox: Makefile $(BASEB_GRAPH)
+	$(WINWCC64) baseb_graph.c $(CFW64) baseb_graph.ox
+buf.ox: Makefile $(BUF)
+	$(WINWCC64) buf.c $(CFW64) buf.ox
+bladerf.ox: Makefile $(BLADERF)
+	$(WINWCC64) bladerf.c $(CFW64) bladerf.ox
+blank1.ox: Makefile $(BLANK1)
+	$(WINWCC64) blank1.c $(CFW64) blank1.ox
+blnkvar.ox: Makefile $(BLNKVAR)
+	$(WINWCC64) blnkvar.c $(CFW64) blnkvar.ox
+calibrate.ox: Makefile $(CALIBRATE)
+	$(WINWCC64) calibrate.c $(CFW64) calibrate.ox
+caliq.ox: Makefile $(CALIQ)
+	$(WINWCC64) caliq.c $(CFW64) caliq.ox
+calsub.ox: Makefile $(CALSUB)
+	$(WINWCC64) calsub.c $(CFW64) calsub.ox
+calsub2.ox: Makefile $(CALSUB2)
+	$(WINWCC64) calsub2.c $(CFW64) calsub2.ox
+calvar.ox: Makefile $(CALVAR)
+	$(WINWCC64) calvar.c $(CFW64) calvar.ox
+cloudiq.ox: Makefile $(CLOUDIQ)
+	$(WINWCC64) cloudiq.c $(CFW64) cloudiq.ox
+coh_osc.ox: Makefile $(COH_OSC)
+	$(WINWCC64) coh_osc.c $(CFW64) coh_osc.ox
+coherent.ox: Makefile $(COHERENT)
+	$(WINWCC64) coherent.c $(CFW64) coherent.ox
+cohsub.ox: Makefile $(COHSUB)
+	$(WINWCC64) cohsub.c $(CFW64) cohsub.ox
+cuda.ox: $(CUDA)
+	$(WINWCC64) cuda.c $(CFW64) cuda.ox
+cwspeed.ox: Makefile $(CWSPEED)
+	$(WINWCC64) cwspeed.c $(CFW64) cwspeed.ox
+cwdetect.ox: Makefile $(CWDETECT)
+	$(WINWCC64) cwdetect.c $(CFW64) cwdetect.ox
+elektor.ox: Makefile $(ELEKTOR)
+	$(WINWCC64) elektor.c $(CFW64) elektor.ox
+eme.ox: Makefile $(EME)
+	$(WINWCC64) eme.c $(CFW64) eme.ox
+excalibur.ox: Makefile $(EXCALIBUR)
+	$(WINWCC64) excalibur.c $(CFW64) excalibur.ox
+extio.ox: Makefile $(EXTIO)
+	$(WINWCC64) extio.c $(CFW64) extio.ox
+fcdpp.ox: Makefile $(FCDPP)
+	$(WINWCC64) fcdpp.c $(CFW64) fcdpp.ox
+fft0.ox: Makefile $(FFT0)
+	$(WINWCC64) fft0.c $(CFW64) fft0.ox
+fft1.ox: Makefile $(FFT1)
+	$(WINWCC64) fft1.c $(CFW64) fft1.ox
+fft1_re.ox: Makefile $(FFT1_RE)
+	$(WINWCC64) fft1_re.c $(CFW64) fft1_re.ox
+fft1var.ox: Makefile $(FFT1VAR)
+	$(WINWCC64) fft1var.c $(CFW64) fft1var.ox
+fft2.ox: Makefile $(FFT2)
+	$(WINWCC64) fft2.c $(CFW64) fft2.ox
+fft2var.ox: Makefile $(FFT2VAR)
+	$(WINWCC64) fft2var.c $(CFW64) fft2var.ox
+fft3.ox: Makefile $(FFT3)
+	$(WINWCC64) fft3.c $(CFW64) fft3.ox
+fft3var.ox: Makefile $(FFT3VAR)
+	$(WINWCC64) fft3var.c $(CFW64) fft3var.ox
+fm.ox: Makefile $(FM) 
+	$(WINWCC64) fm.c $(CFW64) fm.ox
+fonts.ox: Makefile $(FONTS)
+	$(WINWCC64) fonts.c $(CFW64) fonts.ox
+freq_control.ox: Makefile $(FREQ_CONTROL) 
+	$(WINWCC64) freq_control.c $(CFW64) freq_control.ox
+gifsave.ox: Makefile $(GIFSAVE)
+	$(WINWCC64) gifsave.c $(CFW64) gifsave.ox
+help.ox: Makefile $(HELP)
+	$(WINWCC64) help.c $(CFW64) help.ox
+hidwin.ox: Makefile $(HIDWIN)
+	$(WINWCC64) hidwin.c $(CFW64) hidwin.ox
+hires_graph.ox: Makefile $(HIRES_GRAPH)
+	$(WINWCC64) hires_graph.c $(CFW64) hires_graph.ox
+html_server.ox: Makefile $(HTML_SERVER)
+	$(WINWCC64) html_server.c $(CFW64) html_server.ox
+httpd.ox: Makefile $(HTTPD)
+	$(WINWCC64) httpd.c $(CFW64) httpd.ox
+hwaredriver.ox: Makefile $(HWAREDRIVER)  wdef.h
+	$(WINWCC64) hwaredriver.c -DLUSERS_ROUTINES_PRESENT=0 -DWUSERS_ROUTINES_PRESENT=0 $(CFW64) hwaredriver.ox
+keyboard_var.ox: Makefile $(KEYBOARD_VAR)
+	$(WINWCC64) keyboard_var.c $(CFW64) keyboard_var.ox
+llsq.ox: Makefile $(LLSQ)
+	$(WINWCC64) llsq.c $(CFW64) llsq.ox
+llsqvar.ox: Makefile $(LLSQVAR)
+	$(WINWCC64) llsqvar.c $(CFW64) llsqvar.ox
+loadusb.ox: Makefile $(LOADUSB)
+	$(WINWCC64) loadusb.c $(CFW64) loadusb.ox
+menu.ox: Makefile $(MENU)
+	$(WINWCC64) menu.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) menu.ox
+meter_graph.ox: Makefile $(METER_GRAPH)
+	$(WINWCC64) meter_graph.c $(CFW64) meter_graph.ox
+mix1.ox: Makefile $(MIX1)
+	$(WINWCC64) mix1.c $(CFW64) mix1.ox
+mix2.ox: Makefile $(MIX2)
+	$(WINWCC64) mix2.c $(CFW64) mix2.ox
+mirics.ox: Makefile $(MIRICS)
+	$(WINWCC64) mirics.c $(CFW64) mirics.ox
+modesub.ox: Makefile $(MODESUB)
+	$(WINWCC64) modesub.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) modesub.ox
+morse.ox: Makefile $(MORSE)
+	$(WINWCC64) morse.c $(CFW64) morse.ox
+mouse.ox: Makefile $(MOUSE)
+	$(WINWCC64) mouse.c $(CFW64) mouse.ox
+network.ox: Makefile $(NETWORK)
+	$(WINWCC64) network.c $(CFW64) network.ox
+pa.ox: Makefile $(PA)
+	$(WINWCC64) pa.c $(CFW64) pa.ox
+openhpsdr.ox: Makefile $(OPENHPSDR)
+	$(WINWCC64) openhpsdr.c $(CFW64) openhpsdr.ox
+pavar.ox: Makefile $(PAVAR)
+	$(WINWCC64) pavar.c $(CFW64) pavar.ox
+palette.ox: Makefile $(PALETTE)
+	$(WINWCC64) palette.c $(CFW64) palette.ox
+pcie9842.ox: Makefile $(PCIE9842)
+	$(WINWCC64) pcie9842.c $(CFW64) pcie9842.ox
+perseus.ox: Makefile $(PERSEUS)
+	$(WINWCC64) perseus.c $(CFW64) perseus.ox
+pol_graph.ox: Makefile $(POL_GRAPH)
+	$(WINWCC64) pol_graph.c $(CFW64) pol_graph.ox
+powtim.ox: Makefile $(POWTIM)
+	$(WINWCC64) powtim.c $(CFW64) powtim.ox
+powtvar.ox: Makefile $(POWTVAR)
+	$(WINWCC64) powtvar.c $(CFW64) powtvar.ox
+radar.ox: Makefile $(RADAR)
+	$(WINWCC64) radar.c $(CFW64) radar.ox
+rtl2832.ox: Makefile $(RTL2832)
+	$(WINWCC64) rtl2832.c $(CFW64) rtl2832.ox
+rxin.ox: Makefile $(RXIN)
+	$(WINWCC64) rxin.c $(CFW64) rxin.ox
+rxout.ox: Makefile $(RXOUT)
+	$(WINWCC64) rxout.c $(CFW64) rxout.ox
+screen.ox: Makefile $(SCREEN)
+	$(WINWCC64) screen.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) screen.ox
+screensub.ox: Makefile $(SCREENSUB)
+	$(WINWCC64) screensub.c $(CFW64) screensub.ox
+screenvar.ox: Makefile $(SCREENVAR)
+	$(WINWCC64) screenvar.c $(CFW64) screenvar.ox
+sdr14.ox: Makefile $(SDR14)
+	$(WINWCC64) sdr14.c $(CFW64) sdr14.ox
+sdrip.ox: Makefile $(SDRIP)
+	$(WINWCC64) sdrip.c $(CFW64) sdrip.ox
+sdrplay2.ox: Makefile $(SDRPLAY2)
+	$(WINWCC64) sdrplay2.c $(CFW64) sdrplay2.ox
+sdrplay3.ox: Makefile $(SDRPLAY3)
+	$(WINWCC64) sdrplay3.c $(CFW64) sdrplay3.ox
+sdrvar.ox: Makefile $(SDRVAR)
+	$(WINWCC64) sdrvar.c $(CFW64) sdrvar.ox
+sellim.ox: Makefile $(SELLIM)
+	$(WINWCC64) sellim.c $(CFW64) sellim.ox
+selvar.ox: Makefile $(SELVAR)
+	$(WINWCC64) selvar.c $(CFW64) selvar.ox
+si570.ox: Makefile $(SI570)
+	$(WINWCC64) si570.c $(CFW64) si570.ox
+siganal_graph.ox: Makefile $(SIGANAL_GRAPH)
+	$(WINWCC64) siganal_graph.c $(CFW64) siganal_graph.ox
+sigvar.ox: Makefile $(SIGVAR)
+	$(WINWCC64) sigvar.c $(CFW64) sigvar.ox
+soft66.ox: Makefile $(SOFT66)
+	$(WINWCC64) soft66.c $(CFW64) soft66.ox
+soundcard.ox: Makefile $(SOUNDCARD)
+	$(WINWCC64) soundcard.c $(CFW64) soundcard.ox
+spur.ox: Makefile $(SPUR)
+	$(WINWCC64) spur.c $(CFW64) spur.ox
+spursub.ox: Makefile $(SPURSUB)
+	$(WINWCC64) spursub.c $(CFW64) spursub.ox
+thrvar.ox: Makefile $(THRVAR)
+	$(WINWCC64) thrvar.c $(CFW64) thrvar.ox
+timing.ox: Makefile $(TIMING)
+	$(WINWCC64) timing.c $(CFW64) timing.ox
+timf2.ox: Makefile $(TIMF2)
+	$(WINWCC64) timf2.c $(CFW64) timf2.ox
+tune.ox: Makefile $(TUNE)
+	$(WINWCC64) tune.c $(CFW64) tune.ox
+tx.ox: Makefile $(TX)
+	$(WINWCC64) tx.c $(CFW64) tx.ox
+tx_graph.ox: Makefile $(TX_GRAPH)
+	$(WINWCC64) tx_graph.c $(CFW64) tx_graph.ox
+txssb.ox: Makefile $(TXSSB)
+	$(WINWCC64) txssb.c $(CFW64) txssb.ox
+txtest.ox: Makefile $(TXTEST)
+	$(WINWCC64) txtest.c $(CFW64) txtest.ox
+txvar.ox: Makefile $(TXVAR)
+	$(WINWCC64) txvar.c $(CFW64) txvar.ox
+ui.ox: Makefile $(UI) wdef.h
+	$(WINWCC64) ui.c $(CFW64) ui.ox
+uivar.ox: Makefile $(UIVAR)
+	$(WINWCC64) uivar.c $(CFW64) uivar.ox
+usb2lpt.ox: Makefile $(USB2LPT)
+	$(WINWCC64) usb2lpt.c $(CFW64) usb2lpt.ox
+wcw.ox: Makefile $(WCW)
+	$(WINWCC64) wcw.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) wcw.ox
+wide_graph.ox: Makefile $(WIDE_GRAPH)
+	$(WINWCC64) wide_graph.c $(CFW64) wide_graph.ox
+wse.ox: Makefile $(WSE)
+	$(WINWCC64) wse.c $(CFW64) wse.ox
+
+
+
+
+
+# ---------- Windows specific things compiling under Linux ---------------
+  ifeq ("@WLIN32_OK@", "0")
+for_linux : Makefile
+	@echo " "
+  ifeq ("@MINGW32_OK@", "0")
+	@echo "---------------------------------------------------------"
+	@echo "To cross compile for Windows you need the w64-mingw32 package."
+	@echo " "
+	@echo "Install the w64-mingw32 package and run configure again."
+	@echo "Debian, Ubuntu: apt-get install mingw32"
+	@echo "Debian, Ubuntu: apt-get install gcc-mingw32"
+	@echo "Debian, Ubuntu: apt-get install gcc-mingw-w64-i686"
+	@echo "old Fedora: yum install mingw32-gcc"
+	@echo "Fedora 22 and later: dnf install mingw32-gcc"
+	@echo "Mageia: urpmi mingw32-gcc"
+	@echo " "
+	@echo "---------------------------------------------------------"
+endif
+else
+for_linux : Makefile wmain.ow keyboard_var.ow uivar.ow fft1var.ow \
+fft3var.ow txvar.ow blnkvar.ow sigvar.ow calvar.ow screenvar.ow sdrvar.ow \
+selvar.ow ui.ow palette.ow menu.ow fft2var.ow thrvar.ow modesub.ow \
+blank1.ow buf.ow afcsub.ow afc_graph.ow adtest.ow powtvar.ow llsqvar.ow \
+calibrate.ow calsub.ow calsub2.ow caliq.ow coh_osc.ow coherent.ow fm.ow \
+cohsub.ow cwspeed.ow cwdetect.ow eme.ow fft0.ow fft1.ow airspy.ow cuda.ow \
+fft1_re.ow fft2.ow fft3.ow spur.ow spursub.ow hwaredriver.ow screensub.ow \
+freq_control.ow gifsave.ow help.ow hires_graph.ow llsq.ow baseb_graph.ow \
+mix1.ow mix2.ow morse.ow mouse.ow pol_graph.ow powtim.ow rxin.ow screen.ow \
+timing.ow timf2.ow tune.ow txtest.ow wcw.ow radar.ow wide_graph.ow split.ow \
+network.ow sdr14.ow sellim.ow simdasm.ow getiq.ow fftasm.ow hware.ow pa.ow \
+fft2mmxa.ow fft2mmxb.ow fft2mmxc.ow wsys.ow winvar.ow wsetad.ow fonts.ow \
+meter_graph.ow tx.ow tx_graph.ow txssb.ow wxsys.ow perseus.ow pavar.ow \
+rxout.ow sdrip.ow wsdr.ow si570.ow soft66.ow usb2lpt.ow excalibur.ow \
+wse.ow extio.ow rtl2832.ow elektor.ow fcdpp.ow hidwin.ow pcie9842.ow \
+bladerf.ow mirics.ow sdrplay2.ow sdrplay3.ow openhpsdr.ow httpd.ow \
+html_server.ow afedri.ow affinity.ow loadusb.ow soundcard.ow cloudiq.ow \
+airspyhf.ow siganal_graph.ow
+
+	$(WCC) \
+-o linrad.exe \
+wmain.ow keyboard_var.ow uivar.ow fft1var.ow fft3var.ow txvar.ow ui.ow \
+blnkvar.ow sigvar.ow screenvar.ow sdrvar.ow calvar.ow selvar.ow palette.ow \
+thrvar.ow fft2var.ow menu.ow modesub.ow blank1.ow powtvar.ow llsqvar.ow \
+calibrate.ow calsub.ow calsub2.ow caliq.ow buf.ow afcsub.ow afc_graph.ow \
+adtest.ow coh_osc.ow coherent.ow cohsub.ow cwspeed.ow cwdetect.ow spur.ow \
+eme.ow fft0.ow fft1.ow fft1_re.ow fft2.ow fft3.ow llsq.ow airspy.ow cuda.ow \
+freq_control.ow gifsave.ow help.ow hires_graph.ow spursub.ow timf2.ow \
+mix1.ow mix2.ow morse.ow mouse.ow pol_graph.ow powtim.ow rxin.ow screen.ow \
+timing.ow tune.ow txtest.ow wcw.ow wide_graph.ow hwaredriver.ow fftasm.ow \
+fft2mmxa.ow fft2mmxb.ow fft2mmxc.ow simdasm.ow getiq.ow wsys.ow hware.ow \
+split.ow baseb_graph.ow network.ow sdr14.ow sellim.ow wsetad.ow fonts.ow \
+meter_graph.ow screensub.ow wxsys.ow winvar.ow perseus.ow radar.ow fm.ow \
+tx.ow tx_graph.ow txssb.ow pavar.ow pa.ow rxout.ow sdrip.ow wsdr.ow \
+wse.ow si570.ow soft66.ow usb2lpt.ow excalibur.ow extio.ow rtl2832.ow \
+elektor.ow fcdpp.ow hidwin.ow pcie9842.ow bladerf.ow mirics.ow sdrplay2.ow \
+sdrplay3.ow soundcard.ow openhpsdr.ow httpd.ow html_server.ow afedri.ow \
+affinity.ow loadusb.ow cloudiq.ow siganal_graph.ow \
+-lws2_32 -lgdi32 -lwinmm airspyhf.ow -lsetupapi -lole32 -lcomdlg32 
+endif
+
+split.ow: Makefile splitw.s
+	$(NASMW) splitw.s -o split.ow
+fft2mmxa.ow: Makefile fft2mmxaw.s
+	$(NASMW) fft2mmxaw.s -o fft2mmxa.ow
+fft2mmxb.ow: Makefile fft2mmxbw.s
+	$(NASMW) fft2mmxbw.s -o fft2mmxb.ow
+fft2mmxc.ow: Makefile fft2mmxcw.s
+	$(NASMW) fft2mmxcw.s -o fft2mmxc.ow
+fftasm.ow: Makefile fftasmw.s
+	$(NASMW) fftasmw.s -o fftasm.ow
+getiq.ow: Makefile getiqw.s
+	$(NASMW) getiqw.s -o getiq.ow
+simdasm.ow: Makefile simdasmw.s
+	$(NASMW) simdasmw.s -o simdasm.ow
+hware.ow: Makefile hwarew.s
+	$(NASMW) hwarew.s -o hware.ow
+
+wsys.ow: wsys.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h blnkdef.h caldef.h txdef.h sdrdef.h \
+	vernr.h keyboard_def.h thrdef.h hwaredef.h wscreen.h osnum.h
+	$(WCC) wsys.c $(CFW) wsys.ow
+wxsys.ow: $(WXSYS)
+	$(WCC) wxsys.c $(CFW) wxsys.ow
+wmain.ow: wmain.c wdef.h globdef.h uidef.h screendef.h wscreen.h \
+	vernr.h options.h bufbars.h keyboard_def.h thrdef.h osnum.h
+	$(WCC) wmain.c $(CFW) wmain.ow
+winvar.ow: winvar.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h blnkdef.h caldef.h txdef.h  osnum.h\
+	vernr.h keyboard_def.h thrdef.h
+	$(WCC) winvar.c $(CFW) winvar.ow
+wsetad.ow: wsetad.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h blnkdef.h caldef.h sdrdef.h txdef.h \
+	hwaredef.h vernr.h keyboard_def.h thrdef.h options.h wscreen.h \
+	bufbars.h timing_setup.c input_speed.c osnum.h
+	$(WCC) wsetad.c $(CFW) wsetad.ow
+wsdr.ow: $(WSDR)
+	$(WCC) wsdr.c $(CFW) wsdr.ow
+
+
+
+adtest.ow: $(ADTEST)
+	$(WCC) adtest.c $(CFW) adtest.ow
+afc_graph.ow: $(AFC_GRAPH)
+	$(WCC) afc_graph.c $(CFW) afc_graph.ow
+afcsub.ow: $(AFCSUB)
+	$(WCC) afcsub.c $(CFW) afcsub.ow
+afedri.ow: $(AFEDRI)
+	$(WCC) afedri.c $(CFW) afedri.ow
+affinity.ow: $(AFFINITY)
+	$(WCC) affinity.c $(CFW) affinity.ow
+airspy.ow: $(AIRSPY)
+	$(WCC) airspy.c $(CFW) airspy.ow
+airspyhf.ow: $(AIRSPYHF)
+	$(WCC) airspyhf.c $(CFW) airspyhf.ow
+baseb_graph.ow: $(BASEB_GRAPH)
+	$(WCC) baseb_graph.c $(CFW) baseb_graph.ow
+buf.ow: $(BUF)
+	$(WCC) buf.c $(CFW) buf.ow
+bladerf.ow: $(BLADERF)
+	$(WCC) bladerf.c $(CFW) bladerf.ow
+blank1.ow: $(BLANK1)
+	$(WCC) blank1.c $(CFW) blank1.ow
+blnkvar.ow: $(BLNKVAR)
+	$(WCC) blnkvar.c $(CFW) blnkvar.ow
+calibrate.ow: $(CALIBRATE)
+	$(WCC) calibrate.c $(CFW) calibrate.ow
+caliq.ow: $(CALIQ)
+	$(WCC) caliq.c $(CFW) caliq.ow
+calsub.ow: $(CALSUB)
+	$(WCC) calsub.c $(CFW) calsub.ow
+calsub2.ow: $(CALSUB2)
+	$(WCC) calsub2.c $(CFW) calsub2.ow
+calvar.ow: $(CALVAR)
+	$(WCC) calvar.c $(CFW) calvar.ow
+cloudiq.ow: $(CLOUDIQ)
+	$(WCC) cloudiq.c $(CFW) cloudiq.ow
+coh_osc.ow: $(COH_OSC)
+	$(WCC) coh_osc.c $(CFW) coh_osc.ow
+coherent.ow: $(COHERENT)
+	$(WCC) coherent.c $(CFW) coherent.ow
+cohsub.ow: $(COHSUB)
+	$(WCC) cohsub.c $(CFW) cohsub.ow
+cuda.ow: $(CUDA)
+	$(WCC) cuda.c $(CFW) cuda.ow
+cwspeed.ow: $(CWSPEED)
+	$(WCC) cwspeed.c $(CFW) cwspeed.ow
+cwdetect.ow: $(CWDETECT)
+	$(WCC) cwdetect.c $(CFW) cwdetect.ow
+elektor.ow: $(ELEKTOR)
+	$(WCC) elektor.c $(CFW) elektor.ow
+eme.ow: $(EME)
+	$(WCC) eme.c $(CFW) eme.ow
+excalibur.ow: $(EXCALIBUR)
+	$(WCC) excalibur.c $(CFW) excalibur.ow
+extio.ow: $(EXTIO)
+	$(WCC) extio.c $(CFW) extio.ow
+fcdpp.ow: $(FCDPP)
+	$(WCC) fcdpp.c $(CFW) fcdpp.ow
+fft0.ow: $(FFT0)
+	$(WCC) fft0.c $(CFW) fft0.ow
+fft1.ow: $(FFT1)
+	$(WCC) fft1.c $(CFW) fft1.ow
+fft1_re.ow: $(FFT1_RE)
+	$(WCC) fft1_re.c $(CFW) fft1_re.ow
+fft1var.ow: $(FFT1VAR)
+	$(WCC) fft1var.c $(CFW) fft1var.ow
+fft2.ow: $(FFT2)
+	$(WCC) fft2.c $(CFW) fft2.ow
+fft2var.ow: $(FFT2VAR)
+	$(WCC) fft2var.c $(CFW) fft2var.ow
+fft3.ow: $(FFT3)
+	$(WCC) fft3.c $(CFW) fft3.ow
+fft3var.ow: $(FFT3VAR)
+	$(WCC) fft3var.c $(CFW) fft3var.ow
+fm.ow: $(FM) 
+	$(WCC) fm.c $(CFW) fm.ow
+fonts.ow: $(FONTS)
+	$(WCC) fonts.c $(CFW) fonts.ow
+freq_control.ow: $(FREQ_CONTROL) 
+	$(WCC) freq_control.c $(CFW) freq_control.ow
+gifsave.ow: $(GIFSAVE)
+	$(WCC) gifsave.c $(CFW) gifsave.ow
+help.ow: $(HELP)
+	$(WCC) help.c $(CFW) help.ow
+hidwin.ow: $(HIDWIN)
+	$(WCC) hidwin.c $(CFW) hidwin.ow
+hires_graph.ow: $(HIRES_GRAPH)
+	$(WCC) hires_graph.c $(CFW) hires_graph.ow
+html_server.ow: $(HTML_SERVER)
+	$(WCC) html_server.c $(CFW) html_server.ow
+httpd.ow: $(HTTPD)
+	$(WCC) httpd.c $(CFW) httpd.ow
+hwaredriver.ow: $(HWAREDRIVER)  wdef.h
+	$(WCC) hwaredriver.c -DLUSERS_ROUTINES_PRESENT=0 -DWUSERS_ROUTINES_PRESENT=0 $(CFW) hwaredriver.ow
+keyboard_var.ow: $(KEYBOARD_VAR)
+	$(WCC) keyboard_var.c $(CFW) keyboard_var.ow
+llsq.ow: $(LLSQ)
+	$(WCC) llsq.c $(CFW) llsq.ow
+llsqvar.ow: $(LLSQVAR)
+	$(WCC) llsqvar.c $(CFW) llsqvar.ow
+loadusb.ow: $(LOADUSB)
+	$(WCC) loadusb.c $(CFW) loadusb.ow
+menu.ow: $(MENU)
+	$(WCC) menu.c -DUSERS_EXTRA_PRESENT=0 $(CFW) menu.ow
+meter_graph.ow: $(METER_GRAPH)
+	$(WCC) meter_graph.c $(CFW) meter_graph.ow
+mix1.ow: $(MIX1)
+	$(WCC) mix1.c $(CFW) mix1.ow
+mix2.ow: $(MIX2)
+	$(WCC) mix2.c $(CFW) mix2.ow
+mirics.ow: $(MIRICS)
+	$(WCC) mirics.c $(CFW) mirics.ow
+modesub.ow: $(MODESUB)
+	$(WCC) modesub.c -DUSERS_EXTRA_PRESENT=0 $(CFW) modesub.ow
+morse.ow: $(MORSE)
+	$(WCC) morse.c $(CFW) morse.ow
+mouse.ow: $(MOUSE)
+	$(WCC) mouse.c $(CFW) mouse.ow
+network.ow: $(NETWORK)
+	$(WCC) network.c $(CFW) network.ow
+pa.ow: $(PA)
+	$(WCC) pa.c $(CFW) pa.ow
+openhpsdr.ow: $(OPENHPSDR)
+	$(WCC) openhpsdr.c $(CFW) openhpsdr.ow
+pavar.ow: $(PAVAR)
+	$(WCC) pavar.c $(CFW) pavar.ow
+palette.ow: $(PALETTE)
+	$(WCC) palette.c $(CFW) palette.ow
+pcie9842.ow: $(PCIE9842)
+	$(WCC) pcie9842.c $(CFW) pcie9842.ow
+perseus.ow: $(PERSEUS)
+	$(WCC) perseus.c $(CFW) perseus.ow
+pol_graph.ow: $(POL_GRAPH)
+	$(WCC) pol_graph.c $(CFW) pol_graph.ow
+powtim.ow: $(POWTIM)
+	$(WCC) powtim.c $(CFW) powtim.ow
+powtvar.ow: $(POWTVAR)
+	$(WCC) powtvar.c $(CFW) powtvar.ow
+radar.ow: $(RADAR)
+	$(WCC) radar.c $(CFW) radar.ow
+rtl2832.ow: $(RTL2832)
+	$(WCC) rtl2832.c $(CFW) rtl2832.ow
+rxin.ow: $(RXIN)
+	$(WCC) rxin.c $(CFW) rxin.ow
+rxout.ow: $(RXOUT)
+	$(WCC) rxout.c $(CFW) rxout.ow
+screen.ow: $(SCREEN)
+	$(WCC) screen.c -DUSERS_EXTRA_PRESENT=0 $(CFW) screen.ow
+screensub.ow: $(SCREENSUB)
+	$(WCC) screensub.c $(CFW) screensub.ow
+screenvar.ow: $(SCREENVAR)
+	$(WCC) screenvar.c $(CFW) screenvar.ow
+sdr14.ow: $(SDR14)
+	$(WCC) sdr14.c $(CFW) sdr14.ow
+sdrip.ow: $(SDRIP)
+	$(WCC) sdrip.c $(CFW) sdrip.ow
+sdrplay2.ow: $(SDRPLAY2)
+	$(WCC) sdrplay2.c $(CFW) sdrplay2.ow
+sdrplay3.ow: $(SDRPLAY3)
+	$(WCC) sdrplay3.c $(CFW) sdrplay3.ow
+sdrvar.ow: $(SDRVAR)
+	$(WCC) sdrvar.c $(CFW) sdrvar.ow
+sellim.ow: $(SELLIM)
+	$(WCC) sellim.c $(CFW) sellim.ow
+selvar.ow: $(SELVAR)
+	$(WCC) selvar.c $(CFW) selvar.ow
+si570.ow: $(SI570)
+	$(WCC) si570.c $(CFW) si570.ow
+siganal_graph.ow: $(SIGANAL_GRAPH)
+	$(WCC) siganal_graph.c $(CFW) siganal_graph.ow
+sigvar.ow: $(SIGVAR)
+	$(WCC) sigvar.c $(CFW) sigvar.ow
+soft66.ow: $(SOFT66)
+	$(WCC) soft66.c $(CFW) soft66.ow
+soundcard.ow: $(SOUNDCARD)
+	$(WCC) soundcard.c $(CFW) soundcard.ow
+spur.ow: $(SPUR)
+	$(WCC) spur.c $(CFW) spur.ow
+spursub.ow: $(SPURSUB)
+	$(WCC) spursub.c $(CFW) spursub.ow
+thrvar.ow: $(THRVAR)
+	$(WCC) thrvar.c $(CFW) thrvar.ow
+timing.ow: $(TIMING)
+	$(WCC) timing.c $(CFW) timing.ow
+timf2.ow: $(TIMF2)
+	$(WCC) timf2.c $(CFW) timf2.ow
+tune.ow: $(TUNE)
+	$(WCC) tune.c $(CFW) tune.ow
+tx.ow: $(TX)
+	$(WCC) tx.c $(CFW) tx.ow
+tx_graph.ow: $(TX_GRAPH)
+	$(WCC) tx_graph.c $(CFW) tx_graph.ow
+txssb.ow: $(TXSSB)
+	$(WCC) txssb.c $(CFW) txssb.ow
+txtest.ow: $(TXTEST)
+	$(WCC) txtest.c $(CFW) txtest.ow
+txvar.ow: $(TXVAR)
+	$(WCC) txvar.c $(CFW) txvar.ow
+ui.ow: $(UI) wdef.h
+	$(WCC) ui.c $(CFW) ui.ow
+uivar.ow: $(UIVAR)
+	$(WCC) uivar.c $(CFW) uivar.ow
+usb2lpt.ow: $(USB2LPT)
+	$(WCC) usb2lpt.c $(CFW) usb2lpt.ow
+wcw.ow: $(WCW)
+	$(WCC) wcw.c -DUSERS_EXTRA_PRESENT=0 $(CFW) wcw.ow
+wide_graph.ow: $(WIDE_GRAPH)
+	$(WCC) wide_graph.c $(CFW) wide_graph.ow
+wse.ow: $(WSE)
+	$(WCC) wse.c $(CFW) wse.ow
+
+
+for_linux64 : Makefile wmain.oy keyboard_var.oy uivar.oy fft1var.oy \
+fft3var.oy txvar.oy blnkvar.oy sigvar.oy calvar.oy screenvar.oy sdrvar.oy \
+selvar.oy ui.oy palette.oy menu.oy fft2var.oy thrvar.oy modesub.oy \
+blank1.oy buf.oy afcsub.oy afc_graph.oy adtest.oy powtvar.oy llsqvar.oy \
+calibrate.oy calsub.oy calsub2.oy caliq.oy coh_osc.oy coherent.oy fm.oy \
+cohsub.oy cwspeed.oy cwdetect.oy eme.oy fft0.oy fft1.oy airspy.oy cuda.oy \
+fft1_re.oy fft2.oy fft3.oy spur.oy spursub.oy hwaredriver.oy screensub.oy \
+freq_control.oy gifsave.oy help.oy hires_graph.oy llsq.oy baseb_graph.oy \
+mix1.oy mix2.oy morse.oy mouse.oy pol_graph.oy powtim.oy rxin.oy screen.oy \
+timing.oy timf2.oy tune.oy txtest.oy wcw.oy radar.oy wide_graph.oy split.oy \
+network.oy sdr14.oy sellim.oy simdasm.oy getiq.oy fftasm.oy hware.oy pa.oy \
+fft2mmxa.oy fft2mmxb.oy fft2mmxc.oy wsys.oy winvar.oy wsetad.oy fonts.oy \
+meter_graph.oy tx.oy tx_graph.oy txssb.oy wxsys.oy perseus.oy pavar.oy \
+rxout.oy sdrip.oy wsdr.oy si570.oy soft66.oy usb2lpt.oy excalibur.oy \
+wse.oy extio.oy rtl2832.oy elektor.oy fcdpp.oy hidwin.oy pcie9842.oy \
+bladerf.oy mirics.oy sdrplay2.oy sdrplay3.oy openhpsdr.oy httpd.oy \
+html_server.oy afedri.oy affinity.oy loadusb.oy soundcard.oy cloudiq.oy \
+airspyhf.oy siganal_graph.oy
+
+	$(WCC64) \
+-o linrad64.exe \
+wmain.oy keyboard_var.oy uivar.oy fft1var.oy fft3var.oy txvar.oy ui.oy \
+blnkvar.oy sigvar.oy screenvar.oy sdrvar.oy calvar.oy selvar.oy palette.oy \
+thrvar.oy fft2var.oy menu.oy modesub.oy blank1.oy powtvar.oy llsqvar.oy \
+calibrate.oy calsub.oy calsub2.oy caliq.oy buf.oy afcsub.oy afc_graph.oy \
+adtest.oy coh_osc.oy coherent.oy cohsub.oy cwspeed.oy cwdetect.oy spur.oy \
+eme.oy fft0.oy fft1.oy fft1_re.oy fft2.oy fft3.oy llsq.oy airspy.oy cuda.oy \
+freq_control.oy gifsave.oy help.oy hires_graph.oy spursub.oy timf2.oy \
+mix1.oy mix2.oy morse.oy mouse.oy pol_graph.oy powtim.oy rxin.oy screen.oy \
+timing.oy tune.oy txtest.oy wcw.oy wide_graph.oy hwaredriver.oy fftasm.oy \
+fft2mmxa.oy fft2mmxb.oy fft2mmxc.oy simdasm.oy getiq.oy wsys.oy hware.oy \
+split.oy baseb_graph.oy network.oy sdr14.oy sellim.oy wsetad.oy fonts.oy \
+meter_graph.oy screensub.oy wxsys.oy winvar.oy perseus.oy radar.oy fm.oy \
+tx.oy tx_graph.oy txssb.oy pavar.oy pa.oy rxout.oy sdrip.oy wsdr.oy \
+wse.oy si570.oy soft66.oy usb2lpt.oy excalibur.oy extio.oy rtl2832.oy \
+elektor.oy fcdpp.oy hidwin.oy pcie9842.oy bladerf.oy mirics.oy sdrplay2.oy \
+sdrplay3.oy soundcard.oy openhpsdr.oy httpd.oy html_server.oy afedri.oy \
+affinity.oy loadusb.oy cloudiq.oy airspyhf.oy siganal_graph.oy \
+-lws2_32 -lgdi32 -lwinmm -lsetupapi -lole32 -lcomdlg32 
+
+split.oy: Makefile split64.s
+	$(NASMW64) split64.s -o split.oy
+fft2mmxa.oy: Makefile fft2mmxa64.s
+	$(NASMW64) fft2mmxa64.s -o fft2mmxa.oy
+fft2mmxb.oy: Makefile fft2mmxb64.s
+	$(NASMW64) fft2mmxb64.s -o fft2mmxb.oy
+fft2mmxc.oy: Makefile fft2mmxc64.s
+	$(NASMW64) fft2mmxc64.s -o fft2mmxc.oy
+fftasm.oy: Makefile fftasm64.s fftasm64.s
+	$(NASMW64) fftasm64.s -o fftasm.oy
+getiq.oy: Makefile getiq64.s
+	$(NASMW64) getiq64.s -o getiq.oy
+simdasm.oy: Makefile simdasm64.s
+	$(NASMW64) simdasm64.s -o simdasm.oy
+hware.oy: Makefile hware64.s
+	$(NASMW64) hware64.s -o hware.oy
+
+
+wsys.oy: wsys.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h blnkdef.h caldef.h txdef.h sdrdef.h \
+	vernr.h keyboard_def.h thrdef.h hwaredef.h wscreen.h osnum.h
+	$(WCC64) wsys.c $(CFW64) wsys.oy
+wxsys.oy: $(WXSYS)
+	$(WCC64) wxsys.c $(CFW64) wxsys.oy
+wmain.oy: wmain.c wdef.h globdef.h uidef.h screendef.h wscreen.h \
+	vernr.h options.h bufbars.h keyboard_def.h thrdef.h osnum.h
+	$(WCC64) wmain.c $(CFW64) wmain.oy
+winvar.oy: winvar.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
+	sigdef.h seldef.h blnkdef.h caldef.h txdef.h osnum.h \
+	vernr.h keyboard_def.h thrdef.h
+	$(WCC64) winvar.c $(CFW64) winvar.oy
+wsetad.oy: wsetad.c wdef.h globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h blnkdef.h caldef.h sdrdef.h txdef.h \
+	hwaredef.h vernr.h keyboard_def.h thrdef.h options.h wscreen.h \
+	bufbars.h timing_setup.c input_speed.c osnum.h
+	$(WCC64) wsetad.c $(CFW64) wsetad.oy
+wsdr.oy: $(WSDR)
+	$(WCC64) wsdr.c $(CFW64) wsdr.oy
+adtest.oy: $(ADTEST)
+	$(WCC64) adtest.c $(CFW64) adtest.oy
+afc_graph.oy: $(AFC_GRAPH)
+	$(WCC64) afc_graph.c $(CFW64) afc_graph.oy
+afcsub.oy: $(AFCSUB)
+	$(WCC64) afcsub.c $(CFW64) afcsub.oy
+afedri.oy: $(AFEDRI)
+	$(WCC64) afedri.c $(CFW64) afedri.oy
+affinity.oy: $(AFFINITY)
+	$(WCC64) affinity.c $(CFW64) affinity.oy
+airspy.oy: $(AIRSPY)
+	$(WCC64) airspy.c $(CFW64) airspy.oy
+airspyhf.oy: $(AIRSPYHF)
+	$(WCC64) airspyhf.c $(CFW64) airspyhf.oy
+baseb_graph.oy: $(BASEB_GRAPH)
+	$(WCC64) baseb_graph.c $(CFW64) baseb_graph.oy
+buf.oy: $(BUF)
+	$(WCC64) buf.c $(CFW64) buf.oy
+bladerf.oy: $(BLADERF)
+	$(WCC64) bladerf.c $(CFW64) bladerf.oy
+blank1.oy: $(BLANK1)
+	$(WCC64) blank1.c $(CFW64) blank1.oy
+blnkvar.oy: $(BLNKVAR)
+	$(WCC64) blnkvar.c $(CFW64) blnkvar.oy
+calibrate.oy: $(CALIBRATE)
+	$(WCC64) calibrate.c $(CFW64) calibrate.oy
+caliq.oy: $(CALIQ)
+	$(WCC64) caliq.c $(CFW64) caliq.oy
+calsub.oy: $(CALSUB)
+	$(WCC64) calsub.c $(CFW64) calsub.oy
+calsub2.oy: $(CALSUB2)
+	$(WCC64) calsub2.c $(CFW64) calsub2.oy
+calvar.oy: $(CALVAR)
+	$(WCC64) calvar.c $(CFW64) calvar.oy
+cloudiq.oy: $(CLOUDIQ)
+	$(WCC64) cloudiq.c $(CFW64) cloudiq.oy
+coh_osc.oy: $(COH_OSC)
+	$(WCC64) coh_osc.c $(CFW64) coh_osc.oy
+coherent.oy: $(COHERENT)
+	$(WCC64) coherent.c $(CFW64) coherent.oy
+cohsub.oy: $(COHSUB)
+	$(WCC64) cohsub.c $(CFW64) cohsub.oy
+cuda.oy: $(CUDA)
+	$(WCC64) cuda.c $(CFW64) cuda.oy
+cwspeed.oy: $(CWSPEED)
+	$(WCC64) cwspeed.c $(CFW64) cwspeed.oy
+cwdetect.oy: $(CWDETECT)
+	$(WCC64) cwdetect.c $(CFW64) cwdetect.oy
+elektor.oy: $(ELEKTOR)
+	$(WCC64) elektor.c $(CFW64) elektor.oy
+eme.oy: $(EME)
+	$(WCC64) eme.c $(CFW64) eme.oy
+excalibur.oy: $(EXCALIBUR)
+	$(WCC64) excalibur.c $(CFW64) excalibur.oy
+extio.oy: $(EXTIO)
+	$(WCC64) extio.c $(CFW64) extio.oy
+fcdpp.oy: $(FCDPP)
+	$(WCC64) fcdpp.c $(CFW64) fcdpp.oy
+fft0.oy: $(FFT0)
+	$(WCC64) fft0.c $(CFW64) fft0.oy
+fft1.oy: $(FFT1)
+	$(WCC64) fft1.c $(CFW64) fft1.oy
+fft1_re.oy: $(FFT1_RE)
+	$(WCC64) fft1_re.c $(CFW64) fft1_re.oy
+fft1var.oy: $(FFT1VAR)
+	$(WCC64) fft1var.c $(CFW64) fft1var.oy
+fft2.oy: $(FFT2)
+	$(WCC64) fft2.c $(CFW64) fft2.oy
+fft2var.oy: $(FFT2VAR)
+	$(WCC64) fft2var.c $(CFW64) fft2var.oy
+fft3.oy: $(FFT3)
+	$(WCC64) fft3.c $(CFW64) fft3.oy
+fft3var.oy: $(FFT3VAR)
+	$(WCC64) fft3var.c $(CFW64) fft3var.oy
+fm.oy: $(FM) 
+	$(WCC64) fm.c $(CFW64) fm.oy
+fonts.oy: $(FONTS)
+	$(WCC64) fonts.c $(CFW64) fonts.oy
+freq_control.oy: $(FREQ_CONTROL) 
+	$(WCC64) freq_control.c $(CFW64) freq_control.oy
+gifsave.oy: $(GIFSAVE)
+	$(WCC64) gifsave.c $(CFW64) gifsave.oy
+help.oy: $(HELP)
+	$(WCC64) help.c $(CFW64) help.oy
+hidwin.oy: $(HIDWIN)
+	$(WCC64) hidwin.c $(CFW64) hidwin.oy
+hires_graph.oy: $(HIRES_GRAPH)
+	$(WCC64) hires_graph.c $(CFW64) hires_graph.oy
+html_server.oy: $(HTML_SERVER)
+	$(WCC64) html_server.c $(CFW64) html_server.oy
+httpd.oy: $(HTTPD)
+	$(WCC64) httpd.c $(CFW64) httpd.oy
+hwaredriver.oy: $(HWAREDRIVER)  wdef.h
+	$(WCC64) hwaredriver.c -DLUSERS_ROUTINES_PRESENT=0 -DWUSERS_ROUTINES_PRESENT=0 $(CFW64) hwaredriver.oy
+keyboard_var.oy: $(KEYBOARD_VAR)
+	$(WCC64) keyboard_var.c $(CFW64) keyboard_var.oy
+llsq.oy: $(LLSQ)
+	$(WCC64) llsq.c $(CFW64) llsq.oy
+llsqvar.oy: $(LLSQVAR)
+	$(WCC64) llsqvar.c $(CFW64) llsqvar.oy
+loadusb.oy: $(LOADUSB)
+	$(WCC64) loadusb.c $(CFW64) loadusb.oy
+menu.oy: $(MENU)
+	$(WCC64) menu.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) menu.oy
+meter_graph.oy: $(METER_GRAPH)
+	$(WCC64) meter_graph.c $(CFW64) meter_graph.oy
+mix1.oy: $(MIX1)
+	$(WCC64) mix1.c $(CFW64) mix1.oy
+mix2.oy: $(MIX2)
+	$(WCC64) mix2.c $(CFW64) mix2.oy
+mirics.oy: $(MIRICS)
+	$(WCC64) mirics.c $(CFW64) mirics.oy
+modesub.oy: $(MODESUB)
+	$(WCC64) modesub.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) modesub.oy
+morse.oy: $(MORSE)
+	$(WCC64) morse.c $(CFW64) morse.oy
+mouse.oy: $(MOUSE)
+	$(WCC64) mouse.c $(CFW64) mouse.oy
+network.oy: $(NETWORK)
+	$(WCC64) network.c $(CFW64) network.oy
+pa.oy: $(PA)
+	$(WCC64) pa.c $(CFW64) pa.oy
+openhpsdr.oy: $(OPENHPSDR)
+	$(WCC64) openhpsdr.c $(CFW64) openhpsdr.oy
+pavar.oy: $(PAVAR)
+	$(WCC64) pavar.c $(CFW64) pavar.oy
+palette.oy: $(PALETTE)
+	$(WCC64) palette.c $(CFW64) palette.oy
+pcie9842.oy: $(PCIE9842)
+	$(WCC64) pcie9842.c $(CFW64) pcie9842.oy
+perseus.oy: $(PERSEUS)
+	$(WCC64) perseus.c $(CFW64) perseus.oy
+pol_graph.oy: $(POL_GRAPH)
+	$(WCC64) pol_graph.c $(CFW64) pol_graph.oy
+powtim.oy: $(POWTIM)
+	$(WCC64) powtim.c $(CFW64) powtim.oy
+powtvar.oy: $(POWTVAR)
+	$(WCC64) powtvar.c $(CFW64) powtvar.oy
+radar.oy: $(RADAR)
+	$(WCC64) radar.c $(CFW64) radar.oy
+rtl2832.oy: $(RTL2832)
+	$(WCC64) rtl2832.c $(CFW64) rtl2832.oy
+rxin.oy: $(RXIN)
+	$(WCC64) rxin.c $(CFW64) rxin.oy
+rxout.oy: $(RXOUT)
+	$(WCC64) rxout.c $(CFW64) rxout.oy
+screen.oy: $(SCREEN)
+	$(WCC64) screen.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) screen.oy
+screensub.oy: $(SCREENSUB)
+	$(WCC64) screensub.c $(CFW64) screensub.oy
+screenvar.oy: $(SCREENVAR)
+	$(WCC64) screenvar.c $(CFW64) screenvar.oy
+sdr14.oy: $(SDR14)
+	$(WCC64) sdr14.c $(CFW64) sdr14.oy
+sdrip.oy: $(SDRIP)
+	$(WCC64) sdrip.c $(CFW64) sdrip.oy
+sdrplay2.oy: $(SDRPLAY2)
+	$(WCC64) sdrplay2.c $(CFW64) sdrplay2.oy
+sdrplay3.oy: $(SDRPLAY3)
+	$(WCC64) sdrplay3.c $(CFW64) sdrplay3.oy
+sdrvar.oy: $(SDRVAR)
+	$(WCC64) sdrvar.c $(CFW64) sdrvar.oy
+sellim.oy: $(SELLIM)
+	$(WCC64) sellim.c $(CFW64) sellim.oy
+selvar.oy: $(SELVAR)
+	$(WCC64) selvar.c $(CFW64) selvar.oy
+si570.oy: $(SI570)
+	$(WCC64) si570.c $(CFW64) si570.oy
+siganal_graph.oy: $(SIGANAL_GRAPH)
+	$(WCC64) siganal_graph.c $(CFW64) siganal_graph.oy
+sigvar.oy: $(SIGVAR)
+	$(WCC64) sigvar.c $(CFW64) sigvar.oy
+soft66.oy: $(SOFT66)
+	$(WCC64) soft66.c $(CFW64) soft66.oy
+soundcard.oy: $(SOUNDCARD)
+	$(WCC64) soundcard.c $(CFW64) soundcard.oy
+spur.oy: $(SPUR)
+	$(WCC64) spur.c $(CFW64) spur.oy
+spursub.oy: $(SPURSUB)
+	$(WCC64) spursub.c $(CFW64) spursub.oy
+thrvar.oy: $(THRVAR)
+	$(WCC64) thrvar.c $(CFW64) thrvar.oy
+timing.oy: $(TIMING)
+	$(WCC64) timing.c $(CFW64) timing.oy
+timf2.oy: $(TIMF2)
+	$(WCC64) timf2.c $(CFW64) timf2.oy
+tune.oy: $(TUNE)
+	$(WCC64) tune.c $(CFW64) tune.oy
+tx.oy: $(TX)
+	$(WCC64) tx.c $(CFW64) tx.oy
+tx_graph.oy: $(TX_GRAPH)
+	$(WCC64) tx_graph.c $(CFW64) tx_graph.oy
+txssb.oy: $(TXSSB)
+	$(WCC64) txssb.c $(CFW64) txssb.oy
+txtest.oy: $(TXTEST)
+	$(WCC64) txtest.c $(CFW64) txtest.oy
+txvar.oy: $(TXVAR)
+	$(WCC64) txvar.c $(CFW64) txvar.oy
+ui.oy: $(UI) wdef.h
+	$(WCC64) ui.c $(CFW64) ui.oy
+uivar.oy: $(UIVAR)
+	$(WCC64) uivar.c $(CFW64) uivar.oy
+usb2lpt.oy: $(USB2LPT)
+	$(WCC64) usb2lpt.c $(CFW64) usb2lpt.oy
+wcw.oy: $(WCW)
+	$(WCC64) wcw.c -DUSERS_EXTRA_PRESENT=0 $(CFW64) wcw.oy
+wide_graph.oy: $(WIDE_GRAPH)
+	$(WCC64) wide_graph.c $(CFW64) wide_graph.oy
+wse.oy: $(WSE)
+	$(WCC64) wse.c $(CFW64) wse.oy
+
+
+
+
+# -------------------- configure for Windows ------------------------
+configure : __Must_type_make_configure.exe__
+configure.exe : Makefile configure.ow
+
+	$(WCC) \
+-o configure.exe configure.ow -lws2_32 -lgdi32 -lwinmm
+
+configure.ow: configure.c
+	$(WCC) configure.c $(CFW) configure.ow
+
+#--------------------------------------------------------------------
+sim: sim2qs1r.exe sim2qs1r sim2excalibur.exe sim2excalibur \
+	sim2powersdr.exe sim2powersdr sim2spectravue.exe \
+	sim2spectravue sim2perseus.exe sim2perseus
+
+sim2qs1r.exe : sim2qs1r.ow 
+	$(WCC) -o sim2qs1r.exe \
+sim2qs1r.ow -lws2_32 -lgdi32 -lwinmm
+
+sim2qs1r : sim2qs1r.ol 
+	${CC} -m32 -o sim2qs1r @ST@ sim2qs1r.ol @LIBRT@ -lm 
+
+sim2excalibur.exe : sim2excalibur.ow
+	$(WCC) -o sim2excalibur.exe \
+sim2excalibur.ow -lws2_32 -lgdi32 -lwinmm
+
+sim2excalibur : sim2excalibur.ol
+	${CC} -m32 -o sim2excalibur @ST@ sim2excalibur.ol @LIBRT@ -lm 
+
+sim2powersdr.exe : sim2powersdr.ow
+	$(WCC) -o sim2powersdr.exe \
+sim2powersdr.ow -lws2_32 -lgdi32 -lwinmm
+
+sim2powersdr: sim2powersdr.ol
+	${CC} -m32 -o sim2powersdr @ST@ sim2powersdr.ol @LIBRT@ -lm 
+
+sim2spectravue.exe : sim2spectravue.ow
+	$(WCC) -o sim2spectravue.exe \
+sim2spectravue.ow -lws2_32 -lgdi32 -lwinmm
+
+sim2spectravue: sim2spectravue.ol
+	${CC} -m32 -o sim2spectravue @ST@ sim2spectravue.ol @LIBRT@ -lm
+
+sim2perseus.exe : sim2perseus.ow
+	$(WCC) -o sim2perseus.exe \
+sim2perseus.ow -lws2_32 -lgdi32 -lwinmm
+
+sim2perseus : sim2perseus.ol
+	${CC} -m32 -o sim2perseus @ST@ sim2perseus.ol @LIBRT@ -lm
+
+
+sim2qs1r.ow: sim2qs1r.c
+	$(WCC) sim2qs1r.c $(CFW) sim2qs1r.ow
+sim2qs1r.ol: sim2qs1r.c
+	$(LCC) sim2qs1r.c $(CFL) sim2qs1r.ol
+sim2excalibur.ow: sim2excalibur.c
+	$(WCC) sim2excalibur.c $(CFW) sim2excalibur.ow
+sim2excalibur.ol: sim2excalibur.c
+	$(LCC) sim2excalibur.c $(CFL) sim2excalibur.ol
+sim2powersdr.ow: sim2powersdr.c
+	$(WCC) sim2powersdr.c $(CFW) sim2powersdr.ow
+sim2powersdr.ol: sim2powersdr.c
+	$(LCC) sim2powersdr.c $(CFL) sim2powersdr.ol
+sim2spectravue.ow: sim2spectravue.c
+	$(WCC) sim2spectravue.c $(CFW) sim2spectravue.ow
+sim2spectravue.ol: sim2spectravue.c
+	$(LCC) sim2spectravue.c $(CFL) sim2spectravue.ol
+sim2perseus.ow: sim2perseus.c
+	$(WCC) sim2perseus.c $(CFW) sim2perseus.ow
+sim2perseus.ol: sim2perseus.c
+	$(LCC) sim2perseus.c $(CFL) sim2perseus.ol
+
+# ---------------------- Linux 32 bit ------------------
+xlinrad: Makefile xmain.ol ui.ol uivar.ol fft1var.ol lsetad.ol \
+wide_graph.ol fft0.ol fft1.ol adtest.ol screenvar.ol sigvar.ol \
+baseb_graph.ol afc_graph.ol hires_graph.ol palette.ol gifsave.ol \
+calibrate.ol calsub.ol calsub2.ol llsqvar.ol caliq.ol hwaredriver.ol \
+llsq.ol sellim.ol selvar.ol mix1.ol fft2var.ol fft3var.ol elad.ol \
+spursub.ol network.ol buf.ol thrvar.ol radar.ol loadusb.ol cuda.ol \
+@ASMLIB32@ httpd.ol html_server.ol afedri.ol affinity.ol \
+fft3.ol timf2.ol fft1_re.ol powtvar.ol airspy.ol soundcard.ol \
+wcw.ol blank1.ol calvar.ol blnkvar.ol fft2.ol pol_graph.ol modesub.ol \
+help.ol afcsub.ol timing.ol mix2.ol spur.ol coherent.ol cohsub.ol eme.ol \
+tune.ol txtest.ol mouse.ol freq_control.ol morse.ol lxsys.ol lvar.ol \
+powtim.ol cwspeed.ol coh_osc.ol cwdetect.ol txvar.ol tx.ol pavar.ol pa.ol \
+menu.ol screen.ol sdrvar.ol xsys.ol sdr14.ol keyboard_var.ol xvar.ol fm.ol \
+meter_graph.ol fonts.ol screensub.ol tx_graph.ol txssb.ol wxsys.ol rxout.ol \
+rxin.ol sdrip.ol perseus.ol lsdr.ol wse.ol si570.ol soft66.ol usb2lpt.ol \
+excalibur.ol extio.ol rtl2832.ol elektor.ol fcdpp.ol hid.ol pcie9842.ol \
+bladerf.ol mirics.ol sdrplay2.ol sdrplay3.ol openhpsdr.ol oclprogs.ol \
+loadalsa.ol cloudiq.ol lfxsys.ol airspyhf.ol siganal_graph.ol
+
+	${CC} -m32 -o xlinrad @ST@ \
+xmain.ol xvar.ol ui.ol lsetad.ol fft1.ol buf.ol lvar.ol radar.ol \
+mouse.ol wide_graph.ol fft0.ol adtest.ol hires_graph.ol elad.ol \
+baseb_graph.ol mix2.ol afc_graph.ol hwaredriver.ol affinity.ol \
+sellim.ol palette.ol gifsave.ol timing.ol help.ol calibrate.ol \
+calsub.ol calsub2.ol llsqvar.ol llsq.ol caliq.ol timf2.ol tx.ol \
+powtim.ol selvar.ol fft2var.ol sigvar.ol screenvar.ol uivar.ol \
+fft1var.ol fft3var.ol calvar.ol blnkvar.ol fft1_re.ol lxsys.ol \
+powtvar.ol blank1.ol fft2.ol sdrip.ol loadusb.ol airspy.ol cloudiq.ol \
+pol_graph.ol modesub.ol spur.ol cohsub.ol coherent.ol afedri.ol \
+eme.ol spursub.ol freq_control.ol perseus.ol httpd.ol html_server.ol \
+@ASMLIB32@ \
+rxin.ol wcw.ol mix1.ol afcsub.ol morse.ol menu.ol fonts.ol rxout.ol \
+tune.ol txtest.ol network.ol coh_osc.ol fm.ol soundcard.ol cuda.ol \
+cwspeed.ol sdrvar.ol sdr14.ol keyboard_var.ol thrvar.ol pa.ol \
+xsys.ol screen.ol cwdetect.ol tx_graph.ol txssb.ol pavar.ol lsdr.ol \
+txvar.ol screensub.ol fft3.ol wxsys.ol meter_graph.ol wse.ol si570.ol \
+extio.ol soft66.ol excalibur.ol usb2lpt.ol rtl2832.ol elektor.ol \
+fcdpp.ol hid.ol pcie9842.ol bladerf.ol mirics.ol sdrplay2.ol sdrplay3.ol \
+openhpsdr.ol oclprogs.ol loadalsa.ol lfxsys.ol airspyhf.ol siganal_graph.ol \
+@SVGA32_LD@ @SVGAGL32_LD@ \
+@LIBOPENCL32_LD@ @CLFFTPATH32@ \
+@LIBXEXT32_LD@ \
+@X11_32_LD@ \
+@CUFFTPATH32@ \
+-lpthread @LIBRT@ -lm -ldl $(LIBMACOSX)
+
+	@echo " "
+	@echo "You may want to disable pulseaudio in Ubuntu with this command:"
+	@echo "sudo pasuspender -- ./xlinrad"
+	@echo " "
+
+wxsys.ol: $(WXSYS)
+	$(LCC) wxsys.c $(CFL) wxsys.ol
+xvar.ol: xvar.c thrdef.h globdef.h xdef.h osnum.h
+	$(LCC) xvar.c @X11_32_INC@ $(CFL) xvar.ol
+xsys.ol: xsys.c thrdef.h globdef.h uidef.h screendef.h xdef.h lscreen.h \
+	keyboard_def.h vernr.h sdrdef.h options.h bufbars.h osnum.h
+	$(LCC) xsys.c @X11_32_INC@ $(CFL) xsys.ol
+xmain.ol: xmain.c globdef.h thrdef.h uidef.h screendef.h vernr.h lscreen.h \
+	options.h bufbars.h keyboard_def.h xdef.h osnum.h
+	$(LCC) xmain.c -DBUILD=0 -DHAVE_XKBLIB=@XKBLIB_32_OK@ \
+	@X11_32_INC@ $(CFL) xmain.ol
+lvar.ol: lvar.c globdef.h caldef.h thrdef.h osnum.h
+	$(LCC) lvar.c $(CFL) lvar.ol
+
+
+lsetad.ol: lsetad.c globdef.h uidef.h sigdef.h fft1def.h fft2def.h \
+	fft3def.h screendef.h sdrdef.h vernr.h thrdef.h osnum.h \
+	hwaredef.h txdef.h options.h bufbars.h keyboard_def.h \
+	loadalsa.h lscreen.h timing_setup.c input_speed.c
+	$(LCC) lsetad.c -DALSA_LIBNAME=\"@ALSA32_LD@\" \
+	-DSND_DEV=\"@SDEVPATH@\" $(CFL) lsetad.ol
+
+ifeq ("@S_OS_TYPE@", "OS_LINUX")
+split.ol: Makefile split.s
+	$(NASML) split.s -o split.ol
+fft2mmxa.ol: Makefile fft2mmxa.s
+	$(NASML) fft2mmxa.s -o fft2mmxa.ol
+fft2mmxb.ol: Makefile fft2mmxb.s
+	$(NASML) fft2mmxb.s -o fft2mmxb.ol
+fft2mmxc.ol: Makefile fft2mmxc.s
+	$(NASML) fft2mmxc.s -o fft2mmxc.ol
+fftasm.ol: Makefile fftasm.s
+	$(NASML) fftasm.s -o fftasm.ol
+getiq.ol: Makefile getiq.s
+	$(NASML) getiq.s -o getiq.ol
+simdasm.ol: Makefile simdasm.s
+	$(NASML) simdasm.s -o simdasm.ol
+hware.ol: Makefile hware.s
+	$(NASML) hware.s -o hware.ol
+endif
+ifeq ("@S_OS_TYPE@", "OS_WINDOWS")
+split.ol: Makefile splitw.s
+	$(NASML) splitw.s -o split.ol
+fft2mmxa.ol: Makefile fft2mmxaw.s
+	$(NASML) fft2mmxaw.s -o fft2mmxa.ol
+fft2mmxb.ol: Makefile fft2mmxbw.s
+	$(NASML) fft2mmxbw.s -o fft2mmxb.ol
+fft2mmxc.ol: Makefile fft2mmxcw.s
+	$(NASML) fft2mmxcw.s -o fft2mmxc.ol
+fftasm.ol: Makefile fftasmw.s
+	$(NASML) fftasmw.s -o fftasm.ol
+getiq.ol: Makefile getiqw.s
+	$(NASML) getiqw.s -o getiq.ol
+simdasm.ol: Makefile simdasmw.s
+	$(NASML) simdasmw.s -o simdasm.ol
+hware.ol: Makefile hwarew.s
+	$(NASML) hwarew.s -o hware.ol
+endif
+
+lxsys.ol: lxsys.c thrdef.h globdef.h uidef.h xdef.h osnum.h \
+	hwaredef.h options.h bufbars.h sdrdef.h lscreen.h
+	$(LCC) lxsys.c @HAVE_PARPORT@ $(CFL) lxsys.ol
+lsdr.ol: $(LSDR)
+	$(LCC) lsdr.c $(CFL) lsdr.ol
+
+
+
+adtest.ol: $(ADTEST)
+	$(LCC) adtest.c $(CFL) adtest.ol
+afc_graph.ol: $(AFC_GRAPH)
+	$(LCC) afc_graph.c $(CFL) afc_graph.ol
+afcsub.ol: $(AFCSUB)
+	$(LCC) afcsub.c $(CFL) afcsub.ol
+afedri.ol: $(AFEDRI)
+	$(LCC) afedri.c $(CFL) afedri.ol
+affinity.ol: $(AFFINITY)
+	$(LCC) affinity.c $(CFL) affinity.ol
+airspy.ol: $(AIRSPY)
+	$(LCC) airspy.c -DAIRSPY_LIBNAME=\"@LIBAIRSPY32_LD@\" $(CFL) airspy.ol
+airspyhf.ol: $(AIRSPYHF)
+	$(LCC) airspyhf.c -DAIRSPYHF_LIBNAME=\"@LIBAIRSPYHF32_LD@\" $(CFL) airspyhf.ol
+baseb_graph.ol: $(BASEB_GRAPH)
+	$(LCC) baseb_graph.c $(CFL) baseb_graph.ol
+bladerf.ol: $(BLADERF)
+	$(LCC) bladerf.c -DBLADERF_LIBNAME=\"@LIBBLADERF32_LD@\" \
+	$(CFL) bladerf.ol
+blank1.ol: $(BLANK1)
+	$(LCC) blank1.c $(CFL) blank1.ol
+blnkvar.ol: $(BLNKVAR)
+	$(LCC) blnkvar.c $(CFL) blnkvar.ol
+buf.ol: $(BUF) lscreen.h
+	$(LCC) buf.c $(CFLOCL) buf.ol
+calibrate.ol: $(CALIBRATE)
+	$(LCC) calibrate.c $(CFL) calibrate.ol
+caliq.ol: $(CALIQ)
+	$(LCC) caliq.c $(CFL) caliq.ol
+calsub.ol: $(CALSUB)
+	$(LCC) calsub.c $(CFL) calsub.ol
+calsub2.ol: $(CALSUB2)
+	$(LCC) calsub2.c $(CFL) calsub2.ol
+calvar.ol: $(CALVAR)
+	$(LCC) calvar.c $(CFL) calvar.ol
+cloudiq.ol: $(CLOUDIQ)
+	$(LCC) cloudiq.c $(CFL) cloudiq.ol
+coh_osc.ol: $(COH_OSC)
+	$(LCC) coh_osc.c $(CFL) coh_osc.ol
+coherent.ol: $(COHERENT)
+	$(LCC) coherent.c $(CFL) coherent.ol
+cohsub.ol: $(COHSUB)
+	$(LCC) cohsub.c $(CFL) cohsub.ol
+csplit.ol: $(CSPLIT)
+	$(LCC) csplit.c $(CFL) csplit.ol
+cuda.ol: $(CUDA)
+	$(LCC) cuda.c @CUFFT32_INC@ $(CFL) cuda.ol
+cwspeed.ol: $(CWSPEED)
+	$(LCC) cwspeed.c $(CFL) cwspeed.ol
+cwdetect.ol: $(CWDETECT)
+	$(LCC) cwdetect.c $(CFL) cwdetect.ol
+elad.ol: $(ELAD)
+	$(LCC) elad.c -DFDMS1_LIBNAME=\"@LIBFDMS1_32_LD@\" $(CFL) elad.ol
+elektor.ol: $(ELEKTOR)
+	$(LCC) elektor.c $(CFL) elektor.ol
+eme.ol: $(EME)
+	$(LCC) eme.c $(CFL) eme.ol
+excalibur.ol: $(EXCALIBUR)
+	$(LCC) excalibur.c $(CFL) excalibur.ol
+extio.ol: $(EXTIO)
+	$(LCC) extio.c $(CFL) extio.ol
+fcdpp.ol: $(FCDPP)
+	$(LCC) fcdpp.c $(CFL) fcdpp.ol
+fft0.ol: $(FFT0)
+	$(LCC) fft0.c $(CFL) fft0.ol
+fft1.ol: $(FFT1)
+	$(LCC) fft1.c $(CFL) fft1.ol
+fft1_re.ol: $(FFT1_RE)
+	$(LCC) fft1_re.c $(CFL) fft1_re.ol
+fft1var.ol: $(FFT1VAR)
+	$(LCC) fft1var.c $(CFL) fft1var.ol
+fft2.ol: $(FFT2)
+	$(LCC) fft2.c $(CFL) fft2.ol
+fft2var.ol: $(FFT2VAR)
+	$(LCC) fft2var.c $(CFL) fft2var.ol
+fft3.ol: $(FFT3)
+	$(LCC) fft3.c $(CFL) fft3.ol
+fft3var.ol: $(FFT3VAR)
+	$(LCC) fft3var.c $(CFL) fft3var.ol
+fm.ol: $(FM) 
+	$(LCC) fm.c $(CFL) fm.ol
+fonts.ol: $(FONTS)
+	$(LCC) fonts.c $(CFL) fonts.ol
+freq_control.ol: $(FREQ_CONTROL) 
+	$(LCC) freq_control.c $(CFL) freq_control.ol
+gifsave.ol: $(GIFSAVE)
+	$(LCC) gifsave.c $(CFL) gifsave.ol
+help.ol: $(HELP)
+	$(LCC) help.c $(CFL) help.ol
+ifeq ($(OS), Darwin)
+hid.ol: $(HID)
+	$(LCC) hidmac.c $(CFL) hid.ol -Wno-unused-parameter
+else
+hid.ol: $(HID)
+	$(LCC) hid.c -DUDEV_LIBNAME=\"@LIBUDEV_32_LD@\" $(CFL) hid.ol
+endif
+hires_graph.ol: $(HIRES_GRAPH)
+	$(LCC) hires_graph.c $(CFL) hires_graph.ol
+html_server.ol: $(HTML_SERVER)
+	$(LCC) html_server.c $(CFL) html_server.ol
+httpd.ol: $(HTTPD)
+	$(LCC) httpd.c $(CFL) httpd.ol
+hwaredriver.ol: $(HWAREDRIVER) @LDEPS1@
+	$(LCC) hwaredriver.c -DLUSERS_ROUTINES_PRESENT=0 -DWUSERS_ROUTINES_PRESENT=0 $(CFL) hwaredriver.ol
+keyboard_var.ol: $(KEYBOARD_VAR)
+	$(LCC) keyboard_var.c $(CFL) keyboard_var.ol
+lfxsys.ol: $(LFXSYS)
+	$(LCC) lfxsys.c $(CFL) lfxsys.ol
+llsq.ol: $(LLSQ)
+	$(LCC) llsq.c $(CFL) llsq.ol
+llsqvar.ol: $(LLSQVAR)
+	$(LCC) llsqvar.c $(CFL) llsqvar.ol
+loadusb.ol: $(LOADUSB)
+	$(LCC) loadusb.c -DFTDI_LIBNAME=\"@LIBFTDI32_LD@\" \
+	-DLIBUSB1_LIBNAME=\"@LIBUSB1_32_LD@\" -DBUILD=0 \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB32_LD@\" $(CFL) loadusb.ol
+loadalsa.ol: $(LOADALSA)
+	$(LCC) loadalsa.c -DALSA_LIBNAME=\"@ALSA32_LD@\" $(CFL) loadalsa.ol
+menu.ol: $(MENU)
+	$(LCC) menu.c -DUSERS_EXTRA_PRESENT=0 $(CFL) menu.ol
+meter_graph.ol: $(METER_GRAPH)
+	$(LCC) meter_graph.c $(CFL) meter_graph.ol
+mix1.ol: $(MIX1)
+	$(LCC) mix1.c $(CFL) mix1.ol
+mix2.ol: $(MIX2)
+	$(LCC) mix2.c $(CFL) mix2.ol
+mirics.ol: $(MIRICS)
+	$(LCC) mirics.c -DMIRISDR_LIBNAME=\"@LIBMIRISDR32_LD@\" $(CFL) mirics.ol
+morse.ol: $(MORSE)
+	$(LCC) morse.c $(CFL) morse.ol
+modesub.ol: $(MODESUB)
+	$(LCC) modesub.c -DUSERS_EXTRA_PRESENT=0 $(CFL) modesub.ol
+mouse.ol: $(MOUSE)
+	$(LCC) mouse.c $(CFL) mouse.ol
+network.ol: $(NETWORK)
+	$(LCC) network.c $(CFL) network.ol
+oclprogs.ol: $(OCLPROGS)
+	$(LCC) oclprogs.c @CLFFT32_INC@ -DLIR_OK=0 $(CFLOCL) oclprogs.ol
+pa.ol: $(PA)
+	$(LCC) pa.c -DPA_LIBNAME=\"@PORTAUDIO32_LD@\" $(CFL) pa.ol
+openhpsdr.ol: $(OPENHPSDR)
+	$(LCC) openhpsdr.c $(CFL) openhpsdr.ol
+pavar.ol: $(PAVAR)
+	$(LCC) pavar.c $(CFL) pavar.ol
+palette.ol: $(PALETTE)
+	$(LCC) palette.c $(CFL) palette.ol
+pcie9842.ol: $(PCIE9842)
+	$(LCC) pcie9842.c -DPCI_LIBNAME=\"@LIBWD_DASK_32_LD@\" $(CFL) pcie9842.ol
+perseus.ol: $(PERSEUS)
+	$(LCC) perseus.c -DPERSEUS_LIBNAME=\"@PERSEUS32_LD@\" $(CFL) perseus.ol
+pol_graph.ol: $(POL_GRAPH)
+	$(LCC) pol_graph.c $(CFL) pol_graph.ol
+powtim.ol: $(POWTIM)
+	$(LCC) powtim.c $(CFL) powtim.ol
+powtvar.ol: $(POWTVAR)
+	$(LCC) powtvar.c $(CFL) powtvar.ol
+radar.ol: $(RADAR)
+	$(LCC) radar.c $(CFL) radar.ol
+rtl2832.ol: $(RTL2832)
+	$(LCC) rtl2832.c -DRTLSDR_LIBNAME=\"@LIBRTLSDR32_LD@\" $(CFL) rtl2832.ol
+rxin.ol: $(RXIN)
+	$(LCC) rxin.c $(CFL) rxin.ol
+rxout.ol: $(RXOUT)
+	$(LCC) rxout.c $(CFL) rxout.ol
+screen.ol: $(SCREEN)
+	$(LCC) screen.c -DUSERS_EXTRA_PRESENT=0 $(CFL) screen.ol
+screenvar.ol: $(SCREENVAR)
+	$(LCC) screenvar.c $(CFL) screenvar.ol
+screensub.ol: $(SCREENSUB)
+	$(LCC) screensub.c $(CFL) screensub.ol
+sdr14.ol: $(SDR14)
+	$(LCC) sdr14.c $(CFL) sdr14.ol
+sdrip.ol: $(SDRIP)
+	$(LCC) sdrip.c $(CFL) sdrip.ol
+sdrplay2.ol: $(SDRPLAY2)
+	$(LCC) sdrplay2.c -DSDRPLAY2_LIBNAME=\"@LIBSDRPLAY232_LD@\" -L@LIBSDRPLAY232_LD@ $(CFL) sdrplay2.ol
+sdrplay3.ol: $(SDRPLAY3)
+	$(LCC) sdrplay3.c -DSDRPLAY3_LIBNAME=\"@LIBSDRPLAY332_LD@\" -L@LIBSDRPLAY332_LD@ $(CFL) sdrplay3.ol
+sdrvar.ol: $(SDRVAR)
+	$(LCC) sdrvar.c $(CFL) sdrvar.ol
+sellim.ol: $(SELLIM)
+	$(LCC) sellim.c $(CFL) sellim.ol
+selvar.ol: $(SELVAR)
+	$(LCC) selvar.c $(CFL) selvar.ol
+si570.ol: $(SI570)
+	$(LCC) si570.c -DLIBUSB1_LIBNAME=\"@LIBUSB1_32_LD@\" \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB32_LD@\" $(CFL) si570.ol
+siganal_graph.ol: $(SIGANAL_GRAPH)
+	$(LCC) siganal_graph.c $(CFL) siganal_graph.ol
+sigvar.ol: $(SIGVAR)
+	$(LCC) sigvar.c $(CFL) sigvar.ol
+soft66.ol: $(SOFT66)
+	$(LCC) soft66.c -DSOFT66_LIBNAME=\"@SOFT66_32_LD@\" $(CFL) soft66.ol
+soundcard.ol: $(SOUNDCARD)
+	$(LCC) soundcard.c $(CFL) soundcard.ol
+spur.ol: $(SPUR)
+	$(LCC) spur.c $(CFL) spur.ol
+spursub.ol: $(SPURSUB)
+	$(LCC) spursub.c $(CFL) spursub.ol
+thrvar.ol: $(THRVAR)
+	$(LCC) thrvar.c $(CFL) thrvar.ol
+timing.ol: $(TIMING)
+	$(LCC) timing.c $(CFL) timing.ol
+timf2.ol: $(TIMF2)
+	$(LCC) timf2.c $(CFL) timf2.ol
+tune.ol: $(TUNE)
+	$(LCC) tune.c $(CFL) tune.ol
+tx.ol: $(TX)
+	$(LCC) tx.c $(CFL) tx.ol
+tx_graph.ol: $(TX_GRAPH)
+	$(LCC) tx_graph.c $(CFL) tx_graph.ol
+txssb.ol: $(TXSSB)
+	$(LCC) txssb.c $(CFL) txssb.ol
+txtest.ol: $(TXTEST)
+	$(LCC) txtest.c $(CFL) txtest.ol
+txvar.ol: $(TXVAR)
+	$(LCC) txvar.c $(CFL) txvar.ol
+ui.ol: $(UI) xdef.h loadalsa.h
+	$(LCC) ui.c $(CFL) ui.ol
+uivar.ol: $(UIVAR)
+	$(LCC) uivar.c $(CFL) uivar.ol
+usb2lpt.ol: $(USB2LPT)
+	$(LCC) usb2lpt.c -DLIBUSB1_LIBNAME=\"@LIBUSB1_32_LD@\" \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB32_LD@\" $(CFL) usb2lpt.ol
+wcw.ol: $(WCW)
+	$(LCC) wcw.c -DUSERS_EXTRA_PRESENT=0 $(CFL) wcw.ol
+wide_graph.ol: $(WIDE_GRAPH)
+	$(LCC) wide_graph.c $(CFL) wide_graph.ol
+wse.ol: $(WSE)
+	$(LCC) wse.c -DLIBUSB1_LIBNAME=\"@LIBUSB1_32_LD@\" \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB32_LD@\" $(CFL) wse.ol
+
+# ---------------------- Linux 64 bit ------------------
+xlinrad64: Makefile xmain.om ui.om uivar.om fft1var.om lsetad.om \
+wide_graph.om fft0.om fft1.om adtest.om screenvar.om sigvar.om cuda.om \
+baseb_graph.om afc_graph.om hires_graph.om palette.om gifsave.om \
+calibrate.om calsub.om calsub2.om llsqvar.om caliq.om hwaredriver.om \
+llsq.om sellim.om selvar.om mix1.om fft2var.om fft3var.om afedri.om \
+spursub.om network.om buf.om thrvar.om radar.om httpd.om html_server.om \
+@ASMLIB64@ \
+fft3.om timf2.om fft1_re.om powtvar.om affinity.om elad.om airspy.om \
+wcw.om blank1.om calvar.om blnkvar.om fft2.om pol_graph.om modesub.om \
+help.om afcsub.om timing.om mix2.om spur.om coherent.om cohsub.om eme.om \
+tune.om txtest.om mouse.om freq_control.om morse.om lxsys.om lvar.om \
+powtim.om cwspeed.om coh_osc.om cwdetect.om txvar.om tx.om pavar.om pa.om \
+menu.om screen.om sdrvar.om xsys.om sdr14.om keyboard_var.om xvar.om fm.om \
+meter_graph.om fonts.om screensub.om tx_graph.om txssb.om wxsys.om \
+rxin.om perseus.om rxout.om sdrip.om lsdr.om wse.om si570.om soft66.om \
+usb2lpt.om excalibur.om extio.om rtl2832.om elektor.om fcdpp.om hid.om \
+pcie9842.om bladerf.om mirics.om sdrplay2.om sdrplay3.om openhpsdr.om \
+soundcard.om oclprogs.om loadalsa.om cloudiq.om lfxsys.om loadusb.om \
+airspyhf.om siganal_graph.om
+
+	${CC} -m64 -o xlinrad64 @ST@ \
+xmain.om xvar.om ui.om lsetad.om fft1.om buf.om lvar.om radar.om \
+mouse.om wide_graph.om fft0.om adtest.om hires_graph.om elad.om \
+baseb_graph.om mix2.om afc_graph.om hwaredriver.om loadusb.om \
+sellim.om palette.om gifsave.om timing.om help.om calibrate.om \
+calsub.om calsub2.om llsqvar.om llsq.om caliq.om timf2.om tx.om \
+powtim.om selvar.om fft2var.om sigvar.om screenvar.om uivar.om \
+fft1var.om fft3var.om calvar.om blnkvar.om fft1_re.om lxsys.om \
+powtvar.om blank1.om fft2.om sdrip.om afedri.om airspy.om cuda.om \
+pol_graph.om modesub.om spur.om cohsub.om coherent.om affinity.om \
+eme.om spursub.om freq_control.om lsdr.om httpd.om html_server.om \
+@ASMLIB64@ \
+rxin.om wcw.om mix1.om afcsub.om morse.om menu.om fonts.om rxout.om \
+tune.om txtest.om network.om coh_osc.om fm.om soundcard.om \
+cwspeed.om sdrvar.om sdr14.om keyboard_var.om thrvar.om pa.om \
+xsys.om screen.om cwdetect.om tx_graph.om txssb.om pavar.om \
+txvar.om screensub.om fft3.om wxsys.om meter_graph.om wse.om si570.om \
+soft66.om perseus.om usb2lpt.om excalibur.om extio.om rtl2832.om \
+elektor.om fcdpp.om hid.om pcie9842.om bladerf.om mirics.om sdrplay2.om \
+sdrplay3.om openhpsdr.om oclprogs.om loadalsa.om cloudiq.om lfxsys.om \
+airspyhf.om siganal_graph.om \
+@LIBOPENCL64_LD@ @CLFFTPATH64@ \
+@SVGA64_LD@ \
+@SVGAGL64_LD@ \
+@LIBXEXT64_LD@ \
+@X11_64_LD@ \
+@CUFFTPATH64@ \
+-lpthread @LIBRT@ -lm -ldl $(LIBMACOSX)
+
+	@echo " "
+	@echo "You may want to disable pulseaudio in Ubuntu with this command:"
+	@echo "sudo pasuspender -- ./xlinrad64"
+	@echo " "
+
+wxsys.om: $(WXSYS)
+	$(LCC) wxsys.c $(CFL64) wxsys.om
+xvar.om: xvar.c thrdef.h globdef.h xdef.h osnum.h
+	$(LCC) xvar.c @X11_64_INC@ $(CFL64) xvar.om
+xsys.om: xsys.c thrdef.h globdef.h uidef.h screendef.h xdef.h lscreen.h \
+	keyboard_def.h vernr.h sdrdef.h options.h bufbars.h osnum.h
+	$(LCC) xsys.c @X11_64_INC@ $(CFL64) xsys.om
+xmain.om: xmain.c thrdef.h globdef.h uidef.h screendef.h lscreen.h \
+	vernr.h options.h bufbars.h keyboard_def.h xdef.h osnum.h
+	$(LCC) xmain.c -DBUILD=0 -DHAVE_XKBLIB=@XKBLIB_64_OK@ \
+	@X11_64_INC@ $(CFL64) xmain.om
+lvar.om: lvar.c globdef.h caldef.h thrdef.h osnum.h
+	$(LCC) lvar.c $(CFL64) lvar.om
+
+lsetad.om: lsetad.c globdef.h uidef.h sigdef.h fft1def.h fft2def.h \
+	fft3def.h screendef.h sdrdef.h vernr.h thrdef.h osnum.h\
+	hwaredef.h txdef.h options.h bufbars.h keyboard_def.h \
+	loadalsa.h lscreen.h timing_setup.c input_speed.c
+	$(LCC) lsetad.c -DALSA_LIBNAME=\"@ALSA64_LD@\" \
+	-DSND_DEV=\"@SDEVPATH@\" $(CFL64) lsetad.om
+
+ifeq ("@S_OS_TYPE@", "OS_LINUX")
+split.om: Makefile split64.s
+	$(NASML64) split64.s -o split.om
+fft2mmxa.om: Makefile fft2mmxa64.s
+	$(NASML64) fft2mmxa64.s -o fft2mmxa.om
+fft2mmxb.om: Makefile fft2mmxb64.s
+	$(NASML64) fft2mmxb64.s -o fft2mmxb.om
+fft2mmxc.om: Makefile fft2mmxc64.s
+	$(NASML64) fft2mmxc64.s -o fft2mmxc.om
+fftasm.om: Makefile fftasm64.s
+	$(NASML64) fftasm64.s -o fftasm.om
+getiq.om: Makefile getiq64.s
+	$(NASML64) getiq64.s -o getiq.om
+simdasm.om: Makefile simdasm64.s
+	$(NASML64) simdasm64.s -o simdasm.om
+endif
+ifeq ("@S_OS_TYPE@", "OS_WINDOWS")
+split.om: Makefile splitw64.s
+	$(NASML64) splitw64.s -o split.om
+fft2mmxa.om: Makefile fft2mmxaw64.s
+	$(NASML64) fft2mmxaw64.s -o fft2mmxa.om
+fft2mmxb.om: Makefile fft2mmxbw64.s
+	$(NASML64) fft2mmxbw64.s -o fft2mmxb.om
+fft2mmxc.om: Makefile fft2mmxcw64.s
+	$(NASML64) fft2mmxcw64.s -o fft2mmxc.om
+fftasm.om: Makefile fftasmw64.s 
+	$(NASML64) fftasmw64.s -o fftasm.om
+getiq.om: Makefile getiqw64.s
+	$(NASML64) getiqw64.s -o getiq.om
+simdasm.om: Makefile simdasmw64.s
+	$(NASML64) simdasmw64.s -o simdasm.om
+endif
+lxsys.om: lxsys.c thrdef.h globdef.h uidef.h xdef.h osnum.h \
+	hwaredef.h options.h bufbars.h sdrdef.h lscreen.h
+	$(LCC) lxsys.c @HAVE_PARPORT@ $(CFL64) lxsys.om
+lsdr.om: $(LSDR)
+	$(LCC) lsdr.c $(CFL64) lsdr.om
+adtest.om: $(ADTEST)
+	$(LCC) adtest.c $(CFL64) adtest.om
+afc_graph.om: $(AFC_GRAPH)
+	$(LCC) afc_graph.c $(CFL64) afc_graph.om
+afcsub.om: $(AFCSUB)
+	$(LCC) afcsub.c $(CFL64) afcsub.om
+afedri.om: $(AFEDRI)
+	$(LCC) afedri.c $(CFL64) afedri.om
+affinity.om: $(AFFINITY)
+	$(LCC) affinity.c $(CFL64) affinity.om
+airspy.om: $(AIRSPY)
+	$(LCC) airspy.c -DAIRSPY_LIBNAME=\"@LIBAIRSPY64_LD@\" $(CFL64) airspy.om
+airspyhf.om: $(AIRSPYHF)
+	$(LCC) airspyhf.c -DAIRSPYHF_LIBNAME=\"@LIBAIRSPYHF64_LD@\" $(CFL64) airspyhf.om
+baseb_graph.om: $(BASEB_GRAPH)
+	$(LCC) baseb_graph.c $(CFL64) baseb_graph.om
+bladerf.om: $(BLADERF)
+	$(LCC) bladerf.c -DBLADERF_LIBNAME=\"@LIBBLADERF64_LD@\" \
+	$(CFL64) bladerf.om
+blank1.om: $(BLANK1)
+	$(LCC) blank1.c $(CFL64) blank1.om
+blnkvar.om: $(BLNKVAR)
+	$(LCC) blnkvar.c $(CFL64) blnkvar.om
+buf.om: $(BUF) lscreen.h
+	$(LCC) buf.c $(CFLOCL64) buf.om
+calibrate.om: $(CALIBRATE)
+	$(LCC) calibrate.c $(CFL64) calibrate.om
+caliq.om: $(CALIQ)
+	$(LCC) caliq.c $(CFL64) caliq.om
+calsub.om: $(CALSUB)
+	$(LCC) calsub.c $(CFL64) calsub.om
+calsub2.om: $(CALSUB2)
+	$(LCC) calsub2.c $(CFL64) calsub2.om
+calvar.om: $(CALVAR)
+	$(LCC) calvar.c $(CFL64) calvar.om
+cloudiq.om: $(CLOUDIQ)
+	$(LCC) cloudiq.c $(CFL64) cloudiq.om
+coh_osc.om: $(COH_OSC)
+	$(LCC) coh_osc.c $(CFL64) coh_osc.om
+coherent.om: $(COHERENT)
+	$(LCC) coherent.c $(CFL64) coherent.om
+cohsub.om: $(COHSUB)
+	$(LCC) cohsub.c $(CFL64) cohsub.om
+csplit.om: $(CSPLIT)
+	$(LCC) csplit.c $(CFL64) csplit.om
+cuda.om: $(CUDA)
+	$(LCC) cuda.c @CUFFT64_INC@ $(CFL64) cuda.om
+cwspeed.om: $(CWSPEED)
+	$(LCC) cwspeed.c $(CFL64) cwspeed.om
+cwdetect.om: $(CWDETECT)
+	$(LCC) cwdetect.c $(CFL64) cwdetect.om
+elad.om: $(ELAD)
+	$(LCC) elad.c -DFDMS1_LIBNAME=\"@LIBFDMS1_64_LD@\" $(CFL64) elad.om
+elektor.om: $(ELEKTOR)
+	$(LCC) elektor.c $(CFL64) elektor.om
+eme.om: $(EME)
+	$(LCC) eme.c $(CFL64) eme.om
+excalibur.om: $(EXCALIBUR)
+	$(LCC) excalibur.c $(CFL64) excalibur.om
+extio.om: $(EXTIO)
+	$(LCC) extio.c $(CFL64) extio.om
+fcdpp.om: $(FCDPP)
+	$(LCC) fcdpp.c $(CFL64) fcdpp.om
+fft0.om: $(FFT0)
+	$(LCC) fft0.c $(CFL64) fft0.om
+fft1.om: $(FFT1)
+	$(LCC) fft1.c $(CFL64) fft1.om
+fft1_re.om: $(FFT1_RE)
+	$(LCC) fft1_re.c $(CFL64) fft1_re.om
+fft1var.om: $(FFT1VAR)
+	$(LCC) fft1var.c $(CFL64) fft1var.om
+fft2.om: $(FFT2)
+	$(LCC) fft2.c $(CFL64) fft2.om
+fft2var.om: $(FFT2VAR)
+	$(LCC) fft2var.c $(CFL64) fft2var.om
+fft3.om: $(FFT3)
+	$(LCC) fft3.c $(CFL64) fft3.om
+fft3var.om: $(FFT3VAR)
+	$(LCC) fft3var.c $(CFL64) fft3var.om
+fm.om: $(FM) 
+	$(LCC) fm.c $(CFL64) fm.om
+fonts.om: $(FONTS)
+	$(LCC) fonts.c $(CFL64) fonts.om
+freq_control.om: $(FREQ_CONTROL) 
+	$(LCC) freq_control.c $(CFL64) freq_control.om
+gifsave.om: $(GIFSAVE)
+	$(LCC) gifsave.c $(CFL64) gifsave.om
+help.om: $(HELP)
+	$(LCC) help.c $(CFL64) help.om
+ifeq ($(OS), Darwin)
+hid.om: $(HID)
+	$(LCC) hidmac.c $(CFL64) hid.om -Wno-unused-parameter
+else
+hid.om: $(HID)
+	$(LCC) hid.c -DUDEV_LIBNAME=\"@LIBUDEV_64_LD@\" $(CFL64) hid.om
+endif
+hires_graph.om: $(HIRES_GRAPH)
+	$(LCC) hires_graph.c $(CFL64) hires_graph.om
+html_server.om: $(HTML_SERVER)
+	$(LCC) html_server.c $(CFL64) html_server.om
+httpd.om: $(HTTPD)
+	$(LCC) httpd.c $(CFL64) httpd.om
+hwaredriver.om: $(HWAREDRIVER) @LDEPS1@ 
+	$(LCC) hwaredriver.c -DLUSERS_ROUTINES_PRESENT=0 -DWUSERS_ROUTINES_PRESENT=0 $(CFL64) hwaredriver.om
+keyboard_var.om: $(KEYBOARD_VAR)
+	$(LCC) keyboard_var.c $(CFL64) keyboard_var.om
+lfxsys.om: $(LFXSYS)
+	$(LCC) lfxsys.c $(CFL64) lfxsys.om
+llsq.om: $(LLSQ)
+	$(LCC) llsq.c $(CFL64) llsq.om
+llsqvar.om: $(LLSQVAR)
+	$(LCC) llsqvar.c $(CFL64) llsqvar.om
+loadusb.om: $(LOADUSB)
+	$(LCC) loadusb.c -DFTDI_LIBNAME=\"@LIBFTDI64_LD@\" \
+	-DLIBUSB1_LIBNAME=\"@LIBUSB1_64_LD@\" -DBUILD=0 \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB64_LD@\" 	$(CFL64) loadusb.om
+loadalsa.om: $(LOADALSA)
+	$(LCC) loadalsa.c -DALSA_LIBNAME=\"@ALSA64_LD@\" $(CFL64) loadalsa.om
+menu.om: $(MENU)
+	$(LCC) menu.c -DUSERS_EXTRA_PRESENT=0 $(CFL64) menu.om
+meter_graph.om: $(METER_GRAPH)
+	$(LCC) meter_graph.c $(CFL64) meter_graph.om
+mix1.om: $(MIX1)
+	$(LCC) mix1.c $(CFL64) mix1.om
+mix2.om: $(MIX2)
+	$(LCC) mix2.c $(CFL64) mix2.om
+mirics.om: $(MIRICS)
+	$(LCC) mirics.c -DMIRISDR_LIBNAME=\"@LIBMIRISDR64_LD@\" $(CFL64) mirics.om
+morse.om: $(MORSE)
+	$(LCC) morse.c $(CFL64) morse.om
+modesub.om: $(MODESUB)
+	$(LCC) modesub.c -DUSERS_EXTRA_PRESENT=0 $(CFL64) modesub.om
+mouse.om: $(MOUSE)
+	$(LCC) mouse.c $(CFL64) mouse.om
+network.om: $(NETWORK)
+	$(LCC) network.c $(CFL64) network.om
+oclprogs.om: $(OCLPROGS)
+	$(LCC) oclprogs.c @CLFFT64_INC@ -DLIR_OK=0 $(CFLOCL64) oclprogs.om
+pa.om: $(PA)
+	$(LCC) pa.c -DPA_LIBNAME=\"@PORTAUDIO64_LD@\" $(CFL64) pa.om
+openhpsdr.om: $(OPENHPSDR)
+	$(LCC) openhpsdr.c $(CFL64) openhpsdr.om
+pavar.om: $(PAVAR)
+	$(LCC) pavar.c $(CFL64) pavar.om
+palette.om: $(PALETTE)
+	$(LCC) palette.c $(CFL64) palette.om
+pcie9842.om: $(PCIE9842)
+	$(LCC) pcie9842.c -DPCI_LIBNAME=\"@LIBWD_DASK_64_LD@\" $(CFL64) pcie9842.om
+perseus.om: $(PERSEUS)
+	$(LCC) perseus.c -DPERSEUS_LIBNAME=\"@PERSEUS64_LD@\" $(CFL64) perseus.om
+pol_graph.om: $(POL_GRAPH)
+	$(LCC) pol_graph.c $(CFL64) pol_graph.om
+powtim.om: $(POWTIM)
+	$(LCC) powtim.c $(CFL64) powtim.om
+powtvar.om: $(POWTVAR)
+	$(LCC) powtvar.c $(CFL64) powtvar.om
+radar.om: $(RADAR)
+	$(LCC) radar.c $(CFL64) radar.om
+rtl2832.om: $(RTL2832)
+	$(LCC) rtl2832.c -DRTLSDR_LIBNAME=\"@LIBRTLSDR64_LD@\" $(CFL64) rtl2832.om
+rxin.om: $(RXIN)
+	$(LCC) rxin.c $(CFL64) rxin.om
+rxout.om: $(RXOUT)
+	$(LCC) rxout.c $(CFL64) rxout.om
+screen.om: $(SCREEN)
+	$(LCC) screen.c -DUSERS_EXTRA_PRESENT=0 $(CFL64) screen.om
+screenvar.om: $(SCREENVAR)
+	$(LCC) screenvar.c $(CFL64) screenvar.om
+screensub.om: $(SCREENSUB)
+	$(LCC) screensub.c $(CFL64) screensub.om
+sdr14.om: $(SDR14)
+	$(LCC) sdr14.c $(CFL64) sdr14.om
+sdrip.om: $(SDRIP)
+	$(LCC) sdrip.c $(CFL64) sdrip.om
+sdrplay2.om: $(SDRPLAY2)
+	$(LCC) sdrplay2.c -DSDRPLAY2_LIBNAME=\"@LIBSDRPLAY264_LD@\" $(CFL64) sdrplay2.om
+sdrplay3.om: $(SDRPLAY3)
+	$(LCC) sdrplay3.c -DSDRPLAY3_LIBNAME=\"@LIBSDRPLAY364_LD@\" $(CFL64) sdrplay3.om
+sdrvar.om: $(SDRVAR)
+	$(LCC) sdrvar.c $(CFL64) sdrvar.om
+sellim.om: $(SELLIM)
+	$(LCC) sellim.c $(CFL64) sellim.om
+selvar.om: $(SELVAR)
+	$(LCC) selvar.c $(CFL64) selvar.om
+si570.om: $(SI570)
+	$(LCC) si570.c -DLIBUSB1_LIBNAME=\"@LIBUSB1_64_LD@\" \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB64_LD@\" $(CFL64) si570.om
+siganal_graph.om: $(SIGANAL_GRAPH)
+	$(LCC) siganal_graph.c $(CFL64) siganal_graph.om
+sigvar.om: $(SIGVAR)
+	$(LCC) sigvar.c $(CFL64) sigvar.om
+soft66.om: $(SOFT66)
+	$(LCC) soft66.c -DSOFT66_LIBNAME=\"@SOFT66_64_LD@\" $(CFL64) soft66.om
+soundcard.om: $(SOUNDCARD)
+	$(LCC) soundcard.c $(CFL64) soundcard.om
+spur.om: $(SPUR)
+	$(LCC) spur.c $(CFL64) spur.om
+spursub.om: $(SPURSUB)
+	$(LCC) spursub.c $(CFL64) spursub.om
+thrvar.om: $(THRVAR)
+	$(LCC) thrvar.c $(CFL64) thrvar.om
+timing.om: $(TIMING)
+	$(LCC) timing.c $(CFL64) timing.om
+timf2.om: $(TIMF2)
+	$(LCC) timf2.c $(CFL64) timf2.om
+tune.om: $(TUNE)
+	$(LCC) tune.c $(CFL64) tune.om
+tx.om: $(TX)
+	$(LCC) tx.c $(CFL64) tx.om
+tx_graph.om: $(TX_GRAPH)
+	$(LCC) tx_graph.c $(CFL64) tx_graph.om
+txssb.om: $(TXSSB)
+	$(LCC) txssb.c $(CFL64) txssb.om
+txtest.om: $(TXTEST)
+	$(LCC) txtest.c $(CFL64) txtest.om
+txvar.om: $(TXVAR)
+	$(LCC) txvar.c $(CFL64) txvar.om
+ui.om: $(UI) xdef.h loadalsa.h
+	$(LCC) ui.c $(CFL64) ui.om
+uivar.om: $(UIVAR)
+	$(LCC) uivar.c $(CFL64) uivar.om
+usb2lpt.om: $(USB2LPT)
+	$(LCC) usb2lpt.c -DLIBUSB1_LIBNAME=\"@LIBUSB1_64_LD@\" \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB64_LD@\" $(CFL64) usb2lpt.om
+wcw.om: $(WCW)
+	$(LCC) wcw.c -DUSERS_EXTRA_PRESENT=0 $(CFL64) wcw.om
+wide_graph.om: $(WIDE_GRAPH)
+	$(LCC) wide_graph.c $(CFL64) wide_graph.om
+wse.om: $(WSE)
+	$(LCC) wse.c -DLIBUSB1_LIBNAME=\"@LIBUSB1_64_LD@\" \
+	-DLIBUSB0_LIBNAME=\"@LIBUSB64_LD@\" $(CFL64) wse.om
+
+
+# ------------------      Tools for Linux      -----------------------
+vgatest: vgatest.ol
+	${CC} -o vgatest @ST@ vgatest.ol -lvgagl -lvga -lm 
+vgatest.ol: vgatest.c
+	${CC} vgatest.c -c -o vgatest.ol
+mousetest: mousetest.ol
+	${CC} -o mousetest @ST@ mousetest.ol -lvgagl -lvga -lm 
+mousetest.ol: mousetest.c
+	${CC} mousetest.c -c -o mousetest.ol
+
+LIR_OBJDIR := /etc/linrad/modules-$(shell uname -r)/
+
+
+svgalib :
+	@test -w /etc || ( \
+	echo; \
+	echo ERROR: root permission required to install boot scripts; \
+	__stop-at-error__)
+	mkdir -p /etc/linrad
+	mkdir -p $(LIR_OBJDIR)
+	@test -f $(LIR_OBJDIR)/svgalib_helper.@MODEXT@ || ( \
+	echo; \
+	echo ERROR: copy svgalib_helper.@MODEXT@ to $(LIR_OBJDIR) and try again; \
+	__stop-at-error__)
+	rm -f /etc/linrad/svga
+	cp svga /etc/linrad
+	chmod 755 /etc/linrad/svga
+	mkdir -p @INIT@/rc0.d
+	mkdir -p @INIT@/rc1.d
+	mkdir -p @INIT@/rc2.d
+	mkdir -p @INIT@/rc3.d
+	mkdir -p @INIT@/rc5.d
+	mkdir -p @INIT@/rc6.d
+	rm -f @INIT@/rc0.d/K28svga
+	rm -f @INIT@/rc1.d/S96svga
+	rm -f @INIT@/rc2.d/S96svga
+	rm -f @INIT@/rc3.d/S96svga
+	rm -f @INIT@/rc5.d/S96svga
+	rm -f @INIT@/rc6.d/K28svga
+	ln -s /etc/linrad/svga @INIT@/rc0.d/K28svga
+	ln -s /etc/linrad/svga @INIT@/rc1.d/S96svga
+	ln -s /etc/linrad/svga @INIT@/rc2.d/S96svga
+	ln -s /etc/linrad/svga @INIT@/rc3.d/S96svga
+	ln -s /etc/linrad/svga @INIT@/rc5.d/S96svga
+	ln -s /etc/linrad/svga @INIT@/rc6.d/K28svga
+
+@SDR1422@ :
+	@echo ""
+	@echo ""
+	@echo "----------------------------------------------------"
+	@echo "There is no driver for ft245 for linux 2.2.x kernels"
+	@echo "Use linux 2.4.x or later"
+	@echo "----------------------------------------------------"
+	@echo ""
+
+@SDR1424@ :
+	@test -w /etc || ( \
+	echo; \
+	echo ERROR: root permission required to install boot scripts; \
+	__stop-at-error__)
+	mkdir -p /etc/linrad
+	mkdir -p $(LIR_OBJDIR)
+	cp usb_sdr14 /etc/linrad
+	chmod 755 /etc/linrad/usb_sdr14
+	${CC} -D__KERNEL__ -DCONFIG_USB_DEBUG=1 -I/usr/src/@LINDIR@/include \
+-Wall -Wstrict-prototypes -Wno-trigraphs -g -fno-strict-aliasing \
+-fno-common -fomit-frame-pointer -pipe -mpreferred-stack-boundary=2 \
+-march=i686 -DMODULE -DMODVERSIONS \
+-include /usr/src/@LINDIR@/include/linux/modversions.h \
+-nostdinc -iwithprefix include -DKBUILD_BASENAME=ft245 \
+-c -o ft245.o ft245.c
+	rm -f /etc/linrad/ft245.o
+	cp ft245.o $(LIR_OBJDIR)
+	rm -f /etc/linrad/usb_sdr14
+	cp usb_sdr14 /etc/linrad
+	chmod 755 /etc/linrad/usb_sdr14
+	mkdir -p @INIT@/rc0.d
+	mkdir -p @INIT@/rc1.d
+	mkdir -p @INIT@/rc2.d
+	mkdir -p @INIT@/rc3.d
+	mkdir -p @INIT@/rc5.d
+	mkdir -p @INIT@/rc6.d
+	rm -f @INIT@/rc0.d/K28usb_sdr14
+	rm -f @INIT@/rc1.d/S96usb_sdr14
+	rm -f @INIT@/rc2.d/S96usb_sdr14
+	rm -f @INIT@/rc3.d/S96usb_sdr14
+	rm -f @INIT@/rc5.d/S96usb_sdr14
+	rm -f @INIT@/rc6.d/K28usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc0.d/K28usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc1.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc2.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc3.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc5.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc6.d/K28usb_sdr14
+
+
+obj-m := ft245.o
+KDIR  := /lib/modules/$(shell uname -r)/build
+PWD   := $(shell pwd)
+PGM   := @FT245PGM@
+
+
+@SDR1426@ :
+  ifneq ("$(PGM)", "ERROR")
+	@test -w /etc || ( \
+	@echo; \
+	@echo ERROR: root permission required to install boot scripts; \
+	__stop-at-error__)
+	mkdir -p /etc/linrad
+	mkdir -p $(LIR_OBJDIR)
+	cp usb_sdr14 /etc/linrad
+	chmod 755 /etc/linrad/usb_sdr14
+	@echo --------------------------------------------------------------
+	@echo In case the make command fails you must install the
+	@echo kernel-devel package for your current kernel
+	@echo Installing kernel-headers or some other kernel development
+	@echo package might include the appropriate package by dependencies.
+  ifeq ("@OSVER@", "9")
+	@echo IF COMPILATION FAILS DUE TO ERRORS use the ttyUSB driver.
+	@echo Add a file in your /etc/modprobe.d/ directory.
+	@echo The file should contain these two lines:
+	@echo options ftdi_sio vendor=0x403 product=0x6001
+	@echo options ftdi_sio vendor=0x403 product=0xf728
+	@echo After boot, but before launching Linrad you will have to type:
+	@echo modprobe ftdi_sio or possibly modprobe ehci_hcd
+	@echo " "
+  endif	
+	$(MAKE) -C $(KDIR) @KERNEL_SUBDIRS@=$(PWD) modules
+	@echo --------------------------------------------------------------
+	rm -f /etc/linrad/ft245.o
+	rm -f /etc/linrad/ft245.ko
+	cp ft245.o $(LIR_OBJDIR)
+	cp ft245.ko $(LIR_OBJDIR)
+	rm -f /etc/linrad/usb_sdr14
+	cp usb_sdr14 /etc/linrad
+	chmod 755 /etc/linrad/usb_sdr14
+	mkdir -p @INIT@/rc0.d
+	mkdir -p @INIT@/rc1.d
+	mkdir -p @INIT@/rc2.d
+	mkdir -p @INIT@/rc3.d
+	mkdir -p @INIT@/rc5.d
+	mkdir -p @INIT@/rc6.d
+	rm -f @INIT@/rc0.d/K28usb_sdr14
+	rm -f @INIT@/rc1.d/S96usb_sdr14
+	rm -f @INIT@/rc2.d/S96usb_sdr14
+	rm -f @INIT@/rc3.d/S96usb_sdr14
+	rm -f @INIT@/rc5.d/S96usb_sdr14
+	rm -f @INIT@/rc6.d/K28usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc0.d/K28usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc1.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc2.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc3.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc5.d/S96usb_sdr14
+	ln -s /etc/linrad/usb_sdr14 @INIT@/rc6.d/K28usb_sdr14
+else
+	@echo " "
+	@echo " "
+	@echo There is no ft245.c that works for kernels between
+	@echo 2.6.0 and 2.6.3.
+	@echo Use a kernel in the 2.4.xx series or
+	@echo a kernel with version number 2.6.4 or above.
+	@echo " "
+  endif
+
+@SDR1430@ :
+	@echo " "
+	@echo " "
+	@echo Linrad does not supply drivers for modern kernels.
+	@echo Add a file in your /etc/modprobe.d/ directory.
+	@echo The file should contain these two lines:
+	@echo options ftdi_sio vendor=0x403 product=0x6001
+	@echo options ftdi_sio vendor=0x403 product=0xf728
+	@echo Possibly also these two lines:
+	@echo options ehci_hcd vendor=0x403 product=0x6001
+	@echo options ehci_hcd vendor=0x403 product=0xf728
+	@echo " "
+	@echo After boot, but before launching Linrad you will have to type:
+	@echo modprobe ftdi_sio or possibly modprobe ehci_hcd

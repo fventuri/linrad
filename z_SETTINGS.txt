@@ -1,0 +1,226 @@
+The Linrad package by SM5BSZ can be configured for a wide range of 
+compromises between performance and computer load.
+
+RADIO INTERFACE:
+fs=sampling frequency
+B=system bandwidth
+The radio can be interfaced in 3 different ways):
+1: One RF, one audio channel (normal audio)
+   This means you have a just an ordinary radio and connect it's
+   audio output directly to the computer.
+   Max bandwidth B can approach  0.5*fs if the filter
+   of the radio is very steep so frequencies above 0.5*fs+B are
+   sufficiently suppressed. 
+   Normal radios have good filters so this mode can be used with
+   slow computers even without audio filtering to remove signals
+   above 0.5*fs
+2: One RF, two audio channels (direct conversion).
+   The audio board is run in stereo and the two channels should
+   be connected to the output of two mixers that are fed with local
+   oscillators having a phase shift of about 90 degrees. 
+   Max bandwidth is can approach fs if very steep audio filters are
+   used between the mixers and the computer. The maximum bandwidth
+   can approach fs even without any filters at all because soundcards
+   have very steep digital filters with the correct cutoff frequency.
+   When using only the digital filter of the soundcard dynamic range 
+   may suffer since the total amplitude seen by the raw A/D process 
+   will be much larger. 
+3: Two RF, two audio channels (normal audio, adaptive polarization)
+   This means you have a radio with two receive channels using common
+   oscillators. (stereo receiver) 
+   Max bandwidth can approach  0.5*fs with very good filters. 
+   In this mode the two channels are automatically combined for
+   optimum S/N which is very useful for e.g. EME where the two channels
+   normally are the two signals from a X-yagi.
+   The process completely eliminates signal degradation due to farady rotation.
+   Linear elliptic and circular polarisations are automatically received
+   with the optimum receiver polarisation.
+   On HF bands the two signals can be any two equal antennas. 
+   The adaptive combination of the two signals for optimum S/N is can
+   then be adaptive direction finding or adaptive polarisation depending
+   on the antemnna geometry.
+   Noise suppression is greatly enhanced in this mode since interference 
+   sources are evaluated with the combination of the two signals that
+   maximise the S/N for each particular interference source.
+   The contribution to the interference level in the signal channel can
+   usually be removed with better accuracy compared to single channel modes.
+4: Two RF, four audio channels (direct conversion, adaptive polarization)
+   The audio board is run with two stereo channels and for each stereo
+   channelthe two channels should be connected to the output of two mixers 
+   that are fed with local oscillators having a phase shift of about 90 
+   degrees. Max bandwidth is can approach fs if very steep audio filters 
+   are used between the mixers and the computer. The maximum bandwidth
+   can approach fs even without any filters at all because soundcards
+   have very steep digital filters with the correct cutoff frequency.
+   When using only the digital filter of the soundcard dynamic range 
+   may suffer since the total amplitude seen by the raw A/D process 
+   will be much larger. The two RF channels must be run with common
+   local oscillators. In this mode the two channels are automatically 
+   combined for optimum S/N which is very useful for e.g. EME where 
+   the two channels normally are the two signals from a X-yagi.
+   The process completely eliminates signal degradation due to farady rotation.
+   Linear elliptic and circular polarisations are automatically received
+   with the optimum receiver polarisation.
+   On HF bands the two signals can be any two equal antennas. 
+   The adaptive combination of the two signals for optimum S/N is can
+   then be adaptive direction finding or adaptive polarisation depending
+   on the antemnna geometry.
+   Noise suppression is greatly enhanced in this mode since interference 
+   sources are evaluated with the combination of the two signals that
+   maximise the S/N for each particular interference source.
+   The contribution to the interference level in the signal channel can
+   usually be removed with better accuracy compared to single channel modes.
+   Best is to use a soundcard that can be opened with 4 channels because
+   then the phase angle (time shift) between the two channels will
+   always be correct. In some cases the device drivers only allow
+   Linrad to open two independent stereo channels. That works with the
+   same benefits for sensitivity and interference rejection but the
+   phase information used to present the ellipticity of the polarisation
+   is lost and it may be impossible to distinguish between +45 and -45
+   degrees polarisation.
+
+SAMPLING SPEED:   
+
+The sampling speed must be set high enough to avoid alias signals.
+If you can tolerate alias signals at -60dB you can place the sampling
+frequency halfway between the -10dB point and the -70dB point of
+the low pass filter you have between the radio and the PC.
+Remember there is usually a low pass filter inside the audio board
+and another one in the receiver itself so you do not have to add fancy
+filters unless you want the very large bandwidths you can get by
+pushing e.g. the -10dB and the -70dB close together.
+If you can afford the processing time you can improve dynamic range
+by oversampling. Set the sampling speed as high as possible with 
+the computer you have.
+
+
+SPECTRUM RESOLUTION AND CPU TIME:
+
+The times for the CPU intensive routines are sensitive to processor
+type, cash memory size and of course clock frequency for processor and
+main memory.
+
+If you select a narrow bandwidth you get a large size of the FFT.
+When the FFT is too large to fit in the cash memory there is a 
+severe punishment in processing time.
+
+If you really want the frequency resolution you may set the sampling speed
+for no oversampling i.e. as low as possible before you get aliasing signals.
+
+There is no such thing as the optimum code for FFT routines.
+The Linrad is designed to accomodate a selection of different FFT routines
+There is a function in the set up that will allow you to select the fastest
+one on your hardware for the FFT size you have selected. 
+
+The FFT time is sensitive to the selected window function.
+A narrower window makes the FFT size larger for any given bandwidth.
+At the same time the transforms overlap more in time so the number
+of transforms per time increases for a given FFT size.
+If you want to track weak signals in white noise you may select
+a very wide window sin power = 0 means no window and no overlapping
+of transforms.
+
+If you have strong signals within the passband you may get them to fall
+off much more rapidly with a narrow window even if you have to set the
+bandwidth higher to avoid excessive CPU load.
+
+
+
+WIDE BAND PROCESSING:
+
+The first FFT produces a spectrum on the screen.
+You may use that directly to locate and lock to interesting signals.
+If you use a normal SSB receiver with a builtin noise blanker that
+operates in a larger bandwidth you probably get little improvement
+by enabling the second FFT.
+
+If the second FFT is enabled, the transforms of the first FFT are split
+into two sets of transforms. Both sets are back transformed to produce
+two functions of time, one of which contains all strong signals
+(anything that looks like a peak in the spectrum) while the other contains
+impulse noise and weak signals. The strong signals are amplitude limited
+by a selective AGC function to make sure 16 bit will be enough for 
+further processing.
+
+The back transform of the first FFT that is associated with enabling
+of the second FFT allows a very efficient noise blanker, particularly in
+stereo at large bandwidths.
+
+The second FFT that uses the sum of the two time functions from the first
+FFT can be set for very narrow bandwidths because a frequency selective
+AGC function makes it possible to use MMX instructions to improve
+speed.
+
+
+AVERAGING AND AFC
+
+To find and follow weak signals in noise averages of transforms are
+used to improve S/N.
+For very weak and unstable signals it is possible to use an extra delay
+so the signal can be found by use of the spectrum both before and after
+the processed moment of time. 
+
+In case second FFT is enabled, AFC uses second FFT transforms. Otherwise
+first FFT transformas are used.
+AFC averaging time is limited by the time allowed for the transforms
+used.
+
+
+FIRST MIXER
+
+The selected signal(s) are frequency mixed with a local (digital) 
+oscillator that follows the frequency determined by the AFC algorithm.
+In this way unstable signals get a reduced bandwidth centered around
+zero frequency.
+
+Rather than actually mixing the original time function with a digitally 
+controlled oscillator (NCO, looking up sin and cos values in tables ) 
+and then filtering the mixer output (I and Q, complex signal) to 
+allow resampling at a lower sampling rate, limited back fft's are used.
+
+Exactly as in a conventional mixing and data decimation process spur
+suppression is important. 
+The filter in use during this process is the window function of the
+FFT. To get good spur suppression the window power of sin has to
+be at least 2.
+
+The spurs depend on the first mixer data reduction rate and the
+size of the transform.
+
+
+FURTHER PROCESSING FOR WEAK CW
+
+Once the bandwidth is reduced processing is less time critical.
+For weak CW a second AFC plus second mixer takes advantage of the reduced
+bandwidth produced already. This way the signal can be followed over
+weak periods where the first AFC only was succesful on surrounding peak 
+amplitude regions causing a bandwidth reduction by interpolating the
+frequency. Finally the phase and amplitude is extracted from a very narrow 
+filter and used for coherent cw.
+This is the processing sucessfully used in the DSP program for MS-DOS.
+The time delay can be selected from a few seconds up to about 10 seconds 
+in the most difficult cases.
+
+FURTHER PROCESSING FOR NORMAL CW
+A normal signal can be followed by looking at the history so processing
+delay is limited to the delay caused by the filter bandwidths an a small
+extra delay for some safety margin in buffers.
+
+FURTHER PROCESSING FOR METEOR SCATTER
+Similar to weak signal CW but much larger bandwidths and correspondingly
+shorter delays. Coherent CW and automatic translation to ASCII are obvious
+additions that will work well for this propagation mode.
+Any development in this direction is obsoleted by digital modes.
+
+FURTHER PROCESSING FOR FM
+Very large enhancements are possible compared to a conventional FM 
+receiver on wideband FM signals. Some improvement should be possible
+for narrowband FM also, maybe not so exciting because when FM is not 
+good enough a change to SSB will be a good alternative.................
+
+
+
+
+
+
+ 

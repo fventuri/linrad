@@ -1,0 +1,15 @@
+The extlibs directory contains references to external repositories.
+The references are implemented with the help of the Subversion repository.
+  http://svnbook.red-bean.com/en/1.8/svn.advanced.externals.html
+Use svn to view or edit the current release tag.
+  svn propget  svn:externals extlibs
+  svn propedit svn:externals extlibs
+
+clFFT
+  We use a fixed release of clFFT.
+
+clinfo
+  We use a fixed revision number of clinfo.
+
+clpeak
+  We use a fixed revision number of clpeak.

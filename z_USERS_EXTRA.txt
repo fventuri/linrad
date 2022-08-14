@@ -1,0 +1,15 @@
+The user may add a file: users_extra.c to have his own
+additional functions added in a version independent way.
+
+The distribution packages of Linrad contain a file extra.c
+which is intended as a prototype. There is also a file
+extra_w3sz.c which makes Linrad follow the frequency
+selected in MAP-65.
+
+After you have renamed extra.c or extra_w3sz.c to 
+users_extra.c you have to run the configure script 
+to update Makefile
+
+Just copy your users_extra into any new Linrad version 
+before running configure to include your own things in 
+the new package

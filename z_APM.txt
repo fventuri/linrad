@@ -1,0 +1,35 @@
+APM (advanced power management) can be used to
+turn off the hard disks and the screen to save power
+and hardware life.
+
+You may set the BIOS to monitor various events and to
+bring the computer to sleep if none of them has occured
+within a specified time.
+
+If you set monitoring to mouse and keyboard only,
+the Linrad will go to sleep after a while as specified
+in the BIOS when you have not touched mouse or keyboard.
+
+If you set APM to also monitor the parallel port Linrad
+will run continously because Linrad will read the status 
+port (0x379) now and then to tell APM it does not want 
+to go to sleep. For this function to work you need 
+permission to read the hardware port. Permission is 
+given in users_open_devices() which is located in 
+hwaredriver.c. 
+If you use your own routine users_hwaredriver.c it is
+your responsibility to get permission and set allow_parport
+accordingly. The allow_parport flag is cleared in main.c
+and it is used in modesub.c to decide whether to read 
+the control port or not.
+
+The default mode of operation is that the BIOS is set to
+monitor keyboard, mouse and the parallel port but not
+the hard disks. This way the computer will go to sleep
+after the specified time when you exit Linrad.
+
+
+
+
+ 
+

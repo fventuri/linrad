@@ -1,0 +1,90 @@
+
+                    THE SPEECH PROCESSOR IN LINRAD
+
+----------------------- processing in tx.c ----------------------------
+The signal from the microphone can be read as int or short int from the
+soundcard. Samples can be real or complex (one or two audio channels.) 
+Depending on whether ui.tx_ad_bytes is 2 or 4, the samples are stored 
+in mictimf_int or mictimf_shi. One read block is mictimf_adread_block
+data values and in case two channels have to be selected, the second 
+channel is ignored.
+
+FORWARD FFT. (1)
+The output from mictimf_xxx is 2*micsize real samples which are
+multiplied with a sine squared function and sent to a fft routine
+that produces a block of micsize complex samples in mic_tmp. The pointer
+into mictimf_xxx is stepped by half the transform size so transforms
+overlap by 50%.
+
+The transforms are frequency shifted and moved moved to micfft
+where they are stored as mic_fftsize complex amplitudes having
+the passband center at bin=0. In this process the complex amplitudes
+are multiplied by the user selected filter functions which means that
+frequency bins above half the desired bandwidth are zeroed. 
+
+------------ The main processing (in txssb.c during setup) -------------
+step1: Wait for a new transform to arrive in micfft.
+
+step2: Apply muting in the frequency domain on micfft.
+
+step3: (not used)
+
+REVERSE FFT. (2)
+step4: Add back transforms with 50% overlap and the appropriate
+       sign to form the filtered microphone signal and place it in 
+       cliptimf. Apply AGC, clipping and muting in the time domain 
+       on the fly.
+
+FORWARD FFT (3)
+step5: Make 50% overlapping transforms and store in clipfft. The transform
+       size is mic_fftsize as before. Apply the filter by zeroing 
+       frequency bins outside the desired range.
+
+REVERSE FFT (4)
+step6: Change the transform size from mic_fftsize to alc_fftsize
+       by adding/removing zero bins at high frequencies.
+       Go back to the time domain and store the signal in alctimf. 
+       Apply a bi-directional fast attack, slow release detector
+       to produce an ALC voltage that tracks the peak power but that 
+       does not contain high frequencies. 
+
+step7: Apply ALC by modulating the signal with the ALC voltage so the 
+       peak power never goes above 1.00.
+
+step8: In case there are many enough samples in alctimf, set a flag
+       to start the output. If output is running, do the re-sampling
+       needed to fit the sampling rate of the output soundcard.
+       The re-sampled signal is stored in tx_resamp.
+FORWARD FFT (5)
+REVERSE FFT (6)
+       The function use_tx_resamp produces the transforms of the re-sampled
+       time function and clears bins outside the desired range and puts
+       the transforms in tx_resamp. Then a reverse FFT is performed.
+       tx_resamp_tmp is used for this in-placce forward/reverse FFT. The
+       re-sampling process introduces a small amount of distortion which
+       is removed this way. 
+       
+       The signal is sent to the output soundcard.
+ 
+
+***********************************************************************
+In total six FFTs are used. Each FFT might span 10 ms, but they overlap
+by 50% so the total delay might be as low as 3 times the time span of
+one transform.
+
+In SSB mode a latency of 120 ms from microphone to earphones is
+OK and with 80 ms for the tx and 40 ms for the rx there should be
+plenty of margin.
+***********************************************************************
+Sampling rates for time domain signals:
+
+mictimf_xxx: ui.tx_ad_speed
+
+cliptimf: ui.tx_ad_speed*mic_fftsize/micsize = 
+         =ui.tx_ad_speed*mic_to_spproc_resample_ratio
+
+alctimf:  ui.tx_ad_speed*mic_to_spproc_resample_ratio*tx_pre_resample
+
+tx_resamp: Ideally 0.5*ui.tx_da_speed (input is real, output complex)
+          =tx_resample_ratio*ui.tx_ad_speed
+

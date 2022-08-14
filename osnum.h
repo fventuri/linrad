@@ -1,0 +1,4 @@
+#define OSNUM_LINUX 1
+#define OSNUM_WINDOWS 2
+#define OSNUM_BSD 3
+#define OSNUM_DARWIN 4

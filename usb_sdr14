@@ -1,0 +1,65 @@
+#! /bin/sh
+### BEGIN INIT INFO
+# Provides:          ft245-module
+# Required-Start:    $remote_fs dbus
+# Required-Stop:     $remote_fs dbus
+# Should-Start:      $syslog acpid
+# Should-Stop:       $syslog acpid
+# Default-Start:     2 3 4 5
+# Default-Stop:      1
+# Short-Description: install ft245 driver module
+# Description:       The module is needed for SDR-14 and SDR-IQ
+### END INIT INFO
+
+
+#
+# description:	Load the ft245 module
+#
+# processname: ft245
+
+getkern(){
+  case "$(uname -r)" in
+    2.[012345].*) return 1 ;;
+  esac
+  return 0
+}
+
+start() {
+    echo $"Loading the ft245 driver: "
+if getkern; then
+    insmod /etc/linrad/modules-"$(uname -r)"/ft245.ko
+else
+    insmod /etc/linrad/modules-"$(uname -r)"/ft245.o
+fi
+rm -f /dev/linrad_ft245
+mknod /dev/linrad_ft245 c 180 144
+}
+
+stop() {
+    rmmod ft245
+    rm -f /dev/linrad_ft245
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+        ;;
+    restart)
+	stop
+	start
+	;;
+    condrestart)
+	;;
+    reload)
+        ;;
+    *)
+	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+	;;
+esac
+exit $RETVAL

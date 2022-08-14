@@ -1,0 +1,56 @@
+
+#
+# description:	Load the svgalib_helper module
+#
+# processname: svga
+
+getkern(){
+  case "$(uname -r)" in
+    2.[012345].*) return 1 ;;
+  esac
+  return 0
+}
+
+start() {
+    echo $"Loading svgalib_helper: "
+if getkern; then
+    insmod /etc/linrad/modules-"$(uname -r)"/svgalib_helper.ko
+else
+    insmod /etc/linrad/modules-"$(uname -r)"/svgalib_helper.o
+fi
+rm -f /dev/svga 
+rm -f /dev/svga?
+mknod -m 666 /dev/svga c 209 0
+mknod -m 666 /dev/svga1 c 209 1
+mknod -m 666 /dev/svga2 c 209 2
+mknod -m 666 /dev/svga3 c 209 3
+mknod -m 666 /dev/svga4 c 209 4
+}
+
+stop() {
+    rmmod svgalib_helper
+}
+
+# See how we were called.
+case "$1" in
+    start)
+	start
+	;;
+    stop)
+	stop
+	;;
+    status)
+        ;;
+    restart)
+	stop
+	start
+	;;
+    condrestart)
+	;;
+    reload)
+        ;;
+    *)
+	echo $"Usage: $0 {start|stop|status|restart|condrestart|reload}"
+	;;
+esac
+exit $RETVAL

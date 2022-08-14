@@ -1,0 +1,302 @@
+<!doctype html>
+<!--
+// web_gui.html - graphical user interface implemented in HTML
+//
+// Copyright (c) 2014 Juergen Kahrs
+//
+// Permission is hereby granted, free of charge, to any person 
+// obtaining a copy of this software and associated documentation 
+// files (the "Software"), to deal in the Software without restriction, 
+// including without limitation the rights to use, copy, modify, 
+// merge, publish, distribute, sublicense, and/or sell copies of 
+// the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+//
+// The above copyright notice and this permission notice shall be 
+// included in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, 
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES 
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, 
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE 
+// OR OTHER DEALINGS IN THE SOFTWARE.
+-->
+
+<html>
+  <head>
+    <title>AM radio</title>
+    <meta charset='UTF-8'>
+    <!-- The head is the right place for all scripts, including jquery.
+         It would be legal to work with local copies of the jquery files.
+         But the libraries refer to too many other files (images).
+      -->
+    <link rel='stylesheet' href='http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css'>
+    <link rel='stylesheet' href='http://jqueryui.com/resources/demos/style.css'>
+    <script src='http://code.jquery.com/jquery-1.10.2.min.js'></script>
+    <script src='http://code.jquery.com/ui/1.10.4/jquery-ui.js'></script>
+    <script>
+      // Wait until HTML page and jquery are completely loaded.
+      // Then apply jquery-ui elements to the DOM that follows below.
+      $( document ).ready(function() {
+        $( '#accordion' ).accordion({
+          heightStyle: 'content',
+          active: 0
+        });
+        $( "#waterfall_id" ).tooltip( {content: "972 kHz"} );
+      });
+      // Prepare the browser's audio device for playing subsequent audio data.
+      // Use URL that changes with each page load to avoid caching of audio data.
+      var page_load_date = new Date();
+      var amradio_filename = "amradio_" + page_load_date.toISOString() + ".wav";
+      try {
+        window.AudioContext = window.AudioContext||window.webkitAudioContext;
+        context = new AudioContext();
+        var AMradio = new Audio();
+        source = context.createMediaElementSource(AMradio);
+        source.connect(context.destination);
+        AMradio.src = amradio_filename;
+        AMradio.bufferSize=256;
+        AMradio.play();
+      } catch(e) {
+        alert('Web Audio API is not supported in this browser.');
+        // Workaround: Insert some HTML with an <audio> tag.
+        // <audio id='amradio_id' autoplay preload='none'> <source src='" + amradio_filename + "'> <p>Your browser does not support the audio element of HTML5</p> </audio>
+      }
+      var theWaterfall;
+      var theWaterfallContext;
+      var waterfallWidth  = 800;
+      var waterfallHeight = 100;
+      var bandMinFreq     =  531;
+      var bandMaxFreq     = 1602;
+      var bandRaster      =    9;
+      var mouseClickFreq  =    0;
+      function waterfallUpdate() {
+        theWaterfall.width  = waterfallWidth;
+        theWaterfall.height = waterfallHeight;
+        theWaterfallContext.fillStyle = "#ffffff";
+        theWaterfallContext.fillRect(0, 0, waterfallWidth, waterfallHeight);
+      }
+      function waterfallApp() {
+        theWaterfall = $("#waterfall_id")[0];
+        if (! theWaterfall) {
+          alert("Cannot find the waterfall image");
+        } else {
+          theWaterfallContext = theWaterfall.getContext("2d");
+          waterfallUpdate();
+        }
+      }
+      window.addEventListener("load",   waterfallApp, false);
+    </script>
+  </head>
+  <body>
+    <!-- The top level of the GUI is organized as a jquery UI accordion.
+         Upon loading the web page, only the waterfall is expanded.
+      -->
+    <div id='accordion'>
+      <h3>waterfall</h3>
+        <div>
+          <p>
+            <!-- Allocate a screen area to contain the waterfall image. -->
+            <canvas id="waterfall_id" width="800" height="100" title="972 kHz">
+              Your browser does not support HTML5 Canvas.
+            </canvas>
+            <p>
+              Center frequency:
+              <span id="center_id">972 kHz</span>
+            </p><p>
+              Waterfall width:
+              <input id='waterfall_width_id'  name="waterfall_width_name" type="range" min="200" max="1000" value="800" step="10" style='width: 400px;'/>
+            </p><p>
+              Waterfall height:
+              <input id='waterfall_height_id' name="waterfall_height_name" type="range" min="50" max="200"  value="300" step="5"  style='width: 400px;'/>
+            </p>
+        </div>
+      <h3>bandwidth</h3>
+        <div>
+          <input onclick="setBandwidth(   9);" type='radio' name='bandwidth' id='9'           value='9'  checked  >   9 kHz bandwidth<br>
+          <input onclick="setBandwidth(  10);" type='radio' name='bandwidth' id='10'          value='10'          >  10 kHz bandwidth<br>
+          <input onclick="setBandwidth(  25);" type='radio' name='bandwidth' id='25'          value='25'          >  25 kHz bandwidth<br>
+          <input onclick="setBandwidth( 100);" type='radio' name='bandwidth' id='100'         value='100'         > 100 kHz bandwidth<br>
+          <input onclick="setBandwidth(1000);" type='radio' name='bandwidth' id='1000'        value='1000'        >1000 kHz bandwidth<br>
+        </div>
+      <h3>volume</h3>
+        <div>
+          <button onclick="$('#amradio_id')[0].volume+=0.1">Increase Volume</button>
+          <button onclick="$('#amradio_id')[0].volume-=0.1">Decrease Volume</button>
+        </div>
+      <h3>frequency band</h3>
+        <div>
+          <input onClick="bandMinFreq=153 ; bandMaxFreq=279;   bandRaster = 1;"  type='radio' name='raster' id='LW'           value='1'        > LW 153 - 279 kHz<br>
+          <input onClick="bandMinFreq=531 ; bandMaxFreq=1602;  bandRaster = 9;"  type='radio' name='raster' id='MW raster_EU' value='9' checked> MW 531 - 1602 kHz, 9 kHz raster (EU)<br>
+          <input onClick="bandMinFreq=540 ; bandMaxFreq=1700;  bandRaster =10;" type='radio' name='raster' id='MW raster_US' value='10'       > MW 540 - 1700 kHz, 10 kHz raster (US)<br>
+          <input onClick="bandMinFreq=3000; bandMaxFreq=4000;  bandRaster = 5;"  type='radio' name='raster' id='SW 80'        value='80'       > SW 80 m, 3 MHz - 4 MHz<br>
+          <input onClick="bandMinFreq=4000; bandMaxFreq=6000;  bandRaster = 5;"  type='radio' name='raster' id='SW 60'        value='60'       > SW 60 m, 4 MHz - 6 MHz<br>
+          <input onClick="bandMinFreq=5000; bandMaxFreq=7000;  bandRaster = 5;"  type='radio' name='raster' id='SW 49'        value='49'       > SW 49 m, 5 MHz - 7 MHz<br>
+          <input onClick="bandMinFreq=7000; bandMaxFreq=9000;  bandRaster = 5;"  type='radio' name='raster' id='SW 41'        value='41'       > SW 41 m, 7 MHz - 9 MHz<br>
+          <input onClick="bandMinFreq=9000; bandMaxFreq=11000; bandRaster = 5;"  type='radio' name='raster' id='SW 31'        value='31'       > SW 31 m, 9 MHz - 11 MHz<br>
+          <input onClick="bandMinFreq=11000; bandMaxFreq=13000;bandRaster = 5;"  type='radio' name='raster' id='SW 25'        value='25'       > SW 25 m, 11 MHz - 13 MHz<br>
+          <input onClick="bandMinFreq=13000; bandMaxFreq=15000;bandRaster = 5;"  type='radio' name='raster' id='SW 22'        value='22'       > SW 22 m, 13 MHz - 15 MHz<br>
+        </div>
+      <h3>operating mode</h3>
+        <div>
+          <input onclick="setMode( 0);" type='radio' name='mode' id='0'           value='0'  checked  > Weak CW<br>
+          <input onclick="setMode( 1);" type='radio' name='mode' id='1'           value='1'           > Normal CW<br>
+          <input onclick="setMode( 2);" type='radio' name='mode' id='2'           value='2'           > Fast CW<br>
+          <input onclick="setMode( 3);" type='radio' name='mode' id='3'           value='3'           > SSB<br>
+          <input onclick="setMode( 4);" type='radio' name='mode' id='4'           value='4'           > FM<br>
+          <input onclick="setMode( 5);" type='radio' name='mode' id='5'           value='5'           > AM<br>
+          <input onclick="setMode( 6);" type='radio' name='mode' id='6'           value='6'           > QRSS<br>
+          <input onclick="setMode( 7);" type='radio' name='mode' id='7'           value='7'           > TX test (spectrum analysis)<br>
+          <input onclick="setMode( 8);" type='radio' name='mode' id='8'           value='8'           > Input hardware test<br>
+          <input onclick="setMode( 9);" type='radio' name='mode' id='9'           value='9'           > Tune<br>
+          <input onclick="setMode(10);" type='radio' name='mode' id='10'          value='10'          > Radar<br>
+        </div>
+    </div>
+    <!-- The rest of the page consists of JavaScript functions manipulating the HTML page. -->
+    <script type="text/javascript">
+      $('#waterfall_width_id').on('change', function (event) {
+        waterfallWidth = event.target.value;
+        waterfallUpdate();
+      });
+      $('#waterfall_height_id').on('change', function (event) {
+        waterfallHeight = event.target.value;
+        waterfallUpdate();
+      });
+      $('#waterfall_id').on('mousemove', function (event) {
+        $( "#waterfall_id" ).tooltip( "option", "content", freqFromX(event.clientX - $("#waterfall_id")[0].offsetLeft) + " kHz");
+      });
+      // When pressing the mouse button, do nothing but remember the frequency.
+      $('#waterfall_id').on('mousedown', function (event) {
+        mouseClickFreq = freqFromX(event.clientX - $("#waterfall_id")[0].offsetLeft);
+      });
+      // When unpressing the mouse button, compare the frequencies of pressing and unpressing.
+      $('#waterfall_id').on('mouseup', function (event) {
+        var f = freqFromX(event.clientX - $("#waterfall_id")[0].offsetLeft);
+        var max = Math.max(f, mouseClickFreq);
+        var min = Math.min(f, mouseClickFreq);
+        // If both frequencies are the same, then set the center frequency.
+        if (f == mouseClickFreq) {
+          setCenterFrequency(freqFromX(event.clientX - $("#waterfall_id")[0].offsetLeft));
+        } else {
+          // The two different frequencies are the new left and right margins.
+          bandMinFreq = freqFromX(xFromFreq(min));
+          bandMaxFreq = freqFromX(xFromFreq(max));
+        }
+      });
+      // Upon double click move the margin further out.
+      $('#waterfall_id').on('dblclick', function (event) {
+        // Where did the user click, near the left margin or the right margin ?
+        var f = (freqFromX(event.clientX - $("#waterfall_id")[0].offsetLeft));
+        // Change leftmost or rightmost frequency.
+        if ( f < (bandMinFreq + bandMaxFreq) / 2) {
+          bandMinFreq -= bandRaster * Math.floor((bandMaxFreq - bandMinFreq) / 4 / bandRaster);
+          if (bandMinFreq < 0)
+            bandMinFreq = 0;
+          bandMinFreq = freqFromX(xFromFreq(bandMinFreq));
+        } else {
+          bandMaxFreq += bandRaster * Math.floor((bandMaxFreq - bandMinFreq) / 4 / bandRaster);
+          bandMaxFreq = freqFromX(xFromFreq(bandMaxFreq));
+        }
+      });
+
+      // Once a second the waterfall shall scroll down.
+      function updateWaterfall(spectrum) {
+        var con= $("#waterfall_id")[0].getContext("2d");
+        // Shift down all lines of the image by one pixel height.
+        con.putImageData(con.getImageData(0, 0, waterfallWidth, waterfallHeight-1), 0, 1);
+        // Create one new line that shall be filled with the received data.
+        var line = con.createImageData(waterfallWidth, 1);
+        function setPixel(i, p) {
+          line.data[4*i+0] = 255 - p;
+          line.data[4*i+1] = 255 - p;
+          line.data[4*i+2] = 255 - p;
+          line.data[4*i+3] = 255;
+        }
+        // Remember the last x coordinate that was already set earlier.
+        // This is necessary to set all pixels located between reported frequencies.
+        var prevX;
+        // Take each reported spectral point and copy it into the new spectral line.
+        $.each(spectrum, function(freq, dB) {
+          var x=xFromFreq(freq);
+          if (prevX == undefined)
+            prevX = x-1;
+          for (i=prevX+1; i<=x; i++)
+            setPixel(i, 5 * (dB - 50));
+          prevX=x
+        });
+        // Put the new line at the top of the image.
+        con.putImageData(line, 0, 0);
+      }
+
+      // Receive new spectrum data and put it at the top of the waterfall.
+      // Spectrum data shall be read in JSON or text format with a HTTP GET request.
+      function pollSpectrum() {
+        // Wait for new spectral data.
+        // This waiting is the pacemaker of the waterfall.
+        $.ajax({
+          url:      "spectrum",
+          dataType: "json",
+          data: {'freq_min':bandMinFreq,'freq_max':bandMaxFreq, 'freq_bin': bandRaster},
+          // If data reception works as expected, then draw a new spectral line.
+          success: function(data, status, xhr){
+            updateWaterfall(data);
+            // After successful completion repeat the produre immediately.
+            // This bears the danger of an infinite loop, but we trust in the data source
+            // because it will send the spectral data with a proper latency.
+            pollSpectrum();
+          },
+          // If no data arrives within a second, then stop waiting.
+          timeout: 2000,
+          // In case of a reception error, the latency of the failure condition is the pacemaker.
+          error: function(xhr, status, error) {
+            // Let the waterfall flow, even when there is no data.
+            updateWaterfall("");
+            // After failed completion wait and repeat the produre.
+            setTimeout ("pollSpectrum()", 1000);
+          }
+        });
+      }
+      // Start polling for spectral data, the function recurses infinitely.
+      pollSpectrum();
+
+      // Convert a pixel coordinate X into a frequency, denpending on current band selection.
+      function freqFromX(X) {
+        var freq_unrastered = bandMinFreq + (X / $("#waterfall_id")[0].width * (bandMaxFreq - bandMinFreq));
+        var freq_rastered = bandMinFreq + (bandRaster * Math.floor((freq_unrastered - bandMinFreq + bandRaster/2) / bandRaster));
+        return  freq_rastered;
+      }
+
+      // Convert a frequency into a pixel coordinate X, denpending on current band selection.
+      function xFromFreq(f) {
+        return Math.floor($("#waterfall_id")[0].width * (f - bandMinFreq) / (bandMaxFreq - bandMinFreq))
+      }
+
+      function setCenterFrequency(center) {
+        $('#center_id').html(center + " kHz");
+        if (center > 0) {
+          setFrequency = new XMLHttpRequest();
+          setFrequency.open( "GET", document.referrer + "/?center_frequency_khz="+center, true);
+          setFrequency.send(null);
+        };
+      };
+
+      function setBandwidth(bandwidth) {
+          setBW = new XMLHttpRequest();
+          setBW.open( "GET", document.referrer + "/?bandwidth_khz="+bandwidth, true);
+          setBW.send(null);
+      };
+
+      function setMode(mode) {
+      };
+
+      // Select the default settings.
+      // It would be better to also invoke setCenterFrequency and setBandwidth.
+      $('input:radio[name=bandwidth]')[0].checked = true;
+      $('input:radio[name=raster]')   [1].checked = true;
+      $('input:radio[name=mode]')     [5].checked = true;
+    </script>
+  </body>
+</html>

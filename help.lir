@@ -1,0 +1,1889 @@
+000059
+[1]KEYBOARD COMMANDS (available in most modes) 
+A = Numerical display, amplitudes
+E = Eliminate spur (If AFC present)
+F = File playback control. Select what part(s) to play.
+C = Clear spur elimination tables (If AFC present)
+G = Save entire screen as .GIF file
+M = Toggle freq stepping mode. Center, Passband or BFO (See Left, Right) 
+R = Remember tune frequency in autostart mode.
+S = Save input data as file (S again to stop)  
+T = Numerical display, processing delays
+W = Write output data as .WAV file (W again to stop)
+Alt W = Save .WAV file as 'W', but only when squelch is open.
+X = Exit from current mode to menu.
+Z = Restart averaging for S-meter and numerical displays.
+Alt Z = Clear correlation spectra.
+SPACE BAR = Set the transmitter to the current receive frequency.
+V or B or N = Set the receiver to the current transmit frequency.
+F1 or ! = Help. (Place mouse on a screen object)
+F1 or ! = Show screen objects. (Place mouse outside windows on black screen.)
+           (F1 or ! once more = Show thread id. Only under modern Linux.)
+F2 = Toggle S-meter averaging
+F3 = Skip D/A output (For fast processing of disk files.)
+shift F3 = Stop disk file processing (to study morse decode intermediates)
+F4 = Show RF envelope vs time as an oscilloscope function in Tx test mode
+F5 = Pause processing. Useful for wideband recordings
+F7 = Add random noise (for test only)
+F8 = Reduce the strong signal when F11 is in use.
+F9 = Truncate input (for test only)
+F11 = Enable internal signal generator (on recorded data).
+Up =Increase bandwidth.
+Down = Decrease bandwidth.
+Left = Decrease frequency ('M' or mouse box for mode).
+Right = Increase frequency ('M' or mouse box for mode).
++ = Make the wheel mouse step size twice as large.
+- = Make the wheel mouse step size twice as small.
+    (Wheel is equivalent to Left and Right. Pressed to '+' or '-')
+ESC = Quit from program                        
+-------------------------------------------------------------------------
+Note that ESC and X work in menus. Sometimes also G.
+[2]KEYBOARD COMMANDS (available in most modes) 
+A = Numerical display, amplitudes
+E = Eliminate spur (If AFC present)
+F = File playback control. Select what part(s) to play.
+C = Clear spur elimination tables (If AFC present)
+G = Save entire screen as .GIF file
+M = Toggle freq stepping mode. Center, Passband or BFO (See Left, Right) 
+S = Save input data as file (S again to stop)  
+T = Numerical display, processing delays
+W = Write output data as .WAV file (W again to stop)
+Alt W = Save .WAV file as 'W', but only when squelch is open.
+X = Exit from current mode to menu
+Z = Restart averaging for S-meter and numerical displays
+Alt Z = Clear correlation spectra.
+SPACE BAR = Set the transmitter to the current receive frequency.
+V or B or N = Set the receiver to the current transmit frequency.
+F1 or ! = Help. (Place mouse on a screen object)
+F1 or ! = Show screen objects. (Place mouse outside windows on black screen.)
+           (F1 or ! once more = Show thread id. Only under modern Linux.)
+F2 = Toggle S-meter averaging
+F3 = Skip D/A output (For fast processing of disk files.)
+shift F3 = Stop disk file processing (to study morse decode intermediates)
+F4 = Show RF envelope vs time as an oscilloscope function in Tx test mode.
+F5 = Pause processing. Useful for wideband recordings on slow computers.
+F9 = Truncate input (for test only)
+Up =Increase bandwidth.
+Down = Decrease bandwidth.
+Left = Decrease frequency ('M' or mouse box for mode).
+Right = Increase frequency ('M' or mouse box for mode).
++ = Make the wheel mouse step size twice as large.
+- = Make the wheel mouse step size twice as small.
+    (Wheel is equivalent to Left and Right. Pressed to '+' or '-')
+ESC = Quit from program                        
+-------------------------------------------------------------------------
+Note that ESC and X work in menus. Sometimes also G.
+[3]Press the left mouse button to expand the main spectrum Y-scale.
+[4]Press the left mouse button to contract the main spectrum Y-scale.
+[5]Press the left mouse button to move the main spectrum upwards.
+[6]Press the left mouse button to move the main spectrum downwards.
+[7]Press the left mouse button to contract the main spectrum and waterfall
+by moving in data points at the left hand side.
+The highest frequency is left unchanged when the number of
+data points is large enough. Otherwise the right hand side
+border line is moved inwards to make the window fit all the
+available data points.
+[8]Press the left mouse button to expand the main spectrum and waterfall
+by moving out points at the left hand side.
+The highest frequency is left unchanged.
+[9]Press the left mouse button to expand the main spectrum and waterfall
+by moving out points at the right hand side.
+The lowest frequency is left unchanged when the number of
+data points is large enough. Otherwise the right hand side
+border line is moved inwards to make the window fit all the
+available data points.
+[10]Press the left mouse button to contract the main spectrum and waterfall
+by moving in data points at the right hand side.
+The lowest frequency is left unchanged when the number of
+data points is large enough. Otherwise the right hand side
+border line is moved inwards to make the window fit all the
+available data points.
+[11]Main spectrum and waterfall are calculated as averages
+of the first fft (fft1).
+The number of spectra to average over is a multiple
+of the number in this box.
+Press the left mouse button to change.
+[12]The main spectrum is calculated as an average of the 
+first fft (fft1).
+The number of spectra to average over is a multiple
+of the number in this box because averaging is done as averages
+of averages.
+Besides affecting cpu load at large numbers of averages this
+parameter affects the noise blanker because the blanker uses
+the average according to this number to locate strong signals.
+The blanker also uses the average of averages to locate strong
+signals closer to the noise floor.
+Press the left mouse button to change.
+[13]Mouse on high resolution spectrum.
+Press the left mouse button to select the signal to process for loudspeaker output.
+To eliminate a spur, place the mouse cursor on it and press E
+on the keyboard.
+[14]Mouse on blanker control bar.
+This bar shows the noise floor, the noise power level that remains
+after the blanker has removed pulses. The red vertical line is
+20 dB above the quantisation noise of the internal data representation.
+Make sure your noise floor is not below this level.
+For setting signal levels, read the Linrad Home Page on the Internet.
+There are two noise blankers that are intended to be used together.
+Blue is the colour for the smart blanker while yellow is for the dumb one.
+When a blanker is enabled, the corresponding control level is indicated
+with a line on the blanker control bar.
+In MANUAL mode the control level is fixed and in AUTO mode it is held
+at some distance above the average noise floor. 
+In both MANUAL and AUTO modes the control level can be changed by
+grepping the corresponding line with the mouse while the left mouse button
+is kept pressed.
+Make sure to not set the control levels too low.
+The coloured numbers in the upper left and right corners give
+percentage of points cleared by the blankers. Keep these numbers small,
+the yellow below 20 and the blue below 4 unless you actually find a
+better readability of the desired signal with higher numbers.
+Hint: Use the oscilloscope function to investigate what the 
+blankers do to the noise that causes problems. 
+Also read Linrad Home Page on the Internet.
+[15]Selective limiter level control for the first fft.
+Strong signals are prevented from reaching the blankers by the
+selective limiter. Frequencies that are not routed through the blankers
+are coloured red in the main spectrum (blue dB scale).
+Signals that are strong enough to be visible over interference pulses
+in the main spectrum are found very fast in the first fft.
+The level is set by clicking the left mouse button in the bar control area.
+The first fft averaging parameters affect the spectrum as you can see on
+the screen. Large averaging numbers gives a slower but more accurate
+determination of strong signals.
+Look at the spectrum, if parts of the noise floor becomes red one of
+the limiter controls is too low or some averaging number is too small.
+[16]Selective limiter level control for the second fft.
+Strong signals are prevented from reaching the blankers by the
+selective limiter. Frequencies that are not routed through the blankers
+are coloured red in the main spectrum (blue dB scale).
+The second fft is made from the signal after the noise blanker.
+This spectrum may have much better S/N due to the elimination of
+interference pulses. It is used to find strong signals that could
+not be found in the main spectrum because they are below the level
+of the interference pulses.
+The second fft averaging parameter "fft2 avgnum" affects the spectrum 
+as you can see on the screen in the high resolution graph (red dB scale).
+Large averaging numbers gives a slower but more accurate
+determination of strong signals.
+Look at the spectrum, if parts of the noise floor becomes red, one of
+the limiter controls is too low or some averaging number is too small. 
+[17]Button to select mode for the dumb blanker.
+Toggle between modes by clicking the left mouse button.
+'-'  =  OFF
+'A'  =  AUTO
+'M'  =  MANUAL
+[18]Button to select mode for the smart blanker.
+Toggle between modes by clicking the left mouse button.
+'-'  =  OFF
+'A'  =  AUTO
+'M'  =  MANUAL
+Note that your system must be calibrated for the smart blanker
+to become available.
+[19]Button to toggle timf2 oscilloscope.
+There are 6 different speeds. When the box shows "o" the 
+timf2 oscilloscope is off. When the oscilloscope is running
+the current speed is shown in the box. After "6" comes
+"o" that switches off the oscilloscope.
+
+The oscilloscope has a fixed place on the screen. 
+To see it well, move other windows to the right side of the screen.
+The top track, white, shows power.
+The next two tracks show I and Q of the "interesting" signal which
+is obtained from all frequencies that are coloured white in the
+main spectrum. The two lowest tracks show I and Q of the strong 
+signals, those that are coloured red in the main spectrum. 
+With two RF channels you have four tracks of each kind.
+
+If you use MMX for the first FFT, the strong signals are shown
+at a reduced amplitude, they are affected by a selective AGC function.
+[20]Button to toggle timf2 oscilloscope.
+The oscilloscope has a fixed place on the screen. 
+To see it well, move other windows to the right side of the screen.
+The top track shows power summed over both receiver channels.
+The next four tracks show I and Q of the "interesting" signal which
+is obtained from all frequencies that are coloured white in the
+main spectrum.
+The four lowest tracks show I and Q of the strong signals, those that
+are coloured red in the main spectrum. The strong signals are shown
+at a reduced amplitude, they are affected by an AGC function.
+The y-scale of the timf2 oscilloscope can not be changed.
+If you have set the digital signal levels correctly, the scale
+will fit to the signals you see.
+Read about "set digital signal levels correctly" on the Linrad Home Page
+on the Internet.
+[21]Minimum S/N required in the primary AFC search for a new signal.
+Use the left mouse button to change it.
+Signals below this threshold do not lock the primary AFC to the frequency.
+In unlocked mode the primary AFC cursor in the high resolution graph
+is yellow. 
+In manual mode it will stay on a fixed frequency until the mouse is
+clicked again to select a signal in the main spectrum (blue dB scale)
+In automatic mode the AFC will continue to search for a signal above
+the required S/N value and lock to it as soon as one is found.
+In the search for a new signal, averages of the main spectra (fft1)
+are formed for the entire time for which spectra are available.
+The number of stored spectra is controlled by the parameter
+"First FFT storage time (s)" in the mode setup.
+Average spectra are collected under the assumption that the frequency
+is drifting linearly with time. As a result, many average spectra
+are searched and the averaging made under the best assumption of
+frequency drift will give the strongest signal.
+The maximum frequency drift that will be searched for is set
+by the parameter "AFC max drift Hz/minute" in the mode setup.
+The maximum frequency range that the AFC will search over is set
+by the parameter "AFC lock range Hz".
+The search range can be reduced by the green bar at the right hand
+side of this control bar.
+[22]Minimum S/N required in the search for a new signal.
+Use the left mouse button to change it.
+Signals below this threshold do not lock the primary AFC to the frequency.
+In unlocked mode the primary AFC cursor in the high resolution graph
+is yellow. 
+In manual mode it will stay on a fixed frequency until the mouse is
+clicked again to select a signal in the main spectrum or high resolution
+spectrum (blue or red dB scales)
+In automatic mode the AFC will continue to search for a signal above
+the required S/N value and lock to it as soon as one is found.
+In the search for a new signal, averages of the high resolution spectra 
+(fft2) are formed for the entire time for which spectra are available.
+The number of stored spectra is controlled by the parameter
+"Second FFT storage time (s)" in the mode setup.
+Average spectra are collected under the assumption that the frequency
+is drifting linearly with time. As a result, many average spectra
+are searched and the averaging made under the best assumption of
+frequency drift will give the strongest signal.
+The maximum frequency drift that will be searched for is set
+by the parameter "AFC max drift Hz/minute" in the mode setup.
+The maximum frequency range that the AFC will search over is set
+by the parameter "AFC lock range Hz".
+The search range can be reduced by the green bar at the right hand
+side of this control bar. 
+[23]AFC lock range limitation.
+Use the left mouse button to change it.
+Once the primary AFC has been successfully locked to a signal it will try
+to follow the signal even if it drops below the S/N value required
+for the initial locking.
+To prevent drifting away too far when locking to occasional peaks
+in pure noise in case the desired signal has paused for a while
+the lock range is limited to half the frequency range selected for
+the AFC graph.
+This bar limits the lock range further.
+[24]AFC search range limitation.
+Use the left mouse button to change it.
+The max search range is set by the parameter "AFC lock range Hz" in
+the mode parameter setup.
+This bar is used to make the search range smaller in case the desired
+signal is close to some other (stronger) signal.
+[25]Click the left mouse button to make AFC graph cover a smaller 
+frequency range and thereby decrease the AFC max lock range
+[26]Click the left mouse button to make AFC graph cover a larger 
+frequency range and thereby increase the AFC max lock range
+[27]Click the left mouse button to toggle AFC mode.
+'-' = AFC disabled
+'M' = MANUAL
+'A' = AUTO (not yet implemented)
+[28]Click the left mouse button to toggle timefunction window for 
+spectrum averaging.
+'-' = No window used.
+'W' = Use a sine(t) window.
+The window makes the primary AFC slower. It is intended to be used 
+together with coherent averaging for extremely weak signals that can not
+be copied at all with "normal" methods.
+[29]Number of spectra for the primary AFC to average over while staying 
+locked to a signal. Click in the box with the left mouse button and type 
+in a new value.
+The averaging is made without any concern of the frequency drift.
+This number has to be small enough for the peak caused by the signal
+to be on the same place over the entire period of time for which
+the averaging takes place.
+Expand (zoom in) the main spectrum and look at signals that drift
+with time to learn what the maximum number of spectra to average
+over is with the mode parameters you have selected.
+When you know roughly what the maximum value for "fft1 avgn" is
+for different kinds of signals, then you also know what maximum
+number to average over in the primary AFC process for similar signals.
+For extremely weak but very stable signals this number may be large
+which will allow an accurate frequency locking at the cost of a large
+time delay.
+The maximum number possible for this parameter is limited by the
+"First FFT storage time (s)" parameter in the mode setup.
+[30]Number of spectra for the primary AFC to average over while staying 
+locked to a signal. Click in the box with the left mouse button and type 
+in a new value.
+The averaging is made without any concern of the frequency drift.
+This number has to be small enough for the peak caused by the signal
+to be on the same place over the entire period of time for which
+the averaging takes place.
+Check that the signal is not broadened much in the high resolution
+graph (red dB scale) when "fft2 avgn" is given the same value.
+For extremely weak but very stable signals this number may be large
+which will allow an accurate frequency locking at the cost of a large
+time delay.
+The maximum number possible for this parameter is limited by the
+"First FFT storage time (s)" parameter in the mode setup.
+[31]AFC time delay (in number of spectra)
+Click in the box with the left mouse button and type in a new value.
+The primary AFC process analyzes spectra over a period of time.
+For weak signals (EME) that only occasionally are visible above the
+white noise floor, the primary AFC typically will fit the best 
+frequency to 10 seconds of spectrum data. 
+In such a case, best locking is obtained if the interpolated frequency
+is used, but then the delay caused by the AFC will be 5 seconds.
+By setting the AFC time delay to a smaller value than the maximum allowed
+(type in 999 for maximum) it is possible to make the delay smaller.
+The frequency used in processing will be less accurate, particularly
+for signals that drift randomly in frequency and are absent completely
+most of the time.  
+[32]AFC straight line fit (in number of spectra)
+Click in the box with the left mouse button and type in a new value.
+The primary AFC associates an average frequency to each spectrum.
+Each average is based on "Avg" individual spectra which are summed 
+with or without a sine window as set by one of the AFC control boxes.
+A straight line is fitted to these frequencies and the processing
+is made under the assumption that the straight line is correctly
+describing how the frequency changes linearly with time.
+A longer fit gives a better locking to stable signals and signals
+that drift linearly with time. 
+[33]Volume control bar.
+Click the left mouse button in the bar control area.
+Note that this volume control is different from the volume control
+on your loudspeaker or volume controls of the soundboard output
+mixer.
+Linrad in weak cw mode is designed to run without any AGC.
+Strong signals are amplitude limited.
+Bring this control to maximum to get a saturated signal.
+Adjust your hardware (loudspeaker and/or soundboard output volumes) 
+for a loud but acceptable maximum sound level.
+This will be the sound level for saturating signals.
+When listening to very weak signals, place the volume control bar
+for the amplitude indicator to the left of it to be placed between
+25% and 50% of full scale.
+The amplitude indicator turns red at the point of saturation
+and green if the signal is zero (or close to).
+[34]Mouse on the baseband waterfall and spectrum.
+Left click on the waterfall to move a signal to the center of the filter.
+Hold right button down for continous tune at a speed and direction
+given by the distance from the center.
+
+BFO controls in the spectrum part:
+The upper red vertical line is the BFO frequency in the correct frequency 
+scale. The two other red vertical lines are the BFO placed 10 respectively
+100 times closer to the center frequency of the passband. The "zoomed in" 
+BFO controls have to be used when a narrow passband is chosen causing the 
+true frequency of the BFO to come outside the frequency range of the graph. 
+Grab the BFO by placing the mouse curser on it, hold down the left mouse 
+button and move the BFO line while keeping the button pressed.
+
+Filter controls in the spectrum part:
+The filter in use is shown in yellow. The filter shape is controlled by
+two yellow vertical lines. The upper yellow line sets the flat
+bandwidth while the lower yellow line sets the skirt steepness.
+
+The baseband spectrum has two indicator numbers at the right hand side.
+These two numbers are not mouse control boxes.
+The upper is the fft3 size in powers of two, the lower is the
+currently selected baseband processing mode which will change according
+to the settings in the control boxes. Use this number as your
+"Default output mode" in the parameter selection to have your favorite
+processing mode as the default mode.
+
+The baseband waterfall has two numbers above each other on the right
+hand side. They form the two digit number that sets the step size
+when a wheel mouse or the left/right arrow keys are used for tuning. 
+The step size is given in powers of two. 
+Change the step size with the keyboard '+' or '-' or with the depressed
+mouse wheel.
+
+There are three tuning modes. Change with "M" from the keyboard or by clicking
+the third bottom box in the lower left corner. The one with "T", "P" or "B".
+The box can provide F1 help.
+[35]Press the left mouse button to expand the dB scale.
+[36]Press the left mouse button to contract the dB scale.
+[37]Press the left mouse button to move the dB scale upwards.
+[38]Press the left mouse button to move the dB scale downwards.
+[39]Press the left mouse button to double the third fft size.
+The current fft3 size is indicated by it's power of two below this box.
+When the third fft size is doubled, the frequency scale is expanded
+by a factor of two. The number of data points describing the filter
+is also doubled which will allow twice as steep filter skirts.
+The time delay caused by the third fft is also doubled, twice as many
+data points have to be collected before the transform can be computed.
+To expand the frequency scale without making the fft size larger,
+use the buttons in the left side of this window. 
+[40]Press the left mouse button to half the third fft size.
+The current fft3 size is indicated by it's power of two below this box.
+If you can not reduce fft3 size further, expand the frequency scale
+with the box in the left upper corner of this window or reduce window size.
+When the third fft size is reduced, the frequency scale is contracted
+by a factor of two. 
+The time delay caused by the third fft is also halved.
+[41]Press left mouse button to toggle the baseband oscilloscope on/off.
+The oscilloscope has a fixed position on screen, move other windows
+to the right hand side of the screen when using it.
+The oscilloscope displays the time function (timf3) used to produce the
+baseband spectrum (fft3).
+The bandwidth of the signal displayed by the timf3 oscilloscope
+is set by the parameter "First mixer bandwidth reduction in powers of 2"
+among the mode setup parameters. 
+This display is intended for use while checking the timf3 
+noise blanker which is not yet implemented.
+[42]Press the left mouse button to increase the gain of the
+baseband oscilloscope.
+(Only active if the baseband oscilloscope is enabled) 
+[43]Press the left mouse button to decrease the gain of the
+baseband oscilloscope.
+(Only active if the baseband oscilloscope is enabled) 
+[44]Press the left mouse button to expand the frequency scale.
+Resolution will remain unchanged and the spectrum is drawn
+as a straight line interpolation between FFT bins.
+[45]Press the left mouse button to contract the frequency scale.
+Resolution will remain unchanged and the amount of interpolation
+between FFT bins will be reduced.
+[46]Mode for audio compression/expansion.
+"Off" = Normal mode. 
+"Exp" = Amplitude expander on. 
+"Lim" = Simple amplitude clipping.
+In normal mode the output is identical to the input up to the saturation
+level. An extremely fast AGC prevents the input to reach above the 
+saturation level which leads to a limitation of the amplitude at the
+saturation level without the generation of overtones.
+When the amplitude expander is on, the amplitude variations of the
+input signal are expanded by an exponential function. 
+The amplitude expander is intended to be used only at bandwidths below
+25Hz where the human ear can no longer hear frequency differences causing
+both signal and noise to be perceived as a tone with constant frequency
+and varying amplitude. The human hearing is not designed to distinguish
+well between small amplitude variations of a single tone because of the
+logarithmic nature of the amplitude response. The exponential expansion
+compensates for the logarithmic response and makes decoding of extremely
+weak signals by ear possible for long times without fatigue.
+The mode setup parameter "Audio expander exponent" can be used to
+set the curvature of the exponential expansion.
+The simple amplitude clipping is completely linear up to the saturation
+level where the signal is limited. Overtones are generated when clipping 
+occurs. The onset of overtone generation can be used to hear small 
+amplitude variations for example when listening to aurora signals. 
+When a signal is much wider than the modulation, the optimum filter
+should match the signal spectrum. The sound character that comes out does 
+not change between key up and key down since it will be the noise spectrum 
+that fits the filter in both cases. 
+The simple amplitude clipping is an alternative to exponential expansion
+in such cases.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[47]Mode for coherent processing. Use left mouse button to select mode:
+"Off " = No coherent processing.
+"Coh1" = "Binaural CW"
+"Coh2" = Coherent: I and Q to left and right ear respectively.
+"Coh3" = Full coherent processing with I to both ears.
+The coherent modes use a second filter that is "Rat  " times narrower than 
+the filter shown in yellow on the graph.
+In binaural CW mode, the narrow filter is typically adapted to the bandwidth 
+of the keying sidebands while the wide filter is 2 to 4 times larger.
+In coherent modes, the wide filter is adapted to the bandwidth of the keying 
+sidebands while the narrow filter is at least 8 times narrower. (Use button 
+in upper right corner to get more data points on the filter function to 
+allow larger "Rat" values) The Coh2 mode is safe, if the narrow filter fails 
+to follow  the carrier due to AFC problems caused by unstable signals or the 
+requirement for small processing delay, no signal at all is lost. If the 
+carrier phase is incorrect, the signal will be present in both ears. 
+This mode is particularly useful for chirping signals.
+The Coh3 mode is the most sensitive processing mode. It should be combined 
+with AFC with parameters that allow a good locking to the CW carrier. 
+The Coh3 mode gains 3dB S/N by rejecting the noise power that is in the 
+Q channel. There is a further S/N improvement because anything that is in 
+opposite phase to the carrier is also rejected. The Coh3 mode is best used 
+together with "Exp", exponential expansion of the audio amplitude. 
+Particularly when exponential expansion is used it is important to select 
+the wider filter for minimum possible bandwidth. The narrower filter which 
+is controlled by the Rat parameter must be wide enough to allow the full 
+bandwidth of the carrier to pass.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[48]Press the left mouse button to toggle delay between ears.
+This mode can be enabled only when "Coh" or "X+Y" is not selected.
+This mode will delay the signal to one ear, thus creating a frequency
+depending phase shift between the two ears.
+The effect of the phase shift is an artificial stereo effect. Different
+frequencies seem to arrive from different spatial directions.
+The "Del" mode may be useful when the selected bandwidth is larger than
+the bandwidth of the desired signal which can be useful for unstable 
+signals or when a very small processing delay not allowing AFC is required.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[49]Press the left mouse key to toggle "X+Y" mode.
+This mode can be enabled only when "Coh" is not selected.
+It will deselect "Del" automatically.
+The "X+Y" mode routes the two receive channels to the two output channels
+for stereo reception. This mode is useful when polarization changes too
+quickly to allow the automatic polarization adaptation to follow.
+The signals for the output is two orthogonal combinations of the two
+input signals. Set the polarization to "Fixed" and horizontal to receive
+horizontal in one ear and vertical in the other.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[50]Click the left mouse button to force two output channels.
+Can be used only when the mode does not require two output channels.
+With two output channels for modes where one channel is sufficient
+the user can select whether he wants the two channels in phase or
+out of phase. The box immediately left to this one will show '+'
+or '-' to indicate the sign.
+In SSB mode 'c' will indicate complex format.
+[51]Press left mouse button to toggle output between 8 and 16 bits.
+Not really useful - if your hardware allows 16 bit, use them all.
+With 8 bit you would however get .wav files of half the size
+and 8 bit data is enough for weak narrowband signals.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[52]Press left mouse button to change "Rat". Enter new value from keyboard.
+Rat is the ratio of the bandwidths for the two filters used
+in coherent modes.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[53]Press left mouse button to change the delay between ears in "Del" mode.
+Enter new value from keyboard.
+To get the current mode as default, make the mode parameter "Default output
+mode" equal to the number at the right hand side of this line of boxes. 
+[54]Press left mouse button to toggle between "Fixed" and "Adapt".
+In "Fixed" mode the two incoming RF signals are combined to produce
+two output signals. The polarization angle (amplitude ratio) and the 
+phase shift between the two RF signals can be set with the mouse
+in the two upper areas of this graph. (Use F1 for details.)
+In "Adapt" mode Linrad uses available information to adjust the polarization
+to fit the polarization of the incoming wave. 
+
+In both cases the polarization is shown as a line, an ellipse or a circle.
+The displayed polarization is further processed and shown in green in 
+the high resolution graph and in the baseband graph.
+The orthogonal polarization is displayed in red.
+
+Normally the orthogonal signal (red) is discarded, but by selecting
+the X+Y mode in the baseband one can get the two orthogonal
+polarizations in the two audio channels of a stereo output.
+[55]Press left mouse button to change polarization angle.
+This function is intended for use in "Fixed" mode.
+[56]Press left mouse button to change ellipticity of polarization.
+When the control line is at the extreme left or the extreme right within
+the box, the phase shift between the two incoming signals is 90 degrees.
+Then the resulting polarization can be set to circular, left or right hand
+rotation by changing the angle in the blue field above.
+When this control is at it's center position the polarization is linear.
+Together angle and ellipticity can be set to match any polarization,
+linear, circular or elliptic.
+[57]Press left mouse button and move vertical line to change time constant of
+polarization evaluation.
+Only available in "Adapt" mode.
+For extremely weak signals with stable polarization such as 144MHz 
+EME, use a long time constant.
+Signals that rapidly change polarization like 7MHz at night need use 
+a short time constant.
+Success of adaptive polarization is indicated by how well the signal
+is suppressed in the red spectra in the high resolution graph and in
+the baseband graph. 
+[58]Parameter "fft1 avgnum". Press left mouse button and type in new value.
+This parameter controls the averaging of the main spectrum, fft1, which
+has blue lines for the dB scale.
+Larger values give higher sensitivity but slower response.
+The parameter "fft1 avgnum" is always a multiple  of the primary average
+number which can be changed by the box in the lower right corner of the
+main spectrum. When the first fft bandwidth is high, the averaging process
+becomes a substantial part of the total computing and averaging in groups
+of up to 5 spectra saves time. 
+[59]Parameter "fft1 avgnum". Press left mouse button and type in new value.
+This parameter controls the averaging of the main spectrum, fft1, which
+has blue lines for the dB scale.
+Larger values give higher sensitivity but slower response.
+The parameter "fft1 avgnum" is always a multiple  of the primary average
+number which can be changed by the box in the lower right corner of the
+main spectrum. When the first fft bandwidth is high, the averaging process
+becomes a substantial part of the total computing and averaging in groups
+of up to 5 spectra saves time. 
+The averaged fft1 spectrum is used for the selective limiter. 
+The sensitivity/speed compromise affects the noise blanker operation and
+the blue control bar at the left side of the high resolution graph
+must be set in accordance with the fft1 avgnum value selected.
+[60]Parameter "waterfall avgnum". Press left mouse button and type in 
+new value. This parameter controls the averaging for each line of the 
+waterfall graph.
+Larger values give higher sensitivity but slower response.
+The parameter "waterfall avgnum" is always a multiple  of the primary 
+average number which can be changed by the box in the lower right corner 
+of the main spectrum. When the first fft bandwidth is high, the averaging 
+process becomes a substantial part of the total computing and averaging 
+in groups of up to 5 spectra saves time. 
+[61]Parameter "waterfall avgnum". Press left mouse button and type in 
+new value. This parameter controls the averaging for each line of the 
+waterfall graph.
+Larger values give higher sensitivity but slower response.
+[62]Parameter "fft2 avgnum". Press left mouse button and type in new value.
+This parameter controls the averaging of the high resolution spectrum, 
+fft2, which has red lines for the dB scale.
+Larger values give higher sensitivity but slower response.
+[63]Parameter "fft3 avgnum". Press left mouse button and type in new value.
+This parameter controls the averaging of the baseband spectrum, 
+fft3, which has green lines for the dB scale.
+Larger values give higher sensitivity but slower response.
+[64]Parameter "Waterfall zero". 
+Press left mouse button and type in new value or press right mouse
+button to let linrad auto-select the parameter.
+
+This parameter selects the zero point (in dB) for the waterfall graph.
+[65]Parameter "Waterfall zero". 
+Press left mouse button and type in new value or press right mouse
+button to let linrad auto-select the parameter.
+
+This parameter selects the zero point (in dB) for the waterfall graph.
+It will also affect the vertical position of the high resolution
+graph (red dB scale).
+The colour scale currently in use for the waterfall is displayed
+at the right hand side of the high resolution graph.
+[66]Parameter "Waterfall gain". Press left mouse button and type in 
+new value.
+This parameter selects the gain for the waterfall graph.
+[67]Parameter "Waterfall gain". Press left mouse button and type in 
+new value.
+This parameter selects the gain for the waterfall graph.
+It will also affect the dB scale of the high resolution graph (red dB scale).
+The colour scale currently in use for the waterfall is displayed
+at the right hand side of the high resolution graph graph.
+[68]The three S-meters in the coherent graph show the strength
+of the signal that has passed the selected baseband filter.
+Set the filter to rectangular with 1kHz bandwidth to get the
+noise floor in 1000Hz. Then subtract 30 dB to get dB/Hz.
+The three meters show:
+Top = Peak S-meter.
+Middle = Current S-meter value.
+Bottom = True RMS for everything that passes the filter.
+The S-meter shows the level of a CW signal that has a speed
+that fits the selected passband. It is obtained from a bi-directional
+fast attack, slow release amplitude follower.
+The S-meter gives a level for CW signals that is independent of
+the mark to space ratio of the received signal.
+By pressing F2 you can get averaged true RMS readings above
+the normal three S-meter readings. Clear and restart with F2.
+The top line is the number of averaged values.
+[69]Click this box to toggle the coherent oscilloscope on/off.
+The coherent graph oscilloscope shows various signals
+in the baseband. These oscilloscope images are intended to assist
+in the development of automatic detect algorithms for CW and
+various digital modes. 
+[70]Click in this box to open or close the eme window.
+[71]Use this box to enter the ww locator of another station
+to get the optimum tx polarization and some more info about the dx location.
+[72]Use this box to enter a call sign or fragments thereof.
+Linrad will search it's database and give the optimum tx 
+polarization and some more info about the dx location in case the search
+gives a single station and the database contains the geographical location.
+[73]Timf2 oscilloscope: Increase gain for strong signals
+[74]Timf2 oscilloscope: Decrease gain for strong signals
+[75]Timf2 oscilloscope: Increase gain for weak signals
+[76]Timf2 oscilloscope: Decrease gain for weak signals
+[77]Timf2 oscilloscope: Toggle graphical modes
+P=Change to set pixels
+L=Change to draw lines
+[78]Timf2 oscilloscope: Toggle graphical modes
+H=Change to hold
+C=Clear and change to normal mode 
+[79]Use this box to toggle AGC on/off.
+In AM mode when using Coh2, there are three options:
+1) Off = No AGC
+2) AGC = AGC derived from peak power in the entire passband.
+3) COH = Independent AF-derived AGC for the left and right channel.
+[80]Use this box to enter time constant for AGC attack.
+A long time constant will prevent the AGC from reducing the gain
+due to short bursts of interference.
+This parameter will affect the release time which can never be
+smaller than the attack time.
+[81]Use this box to enter time constant for AGC release.
+[82]Click this box to decrease the center frequency for your receiver
+hardware. The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[83]Click this box to increase the center frequency for your receiver
+hardware. The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[84]Left click this box, then enter a new center frequency in MHz for your 
+receiver hardware.
+Right click this box to change the step size when the frequency is
+changed with the arrow boxes. Enter the desired frequency step in MHz.
+(Must be in the range 0.005 to 1.5)
+
+If a converter is used, enter the frequency of the output from the
+converter (=the frequency actually wanted as the center frequency
+of your SDR hardware.) The frequency scales will show frequency 
+of the input to the converter by adding or subtracting the converter
+LO frequency and inverting the scale in case the LO is above the
+signal frequency. 
+
+The default routine will fit the WSE converters, SDR-14, SDR-IQ, 
+Perseus, Si570(Softrock and others), Soft66, SDR-IP, Excalibur, 
+hardwares with ExtIO libraries and perhaps more.
+
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[85]Click this box to decrease the gain of your hardware.
+The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[86]Click this box to increase the gain of your hardware.
+The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[87]Click this box, then enter a new gain value for your hardware.
+The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[88]There are two different implementations of the baseband filter
+and resampler.
+1) Back transformation from fft3 where points are weighted according
+to the yellow curve in the baseband graph. This is the old implementation 
+that was the only alternative up to Linrad-02.58.
+This method is by far most CPU efficient for wide filters with steep
+skirts. Signals that fall on the steep skirts get distorted in case
+the shape is determined essentially by the window function in use.
+Such distortion does not affect AM, CW or SSB reception provided
+that the selected filter is much wider (20 times or more) than
+the frequency response of an individual FFT bin.
+This method is not suitable for wideband I/Q output through 
+the network and it requires fairly large sizes for fft3 and therefore
+it gives a substantial increase in the time delay from antenna to
+loudspeaker.
+
+2) FIR filter with timf3 as input. This is the conventional SDR solution.
+It was is introduced in Linrad-02.59 
+It is possible to select a baseband filter with only one bin
+and thereby produce a filter that is entirely determined by the
+window function in use for fft3.
+Very small sizes for fft3 can be used and therefore this method 
+can provide a very short time delay from antenna to loudspeaker.
+This method can not be used for large fft3 sizes at high baseband 
+sampling speeds because it would overload the CPU. 
+[89]The radio hardware can send audio to a digital system in two ways.
+1) Real data, one audio channel for each RF channel.
+2) Complex data, two audio channels for each RF channel.
+
+Real data provides a bandwidth of half the sampling frequency.
+A selective filter is then needed on the analog side in front
+of the last frequency mixer (for which the local oscillator is the BFO)
+
+Complex data, I and Q, provides twice as much information per
+unit of time and gives a bandwidth that equals the sampling frequency.
+No filter is required in the RF path.
+
+To use two RF channels with complex data a soundcard with
+four audio channels is required. Some soundcards that have
+four channels can not be opened with more than two channels
+and to allow two RF channels one has to open two sound devices
+for the soundcard. (Answer yes to "Do you need more channels
+from the same soundcard")
+[90]Press left mouse button. Then type a new calibration constant in dB.
+The dBm scale and the S-Units scale have separate calibration
+constants.
+The dB scale is the same as for the power meters in the coherent graph.
+[91]Press left mouse button to toggle scale between dB, dBm, S-Units,
+dB/Hz and S/N.
+[92]Press left mouse button to increase the averaging in the meter graph.
+The averaging affects both the curves and the bar graph.
+The number of samples to form an RMS average over is a power of two
+This number is shown to the left.
+That number is also the number of samples out of which the largest value
+is picked to form the peak power graph.
+[93]Press left mouse button to decrease the averaging in the meter graph.
+The averaging affects both the curves and the bar graph.
+The number of samples to form an RMS average over is a power of two
+This number is shown to the left.
+That number is also the number of samples out of which the largest value
+is picked to form the peak power graph.
+[94]Press left mouse button to expand the vertical scale.
+[95]Press left mouse button to contract the vertical scale.
+[96]Press left mouse button to move graph downwards.
+[97]Press left mouse button to move graph upwards.
+[98]Press left mouse button to toggle curves between:
+     P = Peak power.
+     M = RMS power.
+     2 = Both RMS and peak power.
+Note that both the selected polarization and the orthogonal
+polarization is shown (in different colours) when two RF
+signals are fed into Linrad.
+The S-Meter bar shows only the selected polarization just
+like the power meter in the coherent graph.
+[99]Click this box to show/hide the S-meter graph.
+[100]Mouse on a border line.
+Press left mouse button to resize window (and/or move window)
+[101]Mouse on a border line.
+Press left mouse button to move window.
+[102]Mouse on the S-Meter border line.
+Press left mouse button to resize window (and/or move window)
+The S-Meter is a bar graph when the window width is small.
+Set the window more than 13 characters wide to get curves
+showing signal level vs time.
+When the window is made wide, control buttons are present.
+Use these buttons to set the graphs to show RMS power,
+peak power or both and to select scale in dB, dBm or S-Units.
+The bar graph is always peak power in S-Units to conform
+to conventional S-Meters.
+[103]Click this box to decrease the transmit frequency. 
+The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[104]Click this box to increase the transmit frequency. 
+The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[105]Click this box, then enter a new transmit frequency. 
+The default routine will fit the WSE converters.
+Read the file z_USERS_HWARE to find out how this control can be configured
+to fit your own hardware in case you use something else.
+[106]Click this box, then enter a number to select the speech
+processing parameters to use for transmitting.
+Only numbers actually set up and saved are available.
+Use 'V' in the main menu, then 'C' to get to the speech processor
+set-up routine or make files par_ssbprocXX manually by making
+changes to existing files that you renumber.
+XX is a number 0 to MAX_SSBPROC_FILES (defined in tx.c)
+[107]Click this box. Then enter the desired transmit power
+in dB below maximum possible. Decimals are allowed.
+[108]Under Windows one has to use WAVEFORMATEXTENSIBLE to open four 
+audio channels in a single MME device. 
+The WAVEFORMATEXTENSIBLE format is also required to allow 24 bit data,
+which is advantageous on the transmit side.
+Some 4-channel soundcards may not support WAVEFORMATEXTENSIBLE and
+have to be opened as a pair of 16 bit stereo channels.
+Delta 44 can be problematic. Many driver versions mis-behave.
+Read here:
+http://www.sm5bsz.com/linuxdsp/run/snd-compat/snd-compat.htm
+It is always safe to use Linux with the Delta 44.
+[109]The radio hardware can send audio to a digital system in two ways.
+1) Real data, one audio channel for each RF channel.
+2) Complex data, two audio channels for each RF channel.
+
+Real data provides a bandwidth of half the sampling frequency.
+A selective filter is then needed on the analog side in front
+of the last frequency mixer (for which the local oscillator is the BFO)
+
+Complex data, I and Q, provides twice as much information per
+unit of time and gives a bandwidth that equals the sampling frequency.
+No filter is required in the RF path.
+
+To use two RF channels with complex data a soundcard with
+four audio channels is required. Multichannel audio is not
+available for Newcomers. Use Linux or use S in the main
+menu to change from newcomer to normal mode.
+[200]For information about mode parameters, place curser on the
+corresponding line and press F1.
+The mode parameters are intended to be set up once and for all in accordance
+with the abilities of your hardware.
+One set of mode parameters can be selected for each processing mode.
+[201]The first fft bandwidth is used to set the size of the first
+fft to a bandwidth within a factor of two of the desired value.
+If the second fft is enabled, there is no reason to select a very
+narrow bandwidth since the first fft then is used only for the selective
+limiter that prevents strong signals from reaching the noise blanker.
+When second fft is disabled the first fft bandwidth will directly
+affect the sensitivity of the waterfall graph and it will also affect
+AFC performance.
+Narrow bandwidths cause appreciable processing delay, this is unavoidable
+since data has to be collected over a time period that is about twice
+the time given by 1/bw, (depends on what window is selected)
+[202]The window function used for the first fft is a power of sin(x)
+from 0 to 7. 
+The parameter value 8 gives a Gaussian window, and the parameter 
+value 9 generates a flat window that falls off to (near) zero with 
+the Gaussian error function erf(x).
+For a short delay from antenna to loudspeaker, select 9 and
+a bandwidth of 300 Hz.
+For minimum CPU load (and somewhat compromised dynamic range), 
+select 1 and a bandwidth of 10 Hz.
+For precise spectral analysis, select 7 or 8 and whatever bandwidth
+you like to see on screen.
+[203]Version number for fft1 routine.
+Depending on your hardware there are several different fft implementations
+available.
+Check the timing of each one of them and select the fastest if there is
+a significant difference.
+[204]First FFT no of b threads.
+This parameter makes Linrad create one or more separate threads
+for the bulk of the first fft computation.
+[205]First fft storage time.
+This parameter affects memory allocation for old fft1 transforms.
+It affects the maximum number of averages you may use for the
+main spectrum.
+In case second fft is deselected this parameter also affects 
+the memory allocation for AFC and spur rejection in case these
+functions are enabled.
+[206]First fft amplitude.
+If you have disabled the second fft, this parameter will just shift
+the dB scales just like a volume control.
+In case you use the second fft you should use this parameter
+to set the noise floor at the input to the first backwards fft.
+Press A on the keyboard while your system is running to get amplitude
+information in the lower left corner.
+"Floor" is the number of bits RMS for the noise floor of the signal
+entering the first backwards fft.
+A larger value for first fft amplitude will increase "Floor". 
+Your loss of system noise figure because of quantization noise 
+will be:
+   Floor            NF loss 
+(RMS voltage)        (dB)
+     1               0.4
+     2               0.2
+     4               0.1
+    10               0.04
+Placing the noise floor too high may lead to saturation in later
+processing steps.
+On good hardware with soundcards the default parameter value
+2000 should give a floor value of about 10 when the hardware is
+running at full gain with an antenna connected. The system noise 
+floor should then be about 20 dB above the noise of the soundcard alone.
+
+In case you need a smaller value than 2000 for this parameter your
+system is likely not optimised for dynamic range. Too much analog
+hardware gain.
+
+In case you need a larger value than 2000 your system is likely
+insensitive, a preamplifier would likely improve the system NF
+
+When evaluating .wav files, this parameter may have be set as low as 1.
+[207]Main waterfall saturate limit.
+Use this parameter to make the main waterfall black during
+transmit in case your transmit signal gets into the receiver
+and produces a saturated spectrum.
+The waterfall gain and zero level determines what signal level
+is required to saturate.
+This parameter is the percentage of points that may saturate 
+(and become white) without causing the waterfall line to become
+blanked out (black.)
+Setting this parameter zero will disable the waterfall blanking.
+[208]Value=0
+No correlation computation
+
+Value=1
+Enable the correlation spectrum between two RF channels to be displayed
+in the main spetrum window.
+This function can be used for sideband noise measurements when the two
+RX channels have uncorrelated sideband noise. Average 200 times for a
+10dB noise floor improvement or 20000 times for a 20 dB improvement.
+(The factor 2 from conventional instruments is due to the
+overlapping transforms in Linrad when using sine squared windows.
+Other windows have slightly different overlapping.)
+
+Value=2
+Use coherent detection in the baseband to detect AM and FM modulation
+with respect to the carrier selected by the user.
+Compute the correlation between the de-modulated signals.
+[209]The second fft is the high resolution fft that is intended for
+use at large bandwidths (20kHz analog bandwidth and more).
+If your analog hardware is a conventional radio with a few kHz bandwidth
+there is usually no reason to enable the second fft.
+Only if your radio has very low distortion for signals within the
+passband and you are troubled by impulse noise that can not be removed
+by the noise blanker of your radio because of the presence of strong
+signals at nearby frequencies the second fft will be useful since it
+allows noise blanking in the presence of strong signals.
+
+Note that the second fft has to be enabled for the Linrad noise
+blankers to become available. To use the smart blanker your system
+also has to be calibrated.
+[210]First backward FFT version.
+Version number for back transformation from fft1 to timf2.
+Select 0 for floating point, 1 for 16 bit MMX.
+(Only very old computers do not have MMX)
+The MMX implementation of the backwards FFT runs much faster
+than the floating point implementation but it requires a little
+more care in setting other parameters on this parameter screen.
+Note also that the 16 bit MMX routine looses one bit if
+the window for the first FFT is not 0 or 2. 
+Use a sine squared window for the first FFT with the 16 
+bit MMX routine. 
+[211]Sellim maxlevel
+This parameter is needed when 16 bit MMX implementations
+are used for backwards fft1 and/or for fft2.
+It is used for the frequency selective AGC and sets the largest
+amplitude allowed on spectral lines at the input of the first
+fft backwards transformation.
+A lower value here will allow more gain in the second fft without
+risk of overflows in 16 bit MMX computations.
+Press A on the keyboard while your system is running to get amplitude
+information in the lower left corner.
+If "fft1 St" , "timf2 St" or "fft2" overflows (margin becomes zero)
+you may try to decrease this parameter.
+A small value here may make desired signals distorted because
+they are classified as "strong" and become compressed in a way
+that degrades S/N.
+In case floating point math is selected the amplitude information
+will not give the above saturation margins, only "A/D" which 
+tells how many dB are left until your hardware saturates.
+(Important enough, but not related to Sellim maxlevel)  
+[212]First backward FFT att N.
+Number of zero gain butterfly loops for the first backwards fft
+from fft1 to timf2. Each zero gain loop attenuates by 6 dB so this
+parameter sets the gain of the first backward fft processing step.
+The output, timf2, is the input to the noise blanker.
+This parameter is important when 16 bit MMX arithmetics is used.
+Press A on the keyboard while your system is running to get amplitude
+information in the lower left corner.
+Make the "First backward FFT att. N" as small as possible, but make sure 
+the amplitude margin of timf2 Wk and Timf2 St does not become zero.
+Occasional saturation of timf2 St is ok but timf2 Wk should never saturate.
+Read about "set digital signal levels correctly" on the Linrad Home Page
+on the Internet.
+[213]Set the bandwidth of the second fft.
+The second fft size can be set equal to or larger than the first fft.
+Very narrow bandwidths cause some processing delay but give enhanced
+sensitivity for very weak CW signals.
+Narrow bandwidths are required for the AFC to lock properly to extremely
+weak signals.
+[214]The window function used for the second fft is a power of sin(t). 
+Low powers give faster processing but the filter function associated
+with each frequency bin gets less steep skirts.
+When a large bandwidth is selected for fft2, higher window powers are
+required to produce enough attenuation a few hundred Hz away from very
+strong signals.
+Since very strong signals are already removed by the selective limiter
+associated with the first fft there is no reason to use powers above 2.
+At narrow bandwidths, a few Hz and below it is perfectly ok to
+skip the window completely and use 0 for this parameter to save
+processing time.
+[215]Version number for the second fft.
+Values 0 and 1 use float arithmetics.
+The value 2 selects 16 bit integer arithmetics using the MMX extension.
+The 16 bit MMX version is about 3 times faster than the float
+versions and might be needed at high sampling rates.
+Setting the level parameters correctly is however more critical
+when 16 bit arithmetics is used.
+Normally the versions for the first backwards FFT and the second
+FFT should both be set for the same type of arithmetics. 
+Running one as float and the other as 16 bit integers does not
+give much advantage over running both as integers.
+Running both as float is however more forgiving and does allow
+a slightly better performance in some cases.
+[216]Number of zero gain butterfly loops for the second fft.
+What value to choose depends on your hardware, the fft1 and the fft2
+parameters you have selected.
+Press A on the keyboard while your system is running to get amplitude
+information in the lower left corner.
+Make the "Second forward FFT att. N" as small as possible, but make sure the
+amplitude margin of fft2 does never become zero.
+Read about "set digital signal levels correctly" on the Linrad Home Page
+on the Internet.
+[217]This parameter reserves memory for storing old fft2 transforms.
+Old transforms are used by the AFC.
+For tracking really weak signals you may need 30 seconds here. 
+Old transforms are also used to recalculate average fft2 spectra
+when the frequency is changed. 
+If you can not set large enough numbers for fft2 avgnum, make
+this parameter larger.
+Without AFC a typical fft2 storage time is 4 seconds.
+[218]The AFC and SPUR REMOVAL are sophisticated functions that
+you can read about on the Linrad Home Page.
+DECODE is development work on weak signal MORSE decoding. It will
+probably never be completed. 
+
+If you enable the AFC or spur removal, make sure you have allowed 
+enough storage for old transforms, "First FFT storage time" or 
+"Second FFT storage time".
+
+0 = Disable AFC/SPUR/MORSE
+1 = Allow AFC/SPUR/MORSE (manual spur cancelling)
+2 = Allow AFC/SPUR/MORSE (automatic spur cancelling)
+
+If you select 1 or 2 here, the next screen will allow you to select
+which functions to allow and what parameters to use for them. 
+[219]AFC lock range.
+Set this parameter to zero to disable the AFC.
+
+This parameter and the AFC max drift parameter determine how much
+memory is allocated for the AFC routine.
+In case you select a very narrow bandwidth for the fft's used for the AFC
+in combination with a very large search range the time to lock to a signal
+may become excessive.
+Do not make the search range much larger than required to accommodate for
+the uncertainty in placing the mouse on a signal in the graphs.
+If very high resolution is selected for the second fft, use the high
+resolution graph to lock to the desired signal.
+[220]Max frequency drift for signal search.
+The AFC searches for signals that drift linearly with time.
+Averages of all the old transforms are made under assumption of all
+possible frequency drifts within the limits given by this parameter.
+This parameter in combination with the search range parameter determines
+memory allocation and time consumption of the search process.
+[221]Enable automatic morse code detection.
+The morse code transmission from the selected signal is translated
+into ascii and presented on the screen.
+(This function is not in place yet, some code is present in coherent.c
+but it is far from complete in linrad00-44 / July 2002)
+[222]Spur removal is a PLL loop that can lock on very stable signals
+and create a carrier in the opposite phase with the same amplitude.
+That carrier is then subtracted to remove the spur.
+The effect is a very deep and very narrow notch filter.
+The process is efficient in terms of cpu usage so many spurs
+can be treated simultaneously.
+Spur removal operates in the frequency domain using the second fft if
+available, otherwise it uses the first fft.
+The notch will always be narrower than the fft resolution.
+If your spurs are somewhat unstable, increasing the fft bandwidth may help.
+[223]The spur time constant is used to determine from how many transforms
+the amplitude and phase of the spur should be calculated.
+The fft2 storage time (or fft1 if fft2 is not present) has to 
+be long enough to keep the transforms in memory.
+[224]First mixer bandwidth reduction.
+The first fft and the second fft (if enabled) produce data at the data
+rate of the A/D board.
+When a frequency is selected the signal is mixed with an internal
+digital oscillator of the same frequency to shift the desired signal
+to zero frequency (baseband I and Q).
+The signal is then low pass filtered to remove everything above
+some threshold frequency.
+When no signal is present above the threshold frequency it is possible
+to reduce the data rate (sampling speed) without introduction of alias
+spurs.
+This parameter determines the maximum bandwidth available for the
+baseband processing. It also sets the sampling speed for the corresponding
+time function timf3.
+The baseband noise limiter (not yet implemented) operates on the timf3
+without any selective limiter so it will work only if the baseband bandwidth
+is set small enough to exclude strong undesired signals.
+[225]First mixer no of channels.
+It is possible to select secondary channels by use of the right mouse
+button. These channels are intended to be processed in the same way as
+the main channel but they will not be routed to the loudspeaker.
+The secondary channels are intended to be useful when the automatic
+implementation of morse code to text is in place.
+The idea is to allow text information on screen to keep track of what
+other stations work. The automatic cw to text translation is not expected
+to be as good as a trained human operator but it will surely be good
+enough to allow a good overview of what other stations work.
+[226]The window function used for the third fft is a power of sin(x)
+from 0 to 7. 
+The parameter value 8 gives a Gaussian window, and the parameter 
+value 9 generates a flat window that falls off to (near) zero with 
+the Gaussian error function erf(x).
+The window affects the shape of the baseband filter through the
+different frequency response for each frequency bin that the
+different windows generate.
+Linrad versions prior to 02-59 used the value 2 which is generally
+useful.
+In case you need steeper skirts with a small time delay, go
+for a higher number, but not 9.
+Using 9 here gives a filter with very high stop band attenuation
+but limited skirt steepness. It provides a very narrow peak and
+may be useful for coherent processing of AM signals.
+[227]Baseband storage time.
+Time span over which the filtered baseband signal is saved.
+This is the time over which coherent averaging will search for matching
+Morse code sequences. (Some day. Perhaps....) 
+[228]Output delay margin
+Set this parameter to a small value to get a small processing delay
+Press T to get timing information while receiving.
+If the D/A MIN value becomes zero the selected value is too small.
+[229]Output sampling speed for the D/A.
+Some soundcards do not allow different sampling speeds for A/D and D/A.
+In case very high A/D bandwidths are used linrad may need two soundcards
+to allow a reasonable sampling rate for the output.
+For morse code there is never any reason to set the output speed above
+5kHz. For voice modes in amateur radio it may be useful to set sampling 
+speeds up to 10kHz.
+The output sampling speed is used also for the generation of . wav audio 
+files and for sending I/Q data over the network.
+[230]The default output mode sets the combination of selections
+in the line of boxes in the baseband graph to their standard value.
+The user may select a combination of mode, bits, channels, delay
+X+Y and other things as the processing for a particular mode.
+(I.e. Coh2 for weak signal CW and X+Y for normal CW) 
+The combination of selections will produce a number (0 to 200) which
+is displayed at the right hand side of the line of boxes in the baseband
+graph. 
+Set default output mode to the number you find in the baseband graph
+when you have selected your favorite processing method for the
+current receive mode.
+That way Linrad will always start with the processing method
+of your choice.
+[231]The amplitude expander exponent is used to determine
+the curvature of the expander when the "Exp" option is selected in
+the baseband graph.
+[232]Messages 200 to 279 reserved for parameter menu. 
+[233]Set to non-zero to make Linrad write S-meter readings from the
+S-meter graph to a file. Make the number bigger than the number
+of points written simultaneously to the graph.
+The file "s-meter.txt" contains the latest average, the associated
+time and the line number in a semicolon separated line. 
+In case the line number increases by more than one you have lost data.
+[280]All CW modes use the same program code. They only differ
+in the default parameters.
+The WEAK SIGNAL CW MODE is intended for extremely weak CW signals keyed
+at modest speed.
+In this situation a signal-adopted filter will give best S/N and best
+copy - but only if the signal is accurately centered in the filter passband.
+On the other hand timing is not critical. One needs several seconds
+to decide whether the other station stopped the transmission or whether
+the signal just went through a QSB minimum.
+The AFC is enabled by default in the weak signal CW mode. The AFC will
+keep signals centered in a very narrow filter (e.g.18Hz) even though
+the signal may be unstable in frequency. The AFC will fit a curve
+to the peak of the CW signal (its carrier) over a time span of several
+seconds. Delaying the signal by half this time span gives the best
+accuracy for the fitted frequency.  
+On slightly stronger and less frequency unstable signals the AFC
+can be used without delay. The frequency is then an extrapolation,
+often good enough, but like all extrapolations somewhat uncertain.
+This mode is for lowest detect threshold when a time delay of
+several seconds is acceptable.
+[281]All CW modes use the same program code. They only differ
+in the default parameters.
+The NORMAL CW MODE is intended for CW signals that can be received
+comfortably in bandwidths conventionally used for CW in commercial
+transceivers.
+With bandwidths much larger than the bandwidth of the signal
+itself there is no reason to use AFC so there is no corresponding
+time delay.
+It is possible to set parameters for a very short time delay from
+antenna to loudspeaker when AFC is de-selected.
+[282]All CW modes use the same program code. They only differ
+in the default parameters.
+The METEOR SCATTER CW MODE was originally intended to have a 
+CW decoder tailored for fast machine-coded CW.
+This idea seems obsoleted by 2009 so this mode can be used
+as just another CW mode.
+[283]The SSB MODE is the same code as used in CW modes
+but it does not allow any AFC.
+[284]The FM MODE has a simple frequency detector.
+There are interesting possibilities for improvement both
+on narrowband FM and on wideband (broadcast) FM.
+[285]The AM MODE has a conventional AM detector by default.
+In this mode it is possible to use AFC and coherent detection
+of the AM signal to produce a stereo signal that may help
+to receive two different AM stations on the same channel.
+[286]All CW modes use the same program code. They only differ
+in the default parameters.
+The QRSS CW MODE does not yet have its own parameters.
+It is intended to have slow waterfall graphs that would allow
+visual copy off the screen.
+[287]The TXTEST MODE is intended for testing transmitters.
+It provides a spectrum analyzer with a bandwidth of 2.4 kHz.
+In this mode you can press F4 to see the signal in the time
+domain to look for overshoot in the power or frequency chirp.
+[288]The SOUNDCARD TEST MODE shows the raw data from your
+input. It can be used for various trouble shooting purposes.
+[289]The ANALOG HARDWARE TUNE mode has routines to help tuning
+your analog hardware.
+In the standard package routines for the WSE converters are
+supplied. You may replace them with your own routines by
+adding your own users_hwaredriver.c file and recompile Linrad
+from source code.
+[290]The RADAR MODE is intended for propagation studies.
+It allows detection of aurora and sporadic E on VHF.
+It should also allow interesting info on back-scatter
+signals on HF bands.
+[300]REMOVE CENTER DISCONTINUITY
+When I and Q are sampled by means of a soundcard the very low frequencies
+are missing because soundcards are AC coupled. For this reason there is an
+infinitely deep notch in the spectrum at the frequency corresponding to
+a DC voltage in I and Q. This means that the spectrum collected as the
+average frequency response is actually two spectra separated by the notch.
+The amplitude is zero and the phase may shift by an arbitrary angle across
+the notch (the center discontinuity) in the measured data.
+The notch may be much wider than one would expect from the hardware 
+characteristics. The spectrum is measured by repetitive pulses but each
+pulse is processed separately. This means that a pulse is processed with
+only as many data points surrounding it as permitted by the pulse repetition
+frequency of the calibration pulse generator. If the PRF is 100 Hz, each
+pulse is processed with data points covering a time span of about 50 
+milliseconds. The lowest frequency the pulse may contain is therefore
+200 Hz. Cutting the time function like this produces a high pass filter
+with an oscillatory behavior in the frequency domain and this high pass
+filter adds to the notch produced by the hardware to produce a wider notch
+with oscillatory behavior.
+
+The purpose of this routine is to find the correct phase and amplitude
+across the notch. This is done by splitting phase and amplitude into their
+symmetric and the asymmetric parts. Then polynomials are fitted to the
+measured data and the polynomials are used to establish phase and amplitude
+across the notch.
+
+The green vertical line marks the range up to where the polynomial is fitted.
+(press B to get to the screen where it can be changed) 
+Place the green line to the left of the structures attributable to the
+hardware and the PRF of the calibration pulses. 
+The limit frequency is typically ten times the PRF or five times the 3dB
+point of the hardware HP filter.
+
+The yellow curve is the measured data. Use + and - to see how it behaves.
+The red curve is the difference between the measured data and the polynomial
+fitted with the parameters given for ch0 (and ch1 in a two channel system).
+Select the smallest number of terms that places the red line close to
+the x-axis in the region to the left of the green line.
+Move the blue line to a suitable position where the red line is on the
+x-axis and parallel to it. When you press A, the calibration curve will
+be constructed from the yellow curve at the left side of the blue line
+and from the polynomial at the right side of the blue line.
+
+If the blue line were placed at a point where the red line is
+significantly displaced from the x-axis the new calibration curve would
+have a step corresponding to the displacement at the point of the blue line.
+You may experiment and try a bad position for the blue line. Then repeat
+the center discontinuity removal routine to get an understanding for how 
+it works. Avoid such experiments when finally calibrating your system.
+[301]INITIALIZE THE EME DATABASE
+If you did it before and do not want to change anything,
+press enter or any other key except M to use your old file:
+/home/emedir/linrad_dxdata (Linux)
+C:\emedir\linrad_dxdata (Windows)
+
+                        ************
+
+In order to decide what polarization to use for transmit Linrad
+has to know the geographical location of the other station.
+There are files on the Internet containing this information.
+Make a directory /home/emedir for Linux or C:\emedir for Windows and 
+copy the data files there so Linrad can find at least one of these files:
+
+/home/emedir/allcalls.dta  or  C:\emedir\allcalls.dta
+/home/emedir/eme.dta       or  C:\emedir\eme.dta
+/home/emedir/dir.skd       or  C:\emedir\dir.skd
+/home/emedir/CALL3.TXT     or  C:\emedir\CALL3.TXT
+
+(Search for emedir.exe allcalls.dta, CALL3.TXT and vhfsched.skd 
+on the Internet) Linrad will create the file own_info, a file 
+containing your own location, UTC offset and whether the EME 
+database should always be installed so you will not have to 
+press M on the main menu. The database will occupy some memory 
+and you may want to use memory for other purposes now and then on 
+a small computer, that is why you have an option here.
+
+Linrad will also create linrad_dxdata which contains the data from all 
+the files in Linrad's own format. If the files contain incompatible 
+information, the file location_errors.txt will report the errors.
+All files are created in /home/emedir(Linux) or C:\emedir(Windows)
+
+Once the EME database is initialized, the EME window can be
+used for finding call signs by a search for fragments using
+? and * as "wildcards" 
+[302]ROUTINES TO CALIBRATE LINRAD TO FIT YOUR HARDWARE IN I/Q MODE. 
+   In I/Q mode you have two mixers that operate in quadrature
+to produce two audio signals for your computer (for each RF channel).
+Ideally the amplitude of I and Q should be equal and the phase
+shift should be 90 degrees exactly between the signals.
+In real life component tolerances lead to errors which to some
+extent can be minimized by adjusting the hardware. In case the
+hardware contains filters it is very difficult to make them equal
+in two channels and if the filters are steep as in the WSE RX2500
+it is practically impossible.
+   Linrad compensates the errors in the balance between I and Q in the
+frequency domain. This way the balancing parameters are functions of
+the frequency and allow a good image rejection over the entire 
+bandwidth. Calibrating I/Q phase and amplitude should be the first 
+step of your calibration.
+   In I/Q mode the amplitude and phase characteristics are usually quite
+good but Linrad allows you to make it perfect. The calibration steps
+B, C, and D have to be performed in this order. C uses the output from
+B and D uses the output from C.
+[303]ROUTINES TO CALIBRATE LINRAD TO FIT YOUR HARDWARE. 
+   You are running linrad with a single audio channel for each radio
+channel. This means that an IF filter is used to remove the mirror
+image from the last frequency conversion in your hardware.
+   Typically steep filters are used in this mode and steep filters 
+always have an oscillatory impulse response and also often an
+amplitude vs frequency curve with some ripple.
+   The calibration procedure allows you to correct the frequency and
+phase responses of your entire system. Linrad will find the optimum
+characteristics for a digital filter that will be added in your signal
+path and that will give you a perfectly flat frequency response and
+an optimum impulse response.
+   The first step A has to be performed first. B uses the output of A.
+[304]CHECK YOUR PULSE GENERATOR AND SET AMPLITUDE AND PRF CORRECTLY.
+   For the calibration to become successful your pulse generator should
+give strong pulses while not sending noise into your hardware.
+On this screen you can see the S/N of your pulses as the peak
+power of a typical pulse in relation to the RMS noise floor.
+   A good wideband system can give S/N above 70 dB and allows the usage
+of very low pulse repetition frequencies, down to 10 Hz.
+The S/N in the next step when the pulses are actually used is determined
+by the total energy of a single pulse in relation to the total energy
+collected in the time interval between two pulses. 
+
+PRF     S/N  Level     S/N second step   Quality
+10Hz    75dB  30%          37dB          Perfect
+10Hz    60dB   3%          25dB          OK
+10Hz    50dB   1%          16dB          Useless
+75Hz    60dB   3%          34dB          Perfect
+75Hz    50dB   1%          25dB          OK
+75Hz    40dB   0.3%        15dB          OK (Ignore)
+200Hz   40dB   0.3%        20dB          OK
+200Hz   30dB   0.1%        12dB          Questionable (Ignore)
+
+   In this table (Ignore) means you have to press 'I' to ignore the error
+"low S/N". The disadvantage with using a high PRF is that the center
+discontinuity becomes wider because the lowest frequency seen by the 
+calibration routine must have a full period in the time interval
+between two pulses. A wide discontinuity at the center could make
+"Remove center discontinuity" more difficult. One would have to 
+interpolate over a wider frequency range.
+  Make sure to use a PRF low enough to make the noise floor flat between
+each pulse. Note that the calibration uses averaging and that it is
+affected by pulse oscillations well below what you can see on this
+screen.
+[305]COLLECT THE AVERAGE PULSE RESPONSE OF YOUR SYSTEM
+   The magenta trace is the amplitude and the green trace is the phase.
+If you can see narrowband signals in the amplitude curve there is a risk
+that you can get discontinuities in the phase function. Always look for
+a while and make sure it does not happen. The cure to such problems is
+better screening, a different frequency of operation or stronger calibration
+pulses.
+   The pulse response you see on screen is your hardware plus whatever
+calibration function you may have in RAM. Try to clear RAM in case you see
+odd results. Whatever you do will be harmless as long as you do not 
+save on the hard disk with the 'S' command.
+[306]MANIPULATE THE AVERAGE FREQUENCY RESPONSE
+   On this screen you are given the opportunity to remove non-valid data
+from the average frequency/phase vs frequency curves that Linrad has
+collected. Normally there is no reason to use these functions, the data
+collected can usually be used as they are with no manual adjustment. Just
+press 'A' to use data as they are.
+[307]SELECT THE DESIRED FREQUENCY RESPONSE
+   The white curve is the frequency response that you will force the entire
+system to have. The yellow curve is the amplitude vs frequency function
+that Linrad will have to use to achieve this goal.
+   Note that it is impossible to ask for a flat frequency response that
+extends to frequencies where Linrad has no information. You can not have
+a flat response at frequencies where your hardware does not allow any signal
+to pass. Be careful to make the yellow curve reasonably flat. Use the keys
+A to F to make the white curve compatible to your hardware. The goal is to
+make a white curve that "looks nice" but with an associated yellow curve
+that does not have large peaks. 
+   At frequencies where your hardware provides high attenuation Linrad will
+have to apply high gain to make the total response flat. The maximum gain
+needed (relative to the mid-band gain) is given on screen. Do not allow
+this number to go above 10 dB. Look for "Max correction" do not allow it to 
+be above 10 dB.
+   Very steep skirts can be set, but the impulse response will become very
+long if you select extreme shape factors. If you have no QRN problems it
+might be nice to have an extremely rectangular filter response, but the
+noise blanker could perhaps be affected in a non-desirable way.
+   When this text was written (Sept 2006) it was not known what kind of
+total filter response would be optimum under different circumstances.
+Maybe it does not matter???
+[308]REMOVE CENTER DISCONTINUITY
+Linrad has no information about phase and frequency response for
+audio frequencies close to zero. Soundcards are typically not DC-coupled...
+Other hardware such as the SDR-14 may be DC-coupled, but Linrad does
+not have any information about the DC levels or frequencies below
+the repetition frequency of your pulse generator.
+   Due to missing information the phase response has a discontinuity
+at the center frequency. The amplitude may also be low and this could
+be because of a high pass filter in a soundcard and/or due to the high
+pass filter that Linrad uses to pick single pulses. Due to peculiarities
+in the digital filters inside soundcards that remove the DC component,
+it is necessary to apply a window function in the time domain around each
+pulse because the DC level is artificially shifted by rounding errors so
+it is different on both sides of a pulse. This is the origin of the 
+high pass filter inside the Linrad calibration routine.
+
+   The purpose of this function is to interpolate across the center
+discontinuity. This is done by a polynomial fitting across the discontinuity
+while excluding the points close to the discontinuity. The fitted curve
+is then used to replace the collected data near the discontinuity.
+   On this screen you have to set a suitable width of the region where
+fitted data is to be used. Subsequent screens will show if you set
+the limits too wide or too narrow.
+[309]APPLY THE FITTED FUNCTIONS ACROSS THE DISCONTINUITY
+                            OR 
+                  LEAVE ORIGINAL DATA UNCHANGED
+
+   If you press S here, the interpolated data will replace your
+measured data in the dsp_xxx_corr files. You may try to exclude
+a wider frequency range in a subsequent attempt, but since the original
+data is lost it will be impossible to try to fit with a narrower
+frequency range excluded.
+[310]         REFINE CALIBRATION FUNCTION
+
+   The calibration function is amplitude and phase in the frequency
+domain - or it is the averaged pulse response in the time domain.
+During calibration the size of the FFTs used are typically far too
+large which is the same as to say that the pulse response contains
+a too long range of noise only, surrounding the averaged pulse.
+   At this point Linrad has decided how many points the pulse actually
+needs. If you allow save in a smaller size than the original,
+Linrad will smooth the noise floor surrounding the averaged pulse. 
+In case your calibration function contains some spurs (peaks in 
+the frequency domain) Linrad will try to remove those peaks.
+
+   It may be a good idea to save the calibration function before 
+saving a smaller calibration function in case you spent a lot of
+time collecting it. Reducing the size of the calibration function
+will usually provide a flatter noise floor - but this process can go
+wrong and lead to a less flat noise floor. 
+
+               -----   Warning!!  ----- 
+   Reduce the number of points in a single run of this function. 
+If a calibration function that is not in its original size is run 
+through this procedure the result will not be quite correct.
+[311]BALANCE AMPLITUDE AND PHASE BETWEEN I AND Q 
+   In direct conversion mode two audio channels from each RF channel
+are used. The amplitude and phase of these channels has to be very
+carefully balanced to avoid false signals at the mirror image frequency.
+   If you set the center frequency to 7.050 Mhz and click on 7.040 MHz
+to receive a signal there, a direct conversion receiver will also receive
+signals at 7.060 MHz - the mirror image frequency. Rather than requiring
+the user to tweak his hardware very carefully, Linrad measures the level of
+the mirror image at many frequencies and sets up a function that will
+be used to correct for hardware errors. Making the correction in the
+frequency domain is advantageous because the two audio channels I and Q
+may then have different frequency responses and time delays. It can be
+VERY difficult to obtain a reasonable mirror rejection over the entire
+passband when tweaking the hardware for I and Q to have identical
+frequency responses.
+   If you have two RX channels you must calibrate both of them
+simultaneously.
+[312]The Linrad S-meter can show Peak power or RMS power in S-units, 
+dB or dBm. 
+There is also a mode to display S/N where S is from a narrow bandwidth
+as specified in the baseband graph while N is computed from the full
+bandwidth. The S/N mode is only available for expert users.
+
+Make the window small in the X-direction to see signal
+strength as a bar graph or make the window wide to see level vs time
+curves. Use the F1 help on the different boxes that appear when the
+graph is made wide to find out how to set the window to show what
+you want to see.
+
+With one RF channel Peak power is WHITE while RMS power is YELLOW.
+
+With two RF channels, the S-meter shows the signal level from the
+same two orthogonal combinations as shown in the baseband graph.
+Peak powers are GREEN and MAGENTA corresponding to the two curves in the
+baseband graph.
+
+The RMS power associated with GREEN is BLUE.
+The RMS power associated with MAGENTA is RED.
+-----------------------------------------------------------------------
+In the S/N mode YELLOW, GREEN and MAGENTA are S/N values while
+WHITE, BLUE and RED are RMS signal levels.
+
+Averaged values can be computed by pressing the left mouse button at some 
+point and moving the mouse towards the right. (to a later time) and then 
+release the button.
+
+The computed values will remain even if the curves are shifted left.
+To clear the text, click on the S-meter graph border.
+
+The computed values are:
+N:   The number of points between the two selected times in the graph.
+RMS: The root mean square of the N points.
+dev: The standard deviation of the N points.
+
+If the system is stable, the uncertainty of RMS is dev divided by the 
+square root of  N.
+[313] adwav missing (or empty).
+To use .wav files as the input to Linrad you must have a text file 
+named adwav in the directory from where Linrad was started.
+
+For each .wav file you should make a single line in adwav
+starting with the full name of the .wav file. Optionally you
+may add a second full filename to specify a group of parameter
+files for this particular .wav file so each file can have its
+own parameters. 
+
+Example adwav (linux):
+/wavlib/unkn422.wav /wavlib/parfiles/par_unkn422
+Example adwav (Windows):
+C:\wavlib\unkn422.wav C:\wavlib\parfiles\par_unkn422
+
+Note that all directories must exist. E.g. in this
+example the directory "parfiles" must exist before you
+start Linrad. Linrad will never create directories.
+[314] adfile missing (or empty).
+To use raw data files as the input to Linrad you must have a text file 
+named adfile in the directory from where Linrad was started.
+The raw data files have to be saved by Linrad. They will contain
+the calibration information from the system on which they were 
+recorded as well as time and frequency. 
+(Create raw data files by pressing 'S' while Linrad is running)
+
+For each raw data file you should make a single line in adfile
+starting with the full name of the raw data file. Optionally you
+may add a second full filename to specify a group of parameter
+files for this particular raw data file so each file can have its
+own parameters. 
+
+Example adfile (linux):
+/rawlib/myfile /rawlib/parfiles/par_myfile
+Example adfile (Windows):
+C:\rawlib\myfile C:\rawlib\parfiles\par_myfile
+
+Note that all directories must exist. E.g. in this
+example the directory "parfiles" must exist before you
+start Linrad. Linrad will never create directories.
+[315]           SETUP for the Linrad network
+
+Receiver input can be the hardware connected to this computer or 
+a signal received from the network. 
+
+Raw data input from the network can not be combined with raw
+data output to the network.
+
+The fft1, timf2 and fft2 outputs can be enabled on a computer
+that uses the network for input while the fft1 input can be combined
+only with the timf2 and fft2 outputs.
+
+Pick a base port and a send address for the master computer, the one
+that is connected to the radio hardware and antenna.
+Slave computers have to use the same base port with the receive
+address set to the same value as was used for send in the master.
+(Use defaults if there is only one master on the network.)
+
+After exit from this menu the network will be disabled in the
+main menu. Enable input and output as required ('R' and 'T' in
+the main menu) and save the settings with 'W'.
+
+If you do not save, the old network parameters (par_userint) will 
+be used next time you start Linrad. If they differ from what was stored
+in this menu an error will be reported. 
+[316]Click this button to enable or disable automatic spur
+cancellation.
+[317]This parameter is 500 by default. Change it to increase
+or decrease the gain for the high resolution spectrum.
+Note that the gain for the colour scale in the main waterfall
+is the primary gain control.
+[318]This parameter is 500 by default. Change it to shift the 
+high resolution spectrum upwards or downwards.
+Note that the zero point for the colour scale in the main waterfall
+is the primary control for the vertical shift.
+[319]This box shows the current tuning mode. Tuning can be made
+either with a wheel mouse or with the arrow keys. (Use '+' or '-'
+to set the tuning step size)
+
+Click the box or press 'M' to select one of these modes:
+
+T = Tune center frequency. 
+P = Tune passband. (Center freq + BFO)
+B = Change BFO frequency.
+[320]Number of notches to apply in the baseband.
+This box is only available when the baseband filter is 
+applied in the frequency domain. (Mixer mode=1 upper right corner.)
+Set to 0 to remove all notches.
+set to a particular notch number to modify frequency or width.
+[321]Width of notches in the baseband
+This box is only available when the baseband filter is
+applied in the frequency domain. (Mixer mode=1 upper right corner.)
+The number of notches must also be nonzero.
+fraction of baseband filter width from 0 to 99 
+Set to -1 to remove the selected notch.
+[322]Frequency of notches in the baseband
+This box is only available when the baseband filter is
+applied in the frequency domain. (Mixer mode=1 upper right corner.)
+The number of notches must also be nonzero.
+Fraction of baseband filter width from -999 to 999 
+[323]By clicking the frequency scale in the main spectrum/waterfall
+with the left mouse button you will enter the zoom input mode.
+The frequency scale and the arrow boxes at its sides will disappear
+and be replaced with two input fields where a lower frequency limit
+and an upper frequency limit can be typed in.
+Processing will not be changed until the center part (with the 
+word Apply) is clicked.
+
+When you click the frequency scale with the right mouse button,
+the frequency where you made the click will become the new center 
+frequency to the extent that a shift is possible without getting 
+outside the processed bandwidth.
+[324]Left click this input field and enter the frequency where you
+want your spectrum and waterfall to start.
+Right click the center part "Apply" when you are satisfied with
+both the upper limit and the lower limit.
+The main window will expand if there is unused screen space to
+make the spectrum as wide as possible.
+[325]Left click this input field and enter the frequency where you
+want your spectrum and waterfall to end.
+Right click the center part "Apply" when you are satisfied with
+both the upper limit and the lower limit.
+The main window will expand if there is unused screen space to
+make the spectrum as wide as possible.
+[326]Toggle between the different modes for FM detection.
+Mode=0 Get the phase point by point from the baseband signal.
+       Take the derivative point by point. 
+       Run the signal through a low pass filter as specified by the 
+       FM bandwidth ratio (Specified as 10 times the desired ratio.) 
+       The ratio will be above 10 whenever the loudspeaker output 
+       runs at a lower speed than the baseband because downsampling 
+       requires an anti-alias filter.
+[327]Select the bandwidth in kHz for the FM audio signal.
+In case the RF bandwidth is larger than half the audio output
+sampling rate it is necessary to filter out signals above the
+Nyquist frequency since they would otherwise alias into the
+audio range. If you want wideband demodulated FM in order to
+decode information on subcarriers you may have to set this
+filter to 96 to allow the full 96 kHz bandwidth of a soundcard
+at 192 kHz. 
+(You may use network options to get higher data rates.
+See www.sm5bsz.com/lir/fm/fmqrm.htm)
+[328]This box allows the user to select the phase between the
+two loudspeakers in case a mode that require only a single output 
+channel is run with two output channels.
+Click this box to toggele between modes:
+
+'+' indicates channels in phase.
+'-' indicates channels out of phase
+In SSB mode there is also this option:
+'c' indicates baseband in complex format
+[329]Shift the wide filter with respect to the narrow filter.
+This is useful in Coh modes when there is interference one pr
+the other side of the carrier.
+[330]advanced FM modes. Under development,
+[331]Use this box to enter hang time for the AGC.
+[332]You have selected to use the OSS interface to the soundcard(s).
+There are no working OSS devices on your system, but you may have ALSA.
+Use the 'Y' option to select native ALSA unless you want to use
+the OSS interface for a good reason. 
+
+In case you are trying to get a 4Front OSS installation to work
+you should probably use the soundconf command to make sure OSS is
+correctly installed. You may also need to run the soundon command.
+
+(Unlikely) If you are trying a very old Linux version with legacy sound
+you should find out how to configure your sound system. Legacy sound
+usually has the sndconfig command. This info is for Linux 2.2.x kernels.
+[333]Ö
+[334]Attenuator for use with MAP65.
+Click the box and enter the desired attenuation in dB.
+The signal Linrad sends to the network in timf2 format will
+be attenuated as specified, but this parameter will have no 
+effect on the processing within Linrad.
+[335]Click this box to toggle between 0 and 1.
+0 => Do not send any strong signals to MAP65.
+1 => Send everything to MAP65
+Signals on those frequencies that are red in the main spectrum
+will not be sent to the network in the timf2 format when 0 is selected. 
+[336]Squelch level. Left click on this box to set the squelch level in dB.
+Set to zero to inactivate the squelch.
+The squelch is automatically inactivated if the baseband filter
+is wider than the baseband graph and the squelch is also inactivated
+when the number of points on the filter curve is too small.
+
+The squelch looks for for peaks in the baseband spectrum.
+It is affected by the baseband bin resolution as well as by
+the number of averages. It is possible to make the squelch
+open on very weak CW signals by comparing the largest power bin
+to the noise floor, it can also reject carriers and CW signals
+by looking at tne Nth largest value. An SSB signal typically has many
+equidistant peaks due to its repetitive non sinusoidal waveform.
+[337]Squelch point. Left click on this box to set the squelch point.
+The range is 0 to 99. The value 0 means that thebin with highest power
+will be used. 99 means that the median power will be used. 
+Something like 10 will exclude one or two carriers, but open well
+on a voice signal.
+
+The squelch is automatically inactivated if the baseband filter
+is wider than the baseband graph and the squelch is also inactivated
+when the number of points on the filter curve is too small.
+
+The squelch looks for for peaks in the baseband spectrum.
+It is affected by the baseband bin resolution as well as by
+the number of averages. It is possible to make the squelch
+open on very weak CW signals by comparing the largest power bin
+to the noise floor, it can also reject carriers and CW signals
+by looking at tne Nth largest value. An SSB signal typically has many
+equidistant peaks due to its repetitive non sinusoidal waveform.
+[338]Squelch time. Left click on this box to set the squelch time in seconds.
+The range is 0 to 9. If you want the squelch to open before a transmission
+starts, set the parameter "Output delay margin" large. Maybe 2000 ms.
+Then set the squelch time to perhaps 4 seconds.
+Note that the fft1/fft2 storage time must be adequately long to hold
+the amount of data required
+
+The squelch is automatically inactivated if the baseband filter
+is wider than the baseband graph and the squelch is also inactivated
+when the number of points on the filter curve is too small.
+
+The squelch looks for for peaks in the baseband spectrum.
+It is affected by the baseband bin resolution as well as by
+the number of averages. It is possible to make the squelch
+open on very weak CW signals by comparing the largest power bin
+to the noise floor, it can also reject carriers and CW signals
+by looking at tne Nth largest value. An SSB signal typically has many
+equidistant peaks due to its repetitive non sinusoidal waveform.
+[339]To use two RF channels with complex data a soundcard with
+four audio channels is required. Some soundcards that have
+four channels can not be opened with more than two channels
+and to allow two RF channels one has to open two sound devices   
+for the soundcard. This may work, but Windows may loose the 
+synchronization between the channels. Using a second device from
+the same soundcard is a last resource. You should try to use
+WAVEFORMATEXTENSIBLE to get a 4-channel device with Linrads native
+MME routines or you could try to use Portaudio.
+[340]Mouse on main spectrum or waterfall graph. 
+Press the left mouse button to select the frequency to process for audio output. 
+The right mouse button selects secondary frequency for decode cw  
+to ascii on screen only (not yet implemented) 
+If mouse is on a frequency that is already selected 
+the right mouse button will deselect that frequency. 
+To eliminate a spur, place the mouse cursor on it and press E
+on the keyboard.
+To clear spur elimination tables after a frequency change, press C
+[341]This box, available in S/N mode only, can be used to
+shift the signal trace(s) to make them visible when the
+y-scale is expanded and set to show S/N.
+Press the left mouse button and enter an offset for the
+signal level.
+[342]The calling sequence is not defined in the specifications for 
+ExtIO dll files. Some require the callback to be defined before the
+init command is issued, other libraries require the init to be done
+first. Most libraries work both ways.
+
+Answer N for ELAD
+[343]The drivers for ALSA and OSS in Linrad try to write directly
+to the hardware and they do not allow jack, sysdefault, pulse, default,
+spdif, dmix and others.
+
+You can answer yes to Portaudio, that gives acces to all the sound devices
+on your system, but going through Portaudio causes a considerable time
+delay and may require large values on the parameter "Output delay margin"
+
+It is recommended that you answer N here and only if the sound device
+you wish to use is not listed, press ESC and go back here and answer 
+Y to get access through Portaudio.
+[344]Failed to load bladeRF.dll
+Use bladerf_win_installer.exe from nuand.com to install
+the dll and the appropriate drive routines for your bladeRF
+hardware.
+[345]This parameter (hg.sellim_par1) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[346]This parameter (hg.sellim_par2) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[347]This parameter (hg.sellim_par3) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[348]This parameter (hg.sellim_par4) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[349]This parameter (hg.sellim_par5) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[350]This parameter (hg.sellim_par6) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[351]This parameter (hg.sellim_par7) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[352]This parameter (hg.sellim_par8) may affect the performance
+of the noise blankers by changing the rules for which signals
+to consider strong and route outside the blanker.
+Check the main spectrum for red points and how they are affected
+by the blanker controls (vertical red and blue bars.)
+[0]

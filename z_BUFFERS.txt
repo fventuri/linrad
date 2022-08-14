@@ -1,0 +1,50 @@
+There are many circular buffers in the dsp package.
+Most of these buffers are powers of two in size which makes
+address manipulation easier.
+*************               BUFFER NAMES                **************
+type *xxx; The base pointer where type may be float,int ,short int or char.
+In case the buffer is used with different data types there may be several 
+base pointers to the same location in which case they are named as follows:
+char *xxx_char;
+short int xxx_short_int or xxx_shi;
+int xxx_int;
+float xxx_float;
+*************                     SIZE                  *************
+xxx_bytes is the buffer size in bytes
+xxx_bufsize is the buffer size in units of sizeof(type) bytes
+xxx_mask = xxx_bufsize-1 for buffers that are powers of two
+xxx_bytemask = xxx_bytes-1 for buffers that are powers of two  
+xxx_block = the size in units of sizeof(type) for one update
+xxx_blockbytes = the size in bytes for one update
+*************                 CREATORS                  *************
+Each buffer has one creator of data.
+The creator uses the pointer pa which the creator is responsible to
+update. pa points to the position into which the creator will write data
+next time. The data at pa may be old data but the data may also be
+completely invalid or uninitiated.
+*************                 CONSUMERS                 *************
+Each buffer has one consumer of data.
+The consumer uses the pointer px which the consumer is responsible to
+update. px points to the position from which the consumer will fetch data
+next time. 
+Valid data are stored in the interval px to pa in the buffer and if these
+pointers are equal the buffer is empty.
+*************                 USERS                     *************
+Buffers may have any number of users and they are responsible for their
+own pointers which have longer, mnemonic names that may or may not have
+the buffer name as a part of it.
+A user may work outside the valid range px-pa but then it has to make
+sure the data is valid on it's own.
+*************                 MODIFIERS                 *************
+Buffers may have any number of modifiers and they are responsible for their
+own pointers which have longer, mnemonic names that may or may not have
+the buffer name as a part of it.
+*********************************************************************
+*********************************************************************
+All global pointers are named according to the following conventions:
+xxx_p0 is the pointer in units of sizeof(type) so the creator
+can write the first data word at xxx[xxx_p0]
+For assembly routines the same location may be pointed to by xxxp_p0
+which is in bytes. To use the byte pointer from C programs the location
+xxx[xxx_p0] is identical to xxx[xxxp_p0/sizeof(type)]
+

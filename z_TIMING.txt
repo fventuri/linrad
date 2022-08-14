@@ -1,0 +1,121 @@
+         The time delay from antenna to loudspeaker in Linrad.
+
+Press 'T' on the processing screen to get timing information.
+Linrad will show some text messages in the lower left corner of the
+screen. Typically like this:
+
+A/D:47998Hz  D/A:48008Hz sync:0.011422
+DMA:  A/D:94 Hz   D/A:94 Hz
+      Delay times
+D/A   0.011   MIN  0.009
+baseb 0.000   buf  0.036
+timf3 0.025   fft3 0.000
+timf2 0.027   fft2 0.000
+  Raw 0.033   fft1 0.018
+10.60% ( 3%)   Tot 0.150
+
+In case the second fft is not present the line with timf2 and fft2
+will not be present.
+
+
+************* A/D:47998Hz  D/A:48008Hz sync:0.011422 ****************
+The first line shows the actual sampling rates as evaluated by Linrad
+by counting how many samples that actually arrived from or were sent
+out to the device driver for the hardware. Abnormal values here should
+not be accepted. Even small deviations like loosing 0.5% of the input
+data blocks could cause transcients if strong signals are present.
+Small errors could also cause digital decoders such as MAP65 to fail.
+
+Silent loss of data at the input side are due to problems with device
+drivers If you see such problems, try to change soundcard parameters,
+make sure that no other applications open the sound drivers before
+Linrad and reboot.
+ 
+Loss of data on the output side is typically due to slow drivers. It can
+also be caused by various errors in the Linrad setup. It may be a good
+idea to select a sampling speed that is supported in hardware to avoid
+inefficient resampling routines.
+
+
+**************** DMA:  A/D:94 Hz   D/A:94 Hz *******************
+The second line shows the size of the buffers that are requested for
+the input and output expressed as the rate at which the buffers are
+filled. In some systems this might actually be the DMA rate that the
+hardware will use for moving data into the main memory.
+
+
+********************      Delay times  *************************
+****************   D/A   0.011   MIN  0.009 ********************
+
+The third line is different depending on whether or not Portaudio
+is selected for the output.
+
+Without Portaudio:
+D/A is the time associated with the data already sent to the 
+output device driver. 
+
+MIN is the  smallest value of D/A that ever occured.
+
+
+With Portaudio:
+D/A is the time associated with a single buffer.
+
+MIN is the smallest time of available data waiting for output in the
+daout buffer. (see fourth line)
+
+*********************** baseb 0.000   buf  0.036  *********************
+
+baseb is the amount of data in the baseband time function.
+
+buf is the amount of data in the daout buffer.
+
+The step from baseb to daout is a fractional resampler.
+
+
+******************* timf3 0.025   fft3 0.000 ************************
+
+The amount of data in the time function timf3.
+
+The amount of data waiting as fourier transforms for back transformation
+into baseb.
+
+(Or corresponding times in case filter and decimation in the time domain
+is selected.)
+
+
+****************** timf2 0.027   fft2 0.000 ***********************
+Only in case the second FFT is selected.
+
+
+timf2 is the amount of data in the timf2 buffer
+
+fft2 is the amount of data waiting as computed transforms.
+
+
+******************  Raw 0.033   fft1 0.018  ***********************
+
+Raw is the amount of data waiting in timf1 
+
+fft1 is the amount of data waiting in the form of completed fft1 transforms.
+
+
+
+******************  10.60% ( 3%)   Tot 0.150  *********************
+
+The last line shows the total cpu load. 10.60% in this case.
+The number within parenthesis is present on systems with more than one
+cpu core. It shows the percentage of time that the most cpu-intensive thread
+is using. This number must notgo very high. Up to 80% is probably OK.
+
+Tot is the total delay. It is the sum of all the delays (MIN of course not
+included)
+
+*******************************************************************
+
+
+There is an option in options.h #define BUFBARS TRUE that will show
+the buffer usage graphically when 'T' is pressed. This option is
+however rather cpu-intensive.
+
+
+

@@ -1,0 +1,53 @@
+Perseus metadata is contained in a special chunk just before the
+'data' chunk. It is named 'rcvr' and has the following data structure
+(longs are 32 bit, time_t is 32 bits)
+
+typedef struct {
+char chunkID[4]; // ="rcvr"
+long chunkSize; // chunk len - 8
+long nCenterFrequencyHz; // center freq in Hz
+long nSamplingRateIdx; // 0=125k, 1=250k, 2=500k, 1 M
+time_t timeStart; // UTC rec time init
+unsigned short wAttenId; // 0=0dB, 1=10dB, 2=20dB, 3=30dB
+char bAdcPresel; // 0=Presel Off, 1=Presel On
+char bAdcPreamp; // 0=ADC Preamp Off, 1=ADC Preamp ON
+char bAdcDither; // 0=ADC Dither Off, 1=ADC Dither ON
+char bSpare; // for future use (default = 0)
+char rsrvd[16]; // for future use (default = 000..0)
+} RcvrChunk;
+
+
+// Formato chunk "rcrv" di Perseus
+
+  struct rcvrhdr
+  {
+	char  		chunkID[4];	          // ="rcvr" (chunk perseus beta0.2)
+	long  		chunkSize;	          // lunghezza del chunk
+	long		nCenterFrequencyHz;   // Frequenza centrale di acquisizione
+	long 		SamplingRateIdx;      // 0=125K, 1=250K, 2=500K
+	time_t 		timeStart;	          // Ora inizio registrazione (ottenuta con time(&timeStart))
+	unsigned short 	wAttenId;	      // 0=0dB, 1=10dB, 2=20dB, 3=30dB
+	char		bAdcPresel;	          // 0=Presel Off, 1=Presel On
+	char		bAdcPreamp;	          // 0=ADC Preamp Off, 1=ADC Preamp ON
+	char		bAdcDither;	          // 0=ADC Dither Off, 1=ADC Dither ON
+	char		bSpare;		          // for future use (default = 0)
+	char        rsrvd[16];	          // for future use (default = 000..0)
+  };
+
+  struct auxihdr     // used by SpectraVue in WAV files
+  {
+	char  	   chunkID[4];	          // ="auxi" (chunk rfspace)
+	long  	   chunkSize;	          // lunghezza del chunk
+	SYSTEMTIME StartTime;
+	SYSTEMTIME StopTime;
+	DWORD CenterFreq; //receiver center frequency
+	DWORD ADFrequency; //A/D sample frequency before downsampling
+	DWORD IFFrequency; //IF freq if an external down converter is used
+	DWORD Bandwidth; //displayable BW if you want to limit the display to less than Nyquist band
+	DWORD IQOffset; //DC offset of the I and Q channels in 1/1000's of a count
+	DWORD Unused2;
+	DWORD Unused3;
+	DWORD Unused4;
+	DWORD Unused5;
+	char  nextfilename[96];
+  };

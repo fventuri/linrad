@@ -1,0 +1,1140 @@
+000078
+[937]Size of fft larger than 65536.
+Could be caused by some bug related to the use of fft1 version 6
+Change fft1 version manually in the parameter file for the current
+receive mode.
+[999]Code in cwdetect.c not yet written.
+[1000]routine:open_rx_sndin   file:lsetad.c
+Routine to open audio input is called but audio_flag says 
+input is already open. 
+[1001]routine:open_rx_sndin   file:lsetad.c
+The selected output device does not respond. Try another.
+[1002]routine:get_buffers        file:buf.c
+Routine to allocate memory is called but buffers_flag says
+memory is already allocated.    
+[1003]Failed to allocate scratch memory.
+[1004]Failed to allocate scratch memory.
+[1005]routine:close_audio_input   file:lsetad.c
+Error when closing device. 
+[1006]routine:close_rx_sndout   file:lsetad.c
+Close failed on Rx output from soundcard.
+[1007]routine: open_rx_sndin     file:lsetad.c
+Failed to open audio input.
+Check sound system !!!
+(If OSS is used, start sound with the soundon command.)
+Maybe setup file "dsp_uiparm" is incorrect ?
+Use U = A/D and D/A setup in main menu.
+ (do not forget W = save afterwards to make a new "dsp_uiparm" file)
+[1008]routine:open_rx_sndin  file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_SETFRAGMENT)
+[1009]routine: open_rx_sndin     file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_CHANNELS)
+[1010]routine: open_rx_sndin     file:lsetad.c
+Could not set desired no of channels for A/D input !!!
+Use U = A/D and D/A setup in main menu.
+ (do not forget W = save afterwards to make a new "dsp_uiparm" file)
+[1011]routine: open_rx_sndin     file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1012]routine: open_rx_sndin     file:lsetad.c
+A/D sampling speed could not be set to desired value (new A/D board )
+Initialise sound board properly or use U = A/D and D/A setup in main menu.
+ (do not forget W = save afterwards to make a new "dsp_uiparm" file)
+[1013]routine: open_rx_sndin     file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SETFMT)
+[1014]routine: open_rx_sndin     file:lsetad.c
+Could not set little endian format for 16 or 24 bit audio input.
+[1015]routine:open_audio_output  file:lsetad.c                      
+Routine to open audio output is called but audio_flag says 
+output is already open. 
+[1016]routine:set_analog_io      file:lsetad.c
+Unable to create/open log-file in write mode.
+Make sure the file soundboard_init.log does not have incorrect attributes.
+(or better, remove the old file)  
+[1017]routine:open_audio_output  file:lsetad.c
+Could not open device for audio output.
+Use U = A/D and D/A setup in main menu to select proper drivers.
+ (do not forget W = save afterwards to make a new "dsp_uiparm" file)
+[1018]routine:open_audio_output  file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SETFRAGMENT)
+[1019]routine:open_audio_output  file:lsetad.c
+call to ioctl failed . (SNDCTL_DSP_CHANNELS)
+[1020]routine:open_audio_output  file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SETFMT)
+[1021]routine:open_audio_output  file:lsetad.c
+Could not open D/A with the specified no of bits.
+Probable cause is use of setup parameters from different hardware.
+Try to set sound board parameters (U in main menu).
+[1022]routine:open_audio_output  file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1023]routine:open_audio_output  file:lsetad.c
+Sound card reports unexpected speed value (more than 5% off).
+Probable cause is use of setup parameters from different hardware.
+Try to set sound board parameters (U in main menu).
+More info in the log file: soundboard_init.log
+If you are using automatic startup, disable it by editing
+the text file par_userint:
+Set Autostart [0]
+[1024]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1025]routine:open_audio_output  file:lsetad.c
+Failed to allocate write buffer
+[1026]routine:close_rx_sndout   file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_RESET)
+[1027]routine:set_analog_io      file:lsetad.c                      
+Failed to set no of channels (should never happen)
+[1028]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+[1029]Failed to open/create the file par_userint or the file par_network.
+[1030]Failed to allocate scratch memory.
+[1031]Failed to allocate scratch memory.
+[1032]file:fft0.c
+Failed to allocate scratch memory.
+Make more memory available.
+[1033]Failed to allocate scratch memory.
+[1034]routine: set_vgamode      file:lsys.c      
+Failed to allocate scratch memory.
+Make more memory available.
+[1035]Failed to allocate scratch memory.
+[1036]routine: init_wide_graph      file:wide_graph.c      
+Failed to allocate memory for waterfall graph.
+Make more memory available.
+[1037]routine:set_analog_io      file:lsetad.c
+Could not close audio device while testing all possible drive routines.
+[1038]routine:set_analog_io      file:lsetad.c
+Could not open audio device selected for input.
+[1039]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_CHANNELS)
+[1040]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1041]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1042]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SETFMT)
+[1043]routine:set_analog_io      file:lsetad.c
+Could not set no of channels.
+[1044]Failed to allocate scratch memory.
+[1045]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+[1046]routine: test_rx     file:rxtest.c
+Fonts too large for current screen.
+Try larger screen or smaller fonts.
+[1047]Failed to allocate scratch memory.
+[1048]Failed to allocate scratch memory.
+[1049]Failed to allocate scratch memory.
+[1050]routine: make_symfit   file:calsub2.c
+Could not fit polynomial to data.
+Clear old correction function and try less steep desired spectrum. 
+[1051]routine: llsq          file:llsq.c
+llsq called with too many parameters (programming error)
+[1052]routine: init_fft1_filtercorr   file:fft1.c
+Error in file dsp_xxx_corr. 
+Remove file and make a new file by running the calibration routine.
+[1053]routine: init_foldcorr   file:fft1.c
+Error in file dsp_xxx_iqcorr.
+Remove file and make a new file by running the calibration routine.
+[1054]routine: cal_update_ram   file:calsub2.c
+Failed to find parameters for old desired spectrum.
+Probably error in dsp_xxx_iqcorr.
+Use Z to clear in ram, then S to save cleared uncorrupted data
+in a new dsp_xxx_iqcorr file.
+[1055]Failed to allocate scratch memory.
+[1056]routine: init_baseband_graph      file:baseband_graph.c      
+Failed to allocate memory for baseband graph.
+Try to reduce baseband storage time.
+Edit parameter file par_wcw, par_cw, par_hsms....
+You may also try narrower baseband filter or smaller storage
+times for fft1 or fft2. 
+[1057]routine:set_fft1_endpoints       file:fft1.c
+The calibration curve uses far too small part of the spectrum.
+Calibration error or excessive oversampling.
+Set sampling speed lower, make desired response wider
+or reduce steepness of desired frequency response.
+You may have to remove the file dsp_xxx_corr (xxx for current rx mode)
+[1058]Output can not start.
+
+(1)The parameter "Output delay margin (ms)" may be too small.
+Try to set it large, like 1000 for a whole second.
+If this helps, use 'T' to find out by how much you can reduce it.
+The D/A MIN value should be about 20 milliseconds, if you see something
+much larger, reduce the Output delay margin by the value minus 20 ms.
+It may be necessary to repeat a couple of times until you find
+MIN near 20.
+Note that the MIN value should be evaluated after a couple of
+minutes.
+
+(2)Your CPU could be overloaded. Maybe you are trying to use
+filter and decimation in the time domain with a large fft3?
+Select filter/decimation in the frequency domain. '1' in the
+box in the upper right corner of the baseband spectrum.
+
+(3)You might have too demanding parameters for the wideband
+processing. Use 'T' to find out how the different threads load 
+your CPU(s)
+
+(4)The parameter "Max DMA rate" could be set too low.
+
+If the above does not help, please send a mail to leif@sm5bsz.com
+[1059]routine: init_fft1_filtercorr   file:fft1.c
+The save file is corrupted. Can not process old data.
+Probable cause: Incorrect calibration file.
+Data was probably saved in uncalibrated mode while calibration was
+present on disk for another sampling rate or input mode.
+[1060]routine: init_foldcorr          file:fft1.c
+The save file is corrupted. Can not process old data.
+[1061]routine: init_blanker      file:buf.c      
+Failed to allocate memory for noise blanker.
+[1062]Calibration file disappeared or became corrupted between program 
+start and attempt to save raw data in a file or request for calibration 
+from the network.
+[1063]Permission to use the parallel port denied.
+The use of ioperm() or iopl() requires root privileges.
+[1064]Access to parallel port denied.
+Make sure inpout32.dll is available to Linrad. 
+[1065]Call to alsa_get_dev_native_capabilities() failed.
+This should never happen!!
+[1066]routine: init_baseband        file:baseband_graph.c
+Failed to allocate memory for baseband. 
+Try shorter baseband storage time, narrower bandwidth or 
+reduce size of earlier processing stages. 
+(Could also be an attempt to allocate too many arrays, 
+MAX_BASEB_ARRAYS too small)
+You may have to remove the par_xxx file (par_wcw, par_ssb,...) 
+[1067]routine:set_analog_io      file:lsetad.c
+Failed to close audio device while testing all possible drive routines.
+[1068]routine:set_analog_io      file:lsetad.c
+Failed to open audio device for output while input is open.
+[1069]routine:set_analog_io      file:lsetad.c                      
+Could not set no of output channels to 1 or 2
+[1070]The pilot tone prestart parameter in the soundcard setup 
+for the TX is too large. Use 'V=TX mode setup' in the main menu, 
+then 'B=Soundcard setup for Tx.' to set a smaller value.
+(Or edit par_userint: 'Tx pilot microsec.')
+
+If you really want a larger prestart, change CW_MAX_TIME_CONSTANT
+which is located in txdef.h.
+[1071]routine:set_analog_io      file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_GETFMTS)
+[1072]routine:set_analog_io      file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1073]routine:set_analog_io      file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1074]routine:xz                 file:ui.c                      
+Trying to write to debug file (dmp) but file is not open.
+(See define of DUMPFILE in vernr.h)
+[1075]routine:read_eme_database      file:eme.c                      
+Failed to get scratch memory.
+[1076]The timing for the rise time or for the pilot tone
+prestart is out of limits. Use 'V=TX mode setup' in the main menu.
+[1077]Failed to get buffer space from the soundcard device.
+Unknown reason - should never happen.
+[1078]Failed to get scratch memory.
+[1079]routine: open_tx_output     file:lsetad.c
+Failed to open audio output for tx.
+Check sound system !!!
+(If OSS is used, start sound with the soundon command.)
+Maybe setup file "dsp_uiparm" is incorrect ?
+Use U = A/D and D/A setup in main menu.
+ (do not forget W = save afterwards to make a new "dsp_uiparm" file)
+[1080]The file par_perseus is corrupted. 
+Use "U=A/D and D/A setup for RX" in the main menu to create a new file.
+[1081]routine:pc_radio    file:main.c                      
+failed to get small scratch memory
+[1082]routine:init_wide_graph    file:wide_graph.c                      
+failed to get small scratch memory
+[1083]USB I/O Error: unable to download the Perseus firmware to 
+the FX2 controller: USB IO error. 
+Exit and restart Linrad without moving the USB connector. 
+This error is normal with USB3 under Windows 10 the first time a Perseus
+is connected (or after a reboot.) 
+If you see this error a second time, try to move to another USB
+connector and try to start Linrad again. Be prepared you might
+have to start twice.
+Once Linrad starts properly the second time you can start and stop
+at without seeing this error.
+[1084]USB I/O Error: unable to download the Perseus firmware to 
+the FX2 controller. Firmware file not found. Make sure you have
+the appropriate perseusxxxx.sbs file in your C:\Linrad\dll directory.
+[1085]USB I/O Error: unable to download the Perseus firmware to 
+the FX2 controller. Invalid HEX Record.
+[1086]routine:open_audio_output  file:lsetad.c
+Could not open device for audio output.
+[1087]Failed to open file for saving calibration data.
+[1088]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+[1089]USB I/O Error: unable to download the Perseus firmware to 
+the FX2 controller. Invalide Extended HEX Record
+[1090]USB I/O Error: unable to download the Perseus firmware to 
+the FX2 controller. Unknown error.
+[1091]Sampling rate in par_userint not compatible with Perseus setup.
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1092]Unable to program the Perseus FPGA:
+FPGA bitstream file not found.
+Make sure the appropriate perseusxxxxx.sbs file is present 
+in the the same directory where your perseususb.dll file is placed.
+Currently the files are:
+ perseus48k24v31.sbs
+ perseus95k24v31.sbs 
+ perseus96k24v31.sbs
+ perseus125k24v21.sbs
+ perseus192k24v31.sbs
+ perseus250k24v21.sbs
+ perseus500k24v21.sbs
+ perseus1m24v21.sbs
+ perseus1d6m24v21.sbs 
+ perseus2m24v21.sbs
+
+You can fix this problem by running the latest 
+setup-linrad-perseus-bin-package which is available here:
+http://sm5bsz.com/linuxdsp/linrad.htm 
+[1093]routine:set_analog_io   file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+[1094]routine:set_analog_io   file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+[1095]routine:set_analog_io   file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+[1096]Unable to program the Perseus FPGA: USB IO Error
+Check USB connection and retry.
+[1097]Unable to program the Perseus FPGA: Unknown error.
+[1098]Unexpected error: 
+Unable to start input with PerseusStartAsyncInput API.
+[1099]routine:open_audio_output      file:lsetad.c                      
+Could not set no of channels for output.
+[1100]Failed th get the expected name string from the Perseus.
+[1101]Network write failed.
+[1102]routine:set_analog_io      file:lsetad.c
+Could not open audio device selected for input.
+[1103]routine:init_spur_spectra   file:spur.c                      
+Failed to allocate scratch memory. Try smaller fft sizes or
+smaller storage times. 
+[1104]File name too long in adfile or adwav.
+[1105]routine:complex_lowpass      file:spur.c                      
+Internal error. Please report this bug!!!
+[1106]routine:make_afc_graph    file:afc.c
+Failed to allocate memory for afc.
+Try smaller frequency drift and/or smaller frequency lock range and/or
+smaller averaging times for transforms and/or afc.
+[1108]Unrecoverable EPIPE error on ALSA input.
+[1109]routine:open_rx_sndin     file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_GETISPACE)
+Try to select "Close and reopen output" in the soundcard setup.
+[1110]routine: init_foldcorr  file:fft1.c
+Could not allocate memory for temporary buffers.
+[1111]routine: write_wav_header    file:modesub.c
+Failed to position .wav file.
+[1112]routine: write_wav_header    file:modesub.c
+Failed to write .wav file header.
+[1113]ALSA:thread rx_adinput/readi error.; 
+[1114]routine: write_wav_header    file:modesub.c
+Failed to get position position for .wav file start.
+[1115] file:main.c
+File name for mode parameter file too long in adfile or adwav.
+[1116]Failed to write to calibration file.
+[1117]lir_empty_da_device_buffer/writei:
+Can't recover from underrun, prepare failed.
+[1118]routine: select_namlin    file:modesub.c
+Failed to get position for adwav or adfile start.
+[1119]routine: select_namlin    file:modesub.c
+Failed to set position for adwav or adfile.
+[1120]routine: get_parfile_name    file:modesub.c
+Parameter file has the same name as the data file. 
+This would cause incorrect data when parameters are saved.
+Change in adfile or adwav!!
+[1121]routine:init_eme_database      file:eme.c                      
+Failed to create file for own location.
+[1122]routine:init_eme_database      file:eme.c                      
+Failed to read allcalls.dta. Excessive line length.
+[1123]routine:init_eme_database      file:eme.c
+Too many DX stations in database. Increase MAX_DXCALLS.
+[1124]routine:init_eme_database      file:eme.c                      
+Failed to read dir.skd  Excessive line length or field too long.
+[1125]Too many devices for SDR-14 and/or SDR-14
+Read soundboard_rx_init.log 
+If you want more devices, change MAX_SDR14_DEVICES in lsdr.c
+[1126]ALSA:thread tx_adinput: short readi.
+[1127]Unknown read error reported by ALSA. 
+[1128]routine:init_eme_database      file:eme.c                      
+Failed to create file for dx database.
+Make sure the directory /home/emedir exists and that you
+have permission to write to it.
+Linrad will look for these files:
+/home/emedir/allcalls.dta
+/home/emedir/eme.dta
+/home/emedir/dir.skd
+Download them from the Internet.
+[1129]routine:init_eme_database      file:eme.c
+Something went wrong in the eme database creation.
+This is a bug of some kind.
+[1130]routine:init_eme_graph       file:eme.c
+Auto init of eme data was specified, but the dx database
+file is missing. Even if empty, it should be present.
+Create a new one with "M" in the main menu.
+[1131]routine:init_eme_graph       file:eme.c
+The eme database file is incorrect.
+Create a new one with "M" in the main menu.
+[1132]routine:init_eme_graph       file:eme.c
+Not enough memory to install eme database.
+[1133]routine:init_eme_database      file:eme.c
+Failed to create error report file for dx database.
+Make sure the directory /home/emedir exists and that you 
+have permissions to write to it.
+[1134]routine:set_analog_io         file:lsetad.c
+Failed to set input sampling speed.
+The device driver is incorrect and the usual work around
+was not sucessful.
+Check the log file: soundboard_init.log for details
+[1135]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1136]routine:memalloc  routine modesub.c
+memalloc was called while memalloc_no had a value outside
+the range set by memalloc_max.
+[1137]routine:remove_iq_notch     file:calsub2.c
+Not enough data points to fit. Reduce IQ_FIT_MINFREQ
+Make sure to have a PRF well below the new value when collecting
+phase and amplitude functions with the pulse generator.
+[1138]routine:set_analog_io      file:lsetad.c
+Failed to close audio device while testing all possible drive routines.
+[1139]routine:set_analog_io      file:lsetad.c
+No device found for analog output.
+[1140]lir_rx_dawrite/writei: 
+Can't recover from underrun. prepare failed.
+[1141]Failed to allocate scratch memory.
+[1142]Failed to allocate scratch memory.
+[1143]Failed to allocate scratch memory.
+[1144]Failed to open file for saving calibration data.
+[1145]Failed to write data to calibration file.
+[1146]Could not open soundcard device for input:MMSYSERR_BADDEVICEID
+Specified device identifier is out of range.
+[1147]Could not open soundcard device for input: MMSYSERR_NODRIVER
+No device driver is present.
+[1148]The soundcard buffer for Tx output has a size that
+is not as power of two. The parameter for max DMA rate
+is probably too small.
+[1149]The soundcard buffer for Tx microphone input has a size that
+is not as power of two. The parameter for max DMA rate
+is probably too small.
+[1150]Failed to open the RX loudspeaker output.
+ALSA does not accept the device number in your setup or the
+number of channels, bytes or the device speed is inconsistent.
+Read z_ALSA.txt for info about ALSA setup.
+Run "U=A/D and D/A setup for RX" in the main menu to
+correct the problem by re-selecting the loudspeaker output.
+[1151]Failed to open the TX output.
+ALSA does not accept the device number in your setup or the
+number of channels, bytes or the device speed is inconsistent.
+Read z_ALSA.txt for info about ALSA setup.
+Run "V=TX mode setup" in the main menu to correct the problem 
+by re-selecting the TX output. (B on the sub-menu)
+[1152]Failed to open the RX soundcard input.
+ALSA does not accept the device number in your setup or the
+number of channels, bytes or the device speed is inconsistent.
+Read z_ALSA.txt for info about ALSA setup.
+Run "U=A/D and D/A setup for RX" in the main menu to
+correct the problem by re-selecting the soundcard input.
+[1153]Failed to open the TX microphone input.
+ALSA does not accept the device number in your setup or the
+number of channels, bytes or the device speed is inconsistent.
+Read z_ALSA.txt for info about ALSA setup.
+Run "V=TX mode setup" in the main menu to correct the problem 
+by re-selecting the TX microphone input. (B on the sub-menu)
+[1154]Failed to open the RX loudspeaker output.
+ALSA does not accept the device number in your setup or the
+number of channels, bytes or the device speed is inconsistent.
+Read z_ALSA.txt for info about ALSA setup.
+Run "U=A/D and D/A setup for RX" in the main menu to
+correct the problem by re-selecting the loudspeaker output.
+[1155]Could not open soundcard device for input: MMSYSERR_NOMEM
+Unable to allocate or lock memory.
+[1156]Could not open soundcard device for input: WAVERR_BADFORMAT
+Attempted to open with an unsupported waveform-audio format.
+
+If this happens on a Windows 10 system on which you have a Delta 44 you have 
+to reconfigure the Delta 44. (Reboot or power off does not help.)
+Use the M-Audio Delta Control Panel to set the sampling rate to 44100 Hz.
+Then use U = A/D and D/A setup in the main menu to select Portaudio
+for the soundcard with the ASIO or the WDM-KS driver.
+
+You can select sampling rate, number of channels and number of bits freely.
+according to your preferences. The Delta 44 is not locked to 44100, it just
+has to inform Windows 10 that it is the default rate.
+[1157]Inconsistent soundcard parameters for Windows Rx input.
+Number of bits=24, but flag says do not use extended format.
+Use 'U' on the main menu to set proper parameters for
+your soundcard.
+[1158]routine pc_radio         file:main.c
+Tx test available only when reading from A/D converter. 
+This is an error exit indicating read/write on network or disk.
+Use Tx test only from main menu with network disabled.
+[1159]The screen is not wide enough to allow spectra with a
+resolution of 2.4 khz at the current sampling rate.
+This mode requires 4 pixels (or more) over 2.4 kHz so the maximum
+bandwidth for the input signal is screen width/4 in kHz. 
+Reduce the hardware sampling speed or get a wider screen.
+[1160]routine txtest_init       file:txtest.c
+2.4 kHz window for txtest spectra too small.
+Remove or edit par_txtest_wg.
+Txtest will work on wideband systems only.
+[1161]The number of points in the calibration data is too small.
+Remove the file dsp_xxx_corr and calibrate your system again.
+(xxx is the receive mode: wcw, cw, ssb etc.)
+[1162]Calibration data is zero.
+[1163]The SDR-14 or SDR-IQ failed to start.
+Unplug the unit from DC power and try again.
+In case this error repeats, check the parameter file par_sdr14
+or make a new parameter file by use of U=A/D and DA set up for Rx.
+in the main menu.
+[1164]Could not open parameter file.
+Probably adfile or adwav specified a non-existing directory.
+Could also be disk full or something about permissions.
+[1165]The sampling speed for the SDR-14 or SDR-IQ is far too high.
+Use "U=A/D and D/A set up for Rx" in the main menu.
+(If you edited par-sdr14 you might correct your mistake in the file.)
+[1166]Portaudio reports an error.
+[1167]The RX loudspeaker output thread did not reach its idle state.
+(see wcw.c and menu.c)
+[1168]Failed to close Portaudio Rx output.
+[1169]Input/output error reported by ALSA.
+Your soundcards may have changed their numbers.
+Read z_ALSA.txt to find out how to give permanent numbers to your
+different soundcards.
+[1170]The file par_sdrip is corrupted. 
+Use "U=A/D and D/A setup for RX" in the main menu to create a new file.
+[1171]Failed to allocate scratch memory.
+[1172]routine:set_analog_io      file:lsetad.c
+Could not open second device for input.
+[1173]routine:close_audio_input   file:lsetad.c
+Error when closing second input device. 
+[1174]routine: open_rx_sndin     file:lsetad.c
+Failed to open second device for audio input.
+[1175]routine:open_rx_sndin  file:lsetad.c                      
+Second A/D input device.
+call to ioctl failed. (SNDCTL_DSP_SETFRAGMENT)
+[1176]routine: open_rx_sndin     file:lsetad.c
+Second A/D input device.
+call to ioctl failed. (SNDCTL_DSP_SETFMT)
+[1177]routine: open_rx_sndin     file:lsetad.c
+Second A/D input device.
+Could not set little endian format for 16 or 24 bit audio input.
+[1178]routine: open_rx_sndin     file:lsetad.c
+Second A/D input device.
+call to ioctl failed. (SNDCTL_DSP_CHANNELS)
+[1179]routine: open_rx_sndin     file:lsetad.c
+Second A/D input device.
+Could not set desired no of channels for A/D input !!!
+[1180]routine: open_rx_sndin     file:lsetad.c
+Second A/D input device.
+call to ioctl failed. (SNDCTL_DSP_SPEED)
+[1181]routine: open_rx_sndin     file:lsetad.c
+A/D sampling speed could not be set to the same value
+for the second device.
+[1182]routine: set_analog_io     file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_GETCAPS)
+[1183]routine: open_rx_sndin     file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SETTRIGGER)
+[1184]routine: open_rx_sndin     file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_SETTRIGGER)
+[1185]routine:set_analog_io      file:lsetad.c
+call to ioctl failed. (SNDCTL_DSP_CHANNELS)
+[1186]routine:set_analog_io      file:lsetad.c                      
+Failed to set no of channels (should never happen)
+[1187]routine:txtest             file:txtest.c
+Failed to allocate memory for oscilloscope function.
+Try smaller fft2_storage time.
+[1188]Failed to allocate scratch memory.
+[1189]Insufficient allocation for Morse decode routine.
+Increase parameter MAX_CW_PARTS in sigdef.h
+[1190]Failed to create par_wse.
+[1191]routine:open_audio_output  file:lsetad.c
+Could not open device for audio output.
+Check sound system !!!
+(If OSS is used, start sound with the soundon command.)
+Maybe setup file "dsp_uiparm" is incorrect ?
+Use U = A/D and D/A setup in main menu.
+ (do not forget W = save afterwards to make a new "dsp_uiparm" file)
+[1192]Failed to open Rx A/D input from soundcard. MMSYSERR_ALLOCATED:
+Device already allocated.
+[1193]Failed to get Perseus product ID.
+[1194]Failed to configure Perseus FPGA. 
+[1195]Failed to start asynchronous input from the Perseus.
+[1196]Could not get sampling rates for Perseus. Error in libperseus-sdr.
+[1197]Ö
+[1198]routine: init_fft1_filtercorr   file:fft1.c
+The save file is corrupted. Can not process old data.
+Probable cause: Incorrect calibration file.
+Data was probably saved in uncalibrated mode while calibration was
+present on disk for another sampling rate or input mode.
+[1199]Output can not start.
+
+The parameter "Output delay margin (ms)" may be too small.
+Try to set it large, like 1000 for a whole second.
+[1200]OSS or alsa-oss is selected for the soundcards.
+The Linrad configure script failed to locate the sound devices
+/dev/dsp or /dev/sound/dsp
+Your system is probably not configured for the OSS API.
+There are two alternatives:
+
+1) Configure OSS and run ./configure followed by make. 
+   The device files /dev/dsp or /dev/sound/dsp have to be present.
+
+   If you use alsa-oss, the modules snd-mixer-oss and snd-pcm-oss
+   have to be inserted to create the device files.
+   Commands in the below order:
+   modprobe snd-mixer-oss
+   modprobe snd-pcm-oss 
+   (./configure and make need to be run afterwards)
+
+   If you use 4Front OSS, the device files should be present
+   automatically.
+
+2) Change to native ALSA. ('Y' on the RX setup menu.)
+   The 'Y' option will not be present in case configure showed a 
+   line "MISSING: libasound.so (or headers)"
+   You must then install the ALSA development package.
+   Run ./configure --with-help for info
+
+This error may occur if native ALSA is not available. Then the second
+alternative would not be available. In that case, run configure --with-help
+to find out what is needed to get ALSA running or install 4Front OSS.
+[1201]Failed to create a thread for the main menu.
+[1202]The calibration file is corrupted. Remove the appropriate
+dsp_xxx_iqcorr file and make a new calibration for the mirror
+image suppression.
+[1203]lir_sem_free called for an unitiated semaphore.
+[1204]lir_sem_init called for an already initiated semaphore.
+[1205]Failed call: ioctl(audio_out,SNDCTL_DSP_RESET,0)
+[1206]Failed to open s-meter.txt.
+[1207]s-meter.txt not open.
+[1208]öÖ
+[1209]öÖ
+[1210]öÖ
+[1211]öÖ
+[1212]öÖ
+[1213]öÖ
+[1214]öÖ
+[1215]The Win API function QueryPerformanceFrequency() is not supported
+by your hardware platform.
+[1216]The Win API function QueryPerformanceCounter() returns an error.
+[1217]The selected device for input can not do 16 bit input (or more).
+[1218]Specified sound device is already allocated.
+[1219]Specified sound device identifier is out of range.
+[1220]No device driver is present.
+[1221]Unable to allocate or lock memory.
+[1222]Attempted to open with an unsupported waveform-audio format.
+[1223]Failed to create Event.
+[1224]Attempt to pause a thread that was already paused.
+[1225]The calibration procedure failed. Data is out of range.
+Please try to reproduce this error and report it.
+[1226]waveInAddBuffer() failed.
+[1227]Failed to open Rx A/D input from soundcard.
+Unknown error code.
+[1228]Failed to open soundcard for RX input.
+The parameter file may specify an unsupported format. Hardware may have
+changed or the parameter file is from another computer.
+Use "U=A/D and D/A setup for Rx" in the main menu. 
+[1229]Failed to close Portaudio Rx input.
+[1230]routine:init_eme_database      file:eme.c                      
+Failed to read CALL3.TXT  Excessive line length or field too long.
+[1231]A/D buffer error.
+[1232]waveInAddBuffer() failed.
+[1233]waveInAddBuffer() failed.
+[1234]waveOutOpen() failed for Rx soundcard output.
+[1235]Not enough lines on the screen. Select a larger screen, reduce font
+size or reduce the number of soundcards.
+[1236]Could not create parameter file in the current directory. 
+[1237]The format specified by the ExtIO library is unknown.
+[1238]Unable to open sound device for unknown reasons.
+[1239]Unknown format specified by the Extio library.
+[1240]MEMORY ERROR (bug inside Linrad).
+[1241]ERROR. Not enough memory allocated for timf1 (fft1).
+Set a narrower bandwidth to make transforms larger.
+[1242]The screen size reported by svgalib is smaller than 640 x 480.
+Check your par_userint (or remove it) 
+Use vgatest to verify that svgalib works ok.
+[1243]The screen reported by svgalib is not 256 colours
+Check your par_userint (or remove it) 
+Use vgatest to verify that svgalib works ok.
+[1244]Failed to open serial port. 
+[1245]Soundcard input buffer allocation error.
+Call to waveInPrepareHeader failed.
+[1246]Parameters say the input should be 32 bit
+but the system is compiled without 32 bit support.
+Rerun A/D setup from the main menu.
+[1247]Soundcard input buffer allocation error.
+Call to waveInAddBuffer failed.
+[1248]Internal error in Linrad. 
+Maybe incorrect value for MAX_SVGA_PALETTE
+[1249]Could not get socket for network multicasting.
+Verify that your network is setup properly. 
+[1250]The network is set up to send raw data in 18 bit format
+but the raw data is only 16 bit so you can send no more than 16
+bits to the network. Use N in the main menu to change the
+network settings (or change A/D converter settings to 24/32 bits)
+[1251]The network is set up to send raw data in 24 bit format
+but the raw data is only 16 bit so you can send no more than 16
+bits to the network. Use N in the main menu to change the
+network settings (or change A/D converter settings to 24/32 bits)
+[1252]The network parameters differ from those saved
+in par_userint. (A change was made with N in the main menu
+without saving the par_userint file with W afterwards.)
+[1253]Illegal value for network flag in file par_userint.
+Use 'N' in the main menu and save ui parameters with 'W' afterwards.
+[1254]Too many simultaneous network slaves or subslaves.
+(You may increase the value of MAX_FREQLIST in globdef.h)
+[1255]The device number for one of the soundcards is illegal.
+Run "U=A/D and D/A setup for RX" in the main menu to correct the problem. 
+
+In case you are using the TX side of Linrad, you must also
+run "V=TX mode setup" in the main menu (B on the sub-menu.)
+[1256]Message from sub-master is a list with less than one frequencies.
+[1257]Message from sub-master is a list with too many frequencies.
+[1258]öÖ
+[1259]Calibration function incorrect. (fft1_desired is zero)
+[1260]Failed to open D/A output for Tx. 
+[1261]Failed to allocate memory for tx buffers.
+[1262]Failed to set fragment size for tx microphone input.
+[1263]Call to WSAStartup(...) failed.
+[1264]Write to network socket returned zero.
+[1265]Error in file: par_network. a
+Use "N=Network setup" in the main menu to create a new file.
+[1266]Error in call to setsockopt. Reusing ADDR failed.
+[1267]Failed to bind to network receive address
+[1268]Error in attempt to use setsockopt() to request 
+that the kernel joins a multicast group.
+
+Multicast floods wifi and many routers. This error may be
+caused by a node on your network that does not accept multicast.
+A network switch or adjusting multicast filtration settings may solve
+the problem.
+
+If you use par_netrec_ip to set your own ip address Linrad does
+not check that the address is valid. Use 'N=Network setup'
+in the main menu to see what your internet address looks like.
+It must be four numbers separated by points like this:
+239.255.0.125
+All numbers have to be between 0 and 255.
+A number above 255 generates this error.
+[1269]Waiting for master was interrupted from keyboard.
+[1270]Too many simultaneous network slaves.
+(You may increase the value of MAX_NETSLAVES in globdef.h)
+[1271]open_rx_sndin/snd_pcm_open/error.
+[1272]open_rx_sndin:Cannot allocate hardware parameter structure.
+[1273]Network connection lost.
+[1274]Network read failed.
+[1275]Failed bind to socket for network slaves.
+[1276]Call to listen(...) on socket for network slaves failed.
+[1277]Failed to get serial port options;
+[1278]Failed to set serial port options;
+[1279]The port number for the serial port is out of range
+(1 to 4) in a call to lir_open_serport.
+[1280]Call to lir_open_serport failed because of an illegal
+baud rate.
+[1281]The network has been enabled but the receive mode
+you have selcted has not (yet?) been set up.
+The network is set to send TIMF2 and/or FFT2 but the mode
+you tried to enter does not have those data streams because
+the second FFT is disabled.
+Restart and press 'T' to disable network transmit.
+Then select the processing mode of your choice, press
+X, then P, to set the parameters. On the first screen, set 
+"Enable second FFT" to 1.
+Then exit, press T to enable the network transmit and finally
+go to the receive mode of your choice.
+[1282]open_rx_sndin:Broken configuration.
+No configurations available.
+[1283]Read error for microphone input. 
+[1284]Could not get socket for receiving UDP from SDR-IP
+[1285]Error in call to setsockopt. Resing ADDR failed.
+
+[1286]routine:read_txpar_file      file:tx.c
+Failed to allocate scratch memory.
+[1287]routine:close_tx_output   file:lsetad.c
+Close failed on Tx output from soundcard.
+[1288]routine:close_tx_output   file:lsetad.c                      
+call to ioctl failed. (SNDCTL_DSP_RESET)
+[1289]routine:set_analog_io    file:lsetad.c
+No usable device found for loudspeaker output.
+[1290]Failed to allocate scratch memory.
+[1291]Failed to allocate scratch memory.
+[1292]Failed to allocate scratch memory.
+[1293]Failed to allocate scratch memory.
+[1294]open_rx_sndin:Cannot set access type.
+[1296]open_rx_sndin:Cannot set sample format.
+[1297]open_rx_sndin:Channels not available for capture.
+[1298]open_rx_sndin:resampling setup failed.
+[1299]Could not set sample rate.
+[1300]open_rx_sndin:Invalid period size.
+[1301]open_rx_sndin:Unable to set hw parameters.
+[1302]Failed to bind to the SDR-IP address
+[1303]Can not open the device for loudspeaker output.
+[1304]Can not open the device for loudspeaker output.
+[1305]open_rx_sndout:Cannot allocate hw parameter structure for playback.
+[1306]open_rx_sndout:Broken configuration: 
+no configurations available.
+[1307]open_rx_sndout:Cannot set playback access type.
+[1308]open_rx_sndout:Cannot set sample format.
+[1309]Could not set no of channels for audio output.
+[1310]open_rx_sndout:resampling setup failed.
+[1311]open_rx_sndout:Could not set sampling speed.
+[1312]open_rx_sndout:Unable to set period size for playback.
+[1313]open_rx_sndout/snd_pcm_get_params.
+Can't recover from underrun - prepare failed.
+[1314]routine:make_radar_graph    file:radar.c
+Failed to allocate memory for radar.
+[1315]Failed to close the Airspy. (Did you disconnect it?.)
+[1316]The Extio library can not specify the sampling rate.
+[1317]The length of the ExtIO file name exceeds BUFFER_SIZE.
+Check par_extio_libname for errors and increase BUFFER_SIZE if 
+your file name really needs it.
+[1318]open_tx_sndin:Invalid period size.
+[1319]Internal error in Linrad.
+Please report to me: leif@sm5bsz.com
+Save all par*.* files and pack as an archive file (.zip, .bz2, or whatever)
+and send those files to me.
+To avoid this error, clear the network Rx parameters either
+by a manual edit of par_network or by de-selecting network
+input in the "N = Network setup" menu.
+[1320]lir_empty_da_device_buffer/ writei/ short write
+[1321]lir_empty_da_device_buffer/ writei/ catch all error
+[1322]err_restart_rxda/ writei/ underrun recovery failed 
+[1323]err_restart_rxda/ writei/ short write
+[1324]err_restart_rxda/ writei/ catch all error
+[1325]open_rx_sndout/ writei/ underrun recovery failed
+[1326]open_rx_sndout/ writei/ short write
+[1327]open_rx_sndout/ writei/  catch all error
+[1328]lir_tx_dawrite/ writei/ short write
+[1329]lir_tx_dawrite/ writei/ catch all error
+[1330]Sampling rate in par_sdrip not compatible with SDR-IP setup.
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1331]Error in the initioalization of soundcard output.
+[1332]lir_rx_dawrite/ writei/ catch all error
+[1333]Could not find the serial number file for Excalibur.
+par_excalibur_sernum
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1334]Error in the par_excalibur_sernum file.
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1335]Failed to open the specified Excalibur device.
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1336]Could not find library function.
+Maybe the G31DDCAPI.dll file has been changed?
+[1337]The file par_excalibur is corrupted. 
+Use "U=A/D and D/A setup for RX" in the main menu to create a new file.
+[1338]Sampling rate in par_excalibur not compatible with Excalibur setup.
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1339]Could not set the sampling rate for the Realtek RTL2832 USB dongle.
+This should never happen......
+[1340]Failed to reset the RTL2832.
+[1341]The data type returned from ExtIO.dll (InitHW) is unknown.
+[1342]The baseband bandwidth is too narrow for the selected
+fft2 storage time. Change one or the other before clicking a signal
+after restart.
+[1343]An error was reported while reading the SDR-14 or SDR-IQ
+[1344]The call to StartHW in the EXtIO library returned zero block size.
+[1345]The samplintg speed for SDR-14 or SDR-IQ is incorrect.
+Use the U menu to make a new par_sdr14 file. 
+[1346]The external hardware can not be controlled by the ExtIO library.
+Is hardware connected and powered?
+Maybe the opposite sequence InitHW vs SetCallback would work.
+[1347]The call to StartHW in the EXtIO library returned a 
+negative block size.
+[1348]Failed to open the rtl-sdr dongle.
+This error is probably caused by incorrect drive routines.
+Use Zadig to install a driver:
+http://zadig.akeo.ie
+[1349]Can not open the framebuffer device.
+[1350]Can not read finfo from the framebuffer device.
+[1351]Can not read vinfo from the framebuffer device.
+[1352]Can not read palette from the framebuffer device.
+[1353]Linrad can not handle the framebuffer colour depth. 
+[1354]Specify your mouse in /etc/vga/libvga.config
+You must specify your mouse type as well as what device to use.
+/dev/mouse, /dev/input/mice, /dev/ttyS0, ....  
+[1355]Failed to map framebuffer device to memory.
+[1356]The file par_rtl2832 is corrupted or not consistent
+with other parameters. Use the U menu to set up your USB dongle
+and do not forget to press W to save data in the main menu
+afterwards. The dongle uses the same crystal for the RF local
+oscillator and for the A/D converter so par_userint has to
+be compatible with par_rtl2832.
+[1357]Failed to open the rtl-sdr dongle.
+This might be due to permission problems with libusb.
+Try to run as root.
+Another module might be loaded for the dongle.
+Maybe this command helps:
+rmmod dvb_usb_rtl28xxu
+If you do not need it, you can blacklist this module.
+[1358]Failed to set the RTL2832 on direct sampling mode.
+[1359]The file par_pcie9842 is corrupted or not consistent
+with other parameters. Use the U menu to set up your PCIe-9842 card
+and do not forget to press W to save data in the main menu
+afterwards. 
+[1360]Failed to allocate buffer for the PCIe-9842 card.
+[1361]Unable to open PCIe-9842 card.
+Call to WD_Register_Card(...) failed.
+Is the kernel driver pci9842.ko loaded??
+[1362]Unable to load library.
+[1363]Failed to set up buffers for the PCIe9842 card.
+Call to WD_AI_ContBufferSetup(...) failed.
+[1364]Failed to set up callback routine for PCIe-9842.
+Call to WD_AI_EventCallBack(...) failed.
+[1365]Can not run Perseus because the libusb-1.0 library has not
+been loaded.
+[1366]Could not set double buffer mode.
+Call to WD_AI_AsyncDblBufferMode(...) failed
+[1367]Could not find out how much memory the PCIe driver has.
+Call to WD_AI_InitialMemoryAllocated(...) failed
+[1368]Could not set the sampling rate for the Mirics USB dongle.
+This should never happen......
+[1369]Failed to open the bladeRF.
+This might be due to permission problems with libusb-1.0.
+[1370]Failed to open the bladeRF.
+[1371]Failed to get the bladeRF FPGA size.
+[1372]Failed to get bladeRF firmware version.
+[1373]Call to bladerf_is_fpga_configured() failed.
+[1374]The FPGA is not programmed.
+Use the program bladeRF-cli to program your FPGA like this:
+bladeRF-cli -l <path_to_fgpga_file>
+or install it for autoload like this:
+bladeRF-cli -L <path_to_fgpga_file>
+
+The FPGA size is 40 K. Look for hostedx40.rbf
+[1375]Failed to get the bladeRF FPGA version.
+[1376]Could not select signal source.
+Call to bladerf_set_sampling() failed.
+[1377]The file par_mirics is corrupted or not consistent
+with other parameters. Use the U menu to set up your USB dongle
+and do not forget to press W to save data in the main menu
+afterwards. The dongle uses the same crystal for the RF local
+oscillator and for the A/D converter so par_userint has to
+be compatible with par_mirics.
+[1378]Failed to reset the Mirisdr.
+[1379]The file par_bladerf is corrupted or not consistent
+with other parameters. Use the U menu to set up your bladeRF
+and do not forget to press W to save data in the main menu
+[1380]Call to bladerf_is_fpga_configured() failed.
+[1381]The FPGA is not programmed.
+Use the program bladeRF-cli to program your FPGA like this:
+bladeRF-cli -l <path_to_fgpga_file>
+or install it for autoload like this:
+bladeRF-cli -L <path_to_fgpga_file>
+[1382]The call to bladerf_set_sampling() failed.
+[1383]The call to bladerf_set_sampling() failed.
+[1384]Failed to set sampling speed for bladeRF.
+[1385]Failed to set sampling speed for bladeRF.
+[1386]Could not set the correct sampling speed for bladeRF.
+[1387]The FPGA is not programmed.
+Use the program bladeRF-cli to program your FPGA like this:
+bladeRF-cli -l <path_to_fgpga_file>
+or install it for autoload like this:
+bladeRF-cli -L <path_to_fgpga_file>
+
+The FPGA size is 115 K. Look for hostedx115.rbf
+[1388]The FPGA is not programmed.
+Use the program bladeRF-cli to program your FPGA like this:
+bladeRF-cli -l <path_to_fgpga_file>
+or install it for autoload like this:
+bladeRF-cli -L <path_to_fgpga_file>
+
+The FPGA size could not be determined.
+[1389]The file par_afedriusb does not exist, is corrupted or 
+not consistent with other parameters.
+
+Use Submenu "D = Set parameters for soundcard radio hardware."
+It is under "U=A/D and D/A set up for RX." in the main menu.
+[1390]Could not open the Afedri USB control interface.
+Afedri device(s) exist but no device is found with the same 
+serial number that was selected in the setup. 
+
+Use Submenu "D = Set parameters for soundcard radio hardware."
+It is under "U=A/D and D/A set up for RX." in the main menu.
+
+Note that the serial number changes if you change the default
+number of channels on Net Afedri.
+[1391]setsockopt failed in afedri.c
+[1392]setsockopt failed in sdrip.c
+[1393]Could not open the Afedri USB control interface.
+You need permission to open the USB HID device.
+There are several choices:
+1) You can run Linrad as root
+2) Use chmod as root to change permissions for the device.
+3) Create a udev rules file: ..../udev/rules.d/99-afedri.rules
+SUBSYSTEM=="hidraw*", ATTRS{idVendor}=="255d",
+ATTRS{idProduct}=="0002", MODE="0666"
+SUBSYSTEM=="hidraw*", ATTRS{idVendor}=="0483",
+ATTRS{idProduct}=="5932", MODE="0666"    
+SUBSYSTEM=="hidraw*", ATTRS{idVendor}=="255d",
+ATTRS{idProduct}=="0001", MODE="0666" 
+SUBSYSTEM=="hidraw*", ATTRS{idVendor}=="255d",
+ATTRS{idProduct}=="0006", MODE="0666"
+[1394]Could not open the Afedri USB control interface.
+No device found.
+This may happen if you have not waited long enough after
+connecting your Afedri unit.
+Try to start Linrad again.
+[1395]Could not initialize the ELAD FDM-S1.
+Unknown reason. Try co disconnect USB cable and connect again.
+[1396]The file par_perseus is corrupted. 
+Use "U=A/D and D/A setup for RX" in the main menu to create a new file.
+[1397]Sampling rate in par_userint not compatible with FDM-S1 setup.
+Rerun "U=A/D and D/A setup for RX" from the main menu.
+[1398]Failed to open the Mirics USB unit.
+This error is probably caused by incorrect drive routines.
+Install the WinUSB driver from libusbx.org
+Easiest is to use Zadig.
+[1399]Failed to open the Mirics USB unit.
+This might be due to permission problems with libusb.
+Try to run as root.
+Another module might be loaded for the unit.
+Maybe one of these commands will help:
+rmmod sdr-msi3101
+rmmod msi2500
+[1400]The file par_airspy is corrupted or not consistent
+with other parameters. Use the U menu to set up your USB hardware
+and do not forget to press W to save data in the main menu
+afterwards. 
+[1401]The file par_airspy is corrupted or not consistent
+with other parameters. Use the U menu to set up your USB dongle
+and do not forget to press W to save data in the main menu
+afterwards. 
+[1402]Failed to load the libusb-1.0.so library.
+[1403]Failed to load the libairspy.so library.
+[1404]Failed to set sample rate.
+[1405]Failed to set bias T.
+[1406]Failed to set sample format.
+[1407]Failed to open soundcard for Tx output.
+[1408]The transmit output soundcard device number is out of range.
+Use 'B' in the 'V=TX mode setup' to select proper device numbers for
+the transmit soundcards.
+[1409]The transmit input soundcard device number is out of range.
+Use 'B' in the 'V=TX mode setup' to select proper device numbers for
+the transmit soundcards.
+[1410]Failed to open input soundcard for the transmitter.
+Use 'B' in the 'V=TX mode setup' to select proper device numbers for
+the transmit soundcards.
+[1411]Failed to open output soundcard for the transmitter.
+Use 'B' in the 'V=TX mode setup' to select proper device numbers for
+the transmit soundcards.
+[1412]The Perseus library is too old. Remove libperseus-sdr from your system.
+To do that, use the command: locate libperseus-sdr.so
+then delete the files listed. Typically these files:
+/usr/local/lib/libperseus-sdr.so
+/usr/local/lib/libperseus-sdr.so.0
+/usr/local/lib/libperseus-sdr.so.0.0.0
+It is recommended that you remove the libperseus-sdr directory also.
+Typically like this:
+rm -r /usr/src/libperseus-sdr
+Then run this command in the Linrad directory:
+./configure --with-help
+copy the installation instructions for libperseus-sdr and paste 
+them into the command window.
+Note that you need root privileges.
+[1413]The mirisdr library did not report how many gain levels it 
+supports. Install a more modern library.
+For Windows, use the latest setup-linrad-dll-package.exe and for Linux,
+remove your libmirisdr.so files and run ./configure --with-help
+to get instructions on how to install a modern library.
+[1414]Something is wrong with your DLL files. 
+Linrad will look for DLL files and associated binaries in the
+special directory:
+C:\Linrad\dll\
+Download the file linrad-dll-filesxx.zip and unpack it into the
+specified directory.
+[1415]Call to Pa_Initialize returned an error.
+If this happens on a Windows 10 system on which you have a Delta 44 you have 
+to reconfigure the Delta 44. (Reboot or power off does not help.)
+Use the M-Audio Delta Control Panel to set the sampling rate to 44100 Hz.
+Then use U = A/D and D/A setup in the main menu to select Portaudio
+for the soundcard with the ASIO or the WDM-KS driver.
+
+You can select sampling rate, number of channels and number of bits freely.
+according to your preferences. The Delta 44 is not locked to 44100, it just
+has to inform Windows 10 that it is the default rate.
+[1415]Call to Pa_Initialize returned an error.
+[1416]Failed to close Portaudio Tx input.
+[1417]Failed to close Portaudio Tx output.
+[1418]Failed to open soundcard for RX input.
+The parameter file might specify an unsupported format. Hardware may have
+changed or the parameter file is from another computer.
+Use "U=A/D and D/A setup for Rx" in the main menu. 
+[1419]Failed to open soundcard for RX input.
+The parameter file might specify an unsupported format. Hardware may have
+changed or the parameter file is from another computer.
+Use "U=A/D and D/A setup for Rx" in the main menu. 
+[1420]Could not get device capabilities for rx input soundcard.
+[1421]Could not get device capabilities for tx input soundcard.
+[1422]Inconsistent soundcard parameters for Windows Tx input.
+Number of bits=24, but flag says do not use extended format.
+Use 'U' on the main menu to set proper parameters for
+your soundcard.
+[1423]Could not get device capabilities for rx output soundcard.
+[1424]waveOutOpen() failed for Tx soundcard output.
+[1425]Could not get device capabilities for rx output soundcard.
+[1426]waveInStart returned an error.
+[1427]waveInStart returned an error for the second device.
+[1428]The transmit setup is incorrect or transmit parameter files missing.
+Use the 'V' menu to set up CW and/or SSB.
+Do not forget to save at least one file, par_cwproc00 and/or par_ssbproc00.
+[1429]A library can not be loaded. 
+If you encounter this problem and do not see an obvious reason, please
+provide feedback.
+[1450]The Rx input thread did not start.
+This lasted too long:
+thread_status_flag for rx_input_thread not equal THRFLAG_ACTIVE
+Probably the requested device is not connected to the computer.
+See menu.c
+[1451]Error in the parameter file par_sdrip
+Use 'U=A/D and D/A setup for Rx' on the main menu to select
+the parameters you want - and do not forget to go back to
+the main menu to write the new global parameters to disk 
+by use of the 'W' command.
+[1452]Error in the parameter file par_netafedri
+Use 'U=A/D and D/A setup for Rx' on the main menu to select
+the parameters you want - and do not forget to go back to
+the main menu to write the new global parameters to disk 
+by use of the 'W' command.
+[1453]Error in the parameter file par_cloudiq
+Use 'U=A/D and D/A setup for Rx' on the main menu to select
+the parameters you want - and do not forget to go back to
+the main menu to write the new global parameters to disk 
+by use of the 'W' command.
+[1454]No OpenCL platform found. Make sure you have installed
+the appropriate packages.
+Use clinfo to verify that your drivers are OK.
+[1455]Failed to create_clFFT_plan
+[1456]Failed clCreateCommandQueue
+[1457]GPU is not implemented for receiving timf2 from
+the network. Remove your par_xxx file or change 
+"First forward FFT version" to a number not using the GPU.
+[1458]fft1 version number says use OpenCL but start_ocl has
+failed. Try '6' on the main menu.
+[1459]fft1 version number says use OpenCL and clFFT but libraries 
+are not found.
+[1460]fft1 version number says use CUDA but library not present. 
+[1461]Failed to create_CUDA_plan
+[1462]Failed to execute CUDA plan.
+[1463]Failed to set AirspyHF DSP mode.
+[1464]Failed to set AirspyHF AGC mode.
+[1465]The file par_sdrplay2 is corrupted or not consistent
+with other parameters. Use the U menu to set up your USB dongle
+and do not forget to press W to save data in the main menu
+afterwards.
+[1466]Failed to find the SDRPlay device.
+[1467]The device failed to start the streaming.
+Check all device parameters like, sample rate and frequency.
+[1468]Failed to open the SDRPlay USB unit.
+This error is probably caused by incorrect drive routines.
+Check that nobody else is using the device and the driver
+is installed correctly.
+[1469]Failed to open the SDRPlay USB unit.
+This might be due to permission problems with libusb.
+Try to add the user to right group or run as root (BAD).
+Another module might be loaded for the unit.
+Maybe one of these commands will help:
+rmmod sdr-msi3101
+rmmod msi2500
+[1470]Error saving the par_sdrplay2 file. Check the permission.
+[1471]The linrad API and the installed library version is different.
+Install the latest library/driver from www.sdrplay.com.
+Should work fine with version equal or greater than 2.13
+[3001]Error reported by check cw.
+Read file dmp for details.
+[3002]
+ 

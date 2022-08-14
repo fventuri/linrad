@@ -1,0 +1,13 @@
+
+                       linrad is free software.
+
+There are no restrictions for the use of linrad or parts of it's source code.
+
+The linrad package is primarily intended for experimenting radio amateurs.
+
+Have fun with it or use it as an inspiration for your own software work.
+
+If you want more information, search the Internet for linrad.
+
+                                 Author:  Leif Åsbrink  SM5BSZ
+

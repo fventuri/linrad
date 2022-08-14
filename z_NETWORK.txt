@@ -1,0 +1,281 @@
+                    THE LINRAD NETWORK
+
+Linrad can multicast on IP addresses (groups) 239.255.0.0 to 239.255.0.15
+This means that several computers can multicast their data to the
+network simultaneously in different groups.
+
+For use with e.g. MAP65 Linrad can multicast to any IP address.
+Create a text file named par_netsend_ip with a single line holding
+the send address in the usual format (e.g. 123.105.111.29)
+Set -1 for the last number of the send address in the network setup.
+(Do not forget W in the main menu afterwards.)
+
+By setting -1 for the last number in the receive address you
+can tell Linrad to read the receive IP address from par_netrec_ip.
+
+The port has to be set between 50000 and 65000 in steps of 10
+and Linrad will send data to a port with an offset that
+depends on the data format.
+
+These are the Linrad data formats and offsets:
+Format Offset     Description
+RAW16    0    Raw data in 16 bit format.
+RAW18    1    Raw data in 18 bit format.
+RAW24    2    Raw data in 24 bit format.
+FFT1     3    Fourier transforms in float format, the output of fft1.
+TIMF2    4    The output from the noise-blanker 16/32 bit int/float.
+FFT2     5    Fourier transforms, the output of fft2 16/32 bit int/float.
+BASEBAND 6    Baseband I and Q in 16 bit format.
+
+A single Linrad program can send all these formats simultaneously 
+to the network.
+
+Raw data or fft1 transforms can be used as the input to Linrad and
+thereby allow several operators to listen simultaneously to the same
+receiver/antenna. The network can also be used to distribute the
+processing between several computers. 
+A computer with network input can send the output of later 
+processing stages to the network for other computers to process.
+It will then use the same base port as the one used for the
+input, but it must be given another group address.
+
+Each Linrad packet has a header in addition to the data.
+This header may change with time. Check the corresponding structure
+in globdef.h, NET_RX_STRUCT which is actually used for the current
+Linrad version.
+
+In case network transmit errors occur the user can enable
+the dump file "dmp" in the file options.h like this:
+#define DUMPFILE TRUE
+//#define DUMPFILE FALSE
+The executable must then be compiled from source code. 
+When running linrad after that change there will be one line
+in the file dmp for each network transmit error.
+The error codes are listed below.
+
+
+*************  ERROR CODES under Linux **********************
+The variable errno has a number which is coded like this:
+EPERM		 1	/* Operation not permitted */
+ENOENT		 2	/* No such file or directory */
+ESRCH		 3	/* No such process */
+EINTR		 4	/* Interrupted system call */
+EIO		 5	/* I/O error */
+ENXIO		 6	/* No such device or address */
+E2BIG		 7	/* Argument list too long */
+ENOEXEC		 8	/* Exec format error */
+EBADF		 9	/* Bad file number */
+ECHILD		10	/* No child processes */
+EAGAIN		11	/* Try again */
+ENOMEM		12	/* Out of memory */
+EACCES		13	/* Permission denied */
+EFAULT		14	/* Bad address */
+ENOTBLK		15	/* Block device required */
+EBUSY		16	/* Device or resource busy */
+EEXIST		17	/* File exists */
+EXDEV		18	/* Cross-device link */
+ENODEV		19	/* No such device */
+ENOTDIR		20	/* Not a directory */
+EISDIR		21	/* Is a directory */
+EINVAL		22	/* Invalid argument */
+ENFILE		23	/* File table overflow */
+EMFILE		24	/* Too many open files */
+ENOTTY		25	/* Not a typewriter */
+ETXTBSY		26	/* Text file busy */
+EFBIG		27	/* File too large */
+ENOSPC		28	/* No space left on device */
+ESPIPE		29	/* Illegal seek */
+EROFS		30	/* Read-only file system */
+EMLINK		31	/* Too many links */
+EPIPE		32	/* Broken pipe */
+EDOM		33	/* Math argument out of domain of func */
+ERANGE		34	/* Math result not representable */
+EDEADLK		35	/* Resource deadlock would occur */
+ENAMETOOLONG	36	/* File name too long */
+ENOLCK		37	/* No record locks available */
+ENOSYS		38	/* Function not implemented */
+ENOTEMPTY	39	/* Directory not empty */
+ELOOP		40	/* Too many symbolic links encountered */
+EWOULDBLOCK	EAGAIN	/* Operation would block */
+ENOMSG		42	/* No message of desired type */
+EIDRM		43	/* Identifier removed */
+ECHRNG		44	/* Channel number out of range */
+EL2NSYNC	45	/* Level 2 not synchronized */
+EL3HLT		46	/* Level 3 halted */
+EL3RST		47	/* Level 3 reset */
+ELNRNG		48	/* Link number out of range */
+EUNATCH		49	/* Protocol driver not attached */
+ENOCSI		50	/* No CSI structure available */
+EL2HLT		51	/* Level 2 halted */
+EBADE		52	/* Invalid exchange */
+EBADR		53	/* Invalid request descriptor */
+EXFULL		54	/* Exchange full */
+ENOANO		55	/* No anode */
+EBADRQC		56	/* Invalid request code */
+EBADSLT		57	/* Invalid slot */
+EBFONT		59	/* Bad font file format */
+ENOSTR		60	/* Device not a stream */
+ENODATA		61	/* No data available */
+ETIME		62	/* Timer expired */
+ENOSR		63	/* Out of streams resources */
+ENONET		64	/* Machine is not on the network */
+ENOPKG		65	/* Package not installed */
+EREMOTE		66	/* Object is remote */
+ENOLINK		67	/* Link has been severed */
+EADV		68	/* Advertise error */
+ESRMNT		69	/* Srmount error */
+ECOMM		70	/* Communication error on send */
+EPROTO		71	/* Protocol error */
+EMULTIHOP	72	/* Multihop attempted */
+EDOTDOT		73	/* RFS specific error */
+EBADMSG		74	/* Not a data message */
+EOVERFLOW	75	/* Value too large for defined data type */
+ENOTUNIQ	76	/* Name not unique on network */
+EBADFD		77	/* File descriptor in bad state */
+EREMCHG		78	/* Remote address changed */
+ELIBACC		79	/* Can not access a needed shared library */
+ELIBBAD		80	/* Accessing a corrupted shared library */
+ELIBSCN		81	/* .lib section in a.out corrupted */
+ELIBMAX		82	/* Attempting to link in too many shared libraries */
+ELIBEXEC	83	/* Cannot exec a shared library directly */
+EILSEQ		84	/* Illegal byte sequence */
+ERESTART	85	/* Interrupted system call should be restarted */
+ESTRPIPE	86	/* Streams pipe error */
+EUSERS		87	/* Too many users */
+ENOTSOCK	88	/* Socket operation on non-socket */
+EDESTADDRREQ	89	/* Destination address required */
+EMSGSIZE	90	/* Message too long */
+EPROTOTYPE	91	/* Protocol wrong type for socket */
+ENOPROTOOPT	92	/* Protocol not available */
+EPROTONOSUPPORT	93	/* Protocol not supported */
+ESOCKTNOSUPPORT	94	/* Socket type not supported */
+EOPNOTSUPP	95	/* Operation not supported on transport endpoint */
+EPFNOSUPPORT	96	/* Protocol family not supported */
+EAFNOSUPPORT	97	/* Address family not supported by protocol */
+EADDRINUSE	98	/* Address already in use */
+EADDRNOTAVAIL	99	/* Cannot assign requested address */
+ENETDOWN	100	/* Network is down */
+ENETUNREACH	101	/* Network is unreachable */
+ENETRESET	102	/* Network dropped connection because of reset */
+ECONNABORTED	103	/* Software caused connection abort */
+ECONNRESET	104	/* Connection reset by peer */
+ENOBUFS		105	/* No buffer space available */
+EISCONN		106	/* Transport endpoint is already connected */
+ENOTCONN	107	/* Transport endpoint is not connected */
+ESHUTDOWN	108	/* Cannot send after transport endpoint shutdown */
+ETOOMANYREFS	109	/* Too many references: cannot splice */
+ETIMEDOUT	110	/* Connection timed out */
+ECONNREFUSED	111	/* Connection refused */
+EHOSTDOWN	112	/* Host is down */
+EHOSTUNREACH	113	/* No route to host */
+EALREADY	114	/* Operation already in progress */
+EINPROGRESS	115	/* Operation now in progress */
+ESTALE		116	/* Stale NFS file handle */
+EUCLEAN		117	/* Structure needs cleaning */
+ENOTNAM		118	/* Not a XENIX named type file */
+ENAVAIL		119	/* No XENIX semaphores available */
+EISNAM		120	/* Is a named type file */
+EREMOTEIO	121	/* Remote I/O error */
+EDQUOT		122	/* Quota exceeded */
+
+ENOMEDIUM	123	/* No medium found */
+EMEDIUMTYPE	124	/* Wrong medium type */
+ECANCELED	125	/* Operation Canceled */
+ENOKEY		126	/* Required key not available */
+EKEYEXPIRED	127	/* Key has expired */
+EKEYREVOKED	128	/* Key has been revoked */
+EKEYREJECTED	129	/* Key was rejected by service */
+
+*************  ERROR CODES under Windows **********************
+When the dump file is enabled Linrad should write one of
+the below codes in the dump file for each network error.
+
+WSANOTINITIALISED
+A successful WSAStartup call must occur before using this function.
+
+WSAENETDOWN
+The network subsystem has failed.
+
+WSAEACCES
+The requested address is a broadcast address, but the appropriate flag was
+not set. Call setsockopt with the SO_BROADCAST parameter to allow the use of
+the broadcast address.
+
+WSAEINVAL
+An unknown flag was specified, or MSG_OOB was specified for a socket with
+SO_OOBINLINE enabled.
+
+WSAEINTR
+A blocking Windows Sockets 1.1 call was canceled through
+WSACancelBlockingCall.
+
+WSAEINPROGRESS
+A blocking Windows Sockets 1.1 call is in progress, or the service provider
+is still processing a callback function.
+
+WSAEFAULT
+The buf or to parameters are not part of the user address space, or the
+tolen parameter is too small.
+
+WSAENETRESET
+The connection has been broken due to keep-alive activity detecting a
+failure while the operation was in progress.
+
+WSAENOBUFS
+No buffer space is available.
+
+WSAENOTCONN
+The socket is not connected (connection-oriented sockets only).
+
+WSAENOTSOCK
+The descriptor is not a socket.
+
+WSAEOPNOTSUPP
+MSG_OOB was specified, but the socket is not stream-style such as type
+SOCK_STREAM, OOB data is not supported in the communication domain
+associated with this socket, or the socket is unidirectional and supports
+only receive operations.
+
+WSAESHUTDOWN
+The socket has been shut down; it is not possible to sendto on a socket
+after shutdown has been invoked with how set to SD_SEND or SD_BOTH.
+
+WSAEWOULDBLOCK
+The socket is marked as nonblocking and the requested operation would block.
+
+WSAEMSGSIZE
+The socket is message oriented, and the message is larger than the maximum
+supported by the underlying transport.
+
+WSAEHOSTUNREACH
+The remote host cannot be reached from this host at this time.
+
+WSAECONNABORTED
+The virtual circuit was terminated due to a time-out or other failure. The
+application should close the socket as it is no longer usable.
+
+WSAECONNRESET
+The virtual circuit was reset by the remote side executing a hard or
+abortive close. For UPD sockets, the remote host was unable to deliver a
+previously sent UDP datagram and responded with a "Port Unreachable" ICMP
+packet. The application should close the socket as it is no longer usable.
+
+WSAEADDRNOTAVAIL
+The remote address is not a valid address, for example, ADDR_ANY.
+
+WSAEAFNOSUPPORT
+Addresses in the specified family cannot be used with this socket.
+
+WSAEDESTADDRREQ
+A destination address is required.
+
+WSAENETUNREACH
+The network cannot be reached from this host at this time.
+
+WSAEHOSTUNREACH
+A socket operation was attempted to an unreachable host.
+
+WSAETIMEDOUT
+The connection has been dropped, because of a network failure or because the
+system on the other end went down without notice.
+

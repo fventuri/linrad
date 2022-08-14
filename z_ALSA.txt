@@ -1,0 +1,72 @@
+To compile for native ALSA under Linux you must
+have these files on your system:
+
+/usr/lib/libasound.so
+/usr/include/alsa/asoundlib.h
+Under Debian they come with the package libasound2-dev
+
+The version number in /proc/asound/version must 
+be 1.0.12 or higher.
+
+The configure script tests for presence of a modern enough
+version of ALSA.
+
+
+Configuring ALSA for realtime priority
+******************************************************************
+Add these lines to  /etc/security/limits.conf
+@audio -       rtprio          99
+@audio           -       memlock unlimited
+
+Configuring default soundcards / stopping soundcards from switching 
+*******************************************************************
+Note: This section assumes that you have installed each soundcard
+properly. 
+
+      * In a shell, type cat /proc/asound/modules 
+        
+      * This will give the the name and index of each soundcard you have
+        currently. Make a note of the names, and decide which one you
+        want to be the default card. 
+      * Now type sudo nano /etc/modprobe.d/alsa-base.conf 
+        If the file does not exist, just create it. 
+        
+      * At the very end of the file, add the following (assuming you
+        have 3 cards with module names A, B and C and you want to have
+        them in the order CAB) 
+
+options snd-C index=0
+options snd-A index=1
+options snd-B index=2
+
+(From : https://help.ubuntu.com/community/SoundTroubleshooting  )
+
+***********************************************************************
+Comment out any statement that might give one of your drivers index -2.
+
+# Prevent abnormal drivers from grabbing index 0
+options snd-bt87x index=-2
+options snd-cx88_alsa index=-2
+options snd-atiixp-modem index=-2
+options snd-intel8x0m index=-2
+options snd-via82xx-modem index=-2
+options snd_ice1712 index=0
+options snd_ens1371 index=1
+options snd_intel8x0 index=2
+
+
+Configuring multiple USB soundcards
+***********************************
+If one uses multiple USB soundcards, the indices for these soundcards
+should be coded as follows:
+
+options snd-usb-audio index=3,4
+
+and not 
+
+options snd-usb-audio index=3
+options snd-usb-audio index=4
+(in this case the second line would override the first )
+
+
+

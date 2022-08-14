@@ -1,0 +1,61 @@
+                          Linrad calibration.
+
+The analog hardware may use filters with poor frequency response.
+It is a good idea to design analog filters for optimum dynamic range,
+which means steep skirts but not very flat passband. The calibration
+procedure adds a digital filter with a frequency response that is
+the inverse of of your hardware's response. As a result the digital
+data sent into Linrad for further processing is filtered through
+a filter with perfectly flat amplitude response and perfectly linear
+phase response.
+
+The calibration procedure has to add one more filter, the desired
+frequency response, because frequencies that are absent can not be 
+recovered. The desired frequency response must be chosen for the
+total digital filter to not have extreme gain or Q.
+
+Each mode has to be calibrated separately. There may be perfectly
+valid reasons to use different shapes for the desired frequency
+response in different modes. Calibration is slow however and you
+do not actually have to run the calibration procedure for all the modes.
+
+You may calibrate in one mode and then copy the file to produce
+the calibration files for all other modes that you want to share the
+same calibration. The calibration files are:
+
+   Mode                    Frequency response
+Weak signal CW             dsp_wcw_corr
+Normal CW                  dsp_cw_corr
+Meteorscatter CW           dsp_hsms_corr
+SSB                        dsp_ssb_corr
+FM                         dsp_fm_corr
+AM                         dsp_am_corr
+QRSS CW                    dsp_qrss_corr
+TX TEST                    dsp_txtest_corr       
+SOUNDCARD TEST MODE        dsp_test_corr
+ANALOG HARDWARE TUNE       dsp_tune_corr
+
+If your hardware is set up to run in direct conversion mode with
+two audio channels for each HF channel, you also have to calibrate
+for the amplitude and phase balance errors of your hardware.
+In direct conversion mode you need these files also:
+
+   Mode                    Channel balancing data
+Weak signal CW             dsp_wcw_iqcorr
+Normal CW                  dsp_cw_iqcorr
+Meteorscatter CW           dsp_hsms_iqcorr
+SSB                        dsp_ssb_iqcorr
+FM                         dsp_fm_iqcorr
+AM                         dsp_am_iqcorr
+QRSS CW                    dsp_qrss_iqcorr
+TX TEST                    dsp_txtest_iqcorr       
+SOUNDCARD TEST MODE        dsp_test_iqcorr
+ANALOG HARDWARE TUNE       dsp_tune_iqcorr
+
+TX TEST is always one channel so it needs its own calibration
+files if your system is set up for two channels. Otherwise
+you may copy these files from a single calibration file.
+
+Rather than making multiple files you can use symbolic links.
+Note that a calibration change in one mode then will change
+the calibration in all modes.

@@ -1,0 +1,29 @@
+#if BUFBARS == TRUE
+#define RX_BUFBAR_TIMF1 0
+#define RX_BUFBAR_FFT1 1
+#define RX_BUFBAR_TIMF2 2
+#define RX_BUFBAR_FFT2 3
+#define RX_BUFBAR_TIMF3 4
+#define RX_BUFBAR_FFT3 5
+#define RX_BUFBAR_BASEB 6
+#define RX_BUFBAR_DAOUT 7
+#define RX_BUFBAR_MAX 8
+#define TX_BUFBAR_MICTIMF RX_BUFBAR_MAX+0
+#define TX_BUFBAR_MIC_KEY RX_BUFBAR_MAX+1
+#define TX_BUFBAR_MICFFT RX_BUFBAR_MAX+1
+#define TX_BUFBAR_CLIPTIMF RX_BUFBAR_MAX+2
+#define TX_BUFBAR_CW_TXOUT RX_BUFBAR_MAX+2
+#define TX_BUFBAR_CLIPFFT RX_BUFBAR_MAX+3
+#define TX_BUFBAR_CW_DA RX_BUFBAR_MAX+3
+#define TX_BUFBAR_ALCTIMF RX_BUFBAR_MAX+4
+#define TX_BUFBAR_RESAMP RX_BUFBAR_MAX+5
+#define TX_BUFBAR_TXOUT RX_BUFBAR_MAX+6
+#define MAX_BUFBAR RX_BUFBAR_MAX+7
+
+
+extern int bufbar_maxpos[MAX_BUFBAR];
+extern int bufbar_minpos[MAX_BUFBAR];
+void show_bufbar(int i, int k);
+void clear_bufbars(void);
+#endif
+

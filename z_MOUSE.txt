@@ -1,0 +1,48 @@
+The mouse in Linrad is driven from a mouse thread which is
+different under Windows, Linux with svgalib and Linux with X11.
+With svgalib the mouse thread waits for a return from mouse_update()
+which returns each time a mouse event has happened.
+Under Windows, mouse events are captured by the callback procedure WndProc
+which stores the mouse status and posts to the mouse thread.
+The Windows mouse thread waits for the posts from WndProc and then
+executes similar code to the one used under Linux.
+X11 is similar to Windows.
+
+                          MOUSE MOVES
+Mouse moves cause changed values for new_mouse_x and new_mouse_y
+The screen thread detects whether mouse_x differs from new_mouse_x
+or if mouse_y differs from new_mouse_y. If the mouse has moved,
+the screen thread calls lir_move_mouse_cursor() which sets mouse_x = 
+new_mouse_x and mouse_y = new_mouse_y. This routine is different
+under Linux and Windows. Under Windows it does nothing more while
+it removes the old mouse cursor under Linux and sets up some variables
+for the new curser position.
+
+                    BUTTON PRESS OR RELEASE
+The response to a button state change may affect pointers and memory
+allocations in different threads. During normal processing the wideband
+thread may respond to both mouse buttons while the narrowband thread
+only responds to the left button.
+
+The left button operates like this:
+Normal flag status:
+   mouse_task=-1   
+   leftpressed=BUTTON_IDLE
+   mouse_active_flag=0
+
+Left button pressed:
+   mouse_task=scro[i].no (the number of the window)
+   leftpressed=BUTTON_PRESSED
+
+Right button pressed:
+   mouse_task=scro[i].no (the number of the window)+GRAPH_RIGHTPRESSED
+   leftpressed=BUTTON_PRESSED
+   
+When the proccessing thread finds a mouse task different from -1
+it will call the mouse routine for mouse_task which will set and
+reset mouse_active_flag. When the activity is over the processing
+thread will set mouse_task to -1 when it finds that the mouse
+routine has cleared mouse_active_flag.
+
+
+

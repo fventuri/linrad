@@ -1,0 +1,35 @@
+The WSE units, RX10700, RX70, RX144 and RXHFA use
+the parallel port to set the frequency (and for
+the RXHFA also the gain)
+
+When the parallel port is allowed the word
+"parport" is visible on the main menu followed
+by the parallel port address and the pin number
+used to read status from the WSE units.
+
+******************  Linux ***********************
+Permission to use parallel ports below 0x400 
+are obtained by a call to ioperm which does not
+need very high privileges.
+Higher addresses require iopl(3) and to have
+permission one probably has to run as root.
+
+******************  Windows  ********************
+A user program can not access the parallel port 
+directly under Windows. Linrad looks for inpout32.dll 
+which should contain the functions iop32 and oup32 
+which allow read and write on the parallel port.
+
+Place inpout32.dll in the Windows system directory 
+It comes from here:  http://www.logix4u.net
+no explicit license is neede to use this dll for 
+non - commercial applications. 
+For commercial applications , contact the webmaster
+
+This message is from http://www.logix4u.net
+A versatile Dynamic Link Library for parallel port 
+interfacing. Works seamless with all versions of 
+windows (WIN 98, NT, 200 and XP). Compatible with
+inpout32.dll comes with the book Parallel Port 
+Complete without any modification. Download it 
+for free with source code.   

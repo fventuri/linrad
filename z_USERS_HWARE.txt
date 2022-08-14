@@ -1,0 +1,52 @@
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+To change your Linrad program to fit your own hardware 
+in a version independent way, make your own users_xxxx 
+files as described below.
+Do not forget to run configure after you have added a
+users_xxxx file. (There is no need when you change the
+file, the configure script updates your Makefile.)
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!                
+
+The users_hwaredriver file only affects the Linux versions of
+Linrad. To get your own routines into your Windows
+executable, add a file wusers_hwaredriver.c. This file
+will be used only when compiling linrad.exe.
+(Do not forget to run ./configure once if you add 
+users.... or wusers.... )
+!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+
+The user may add routines in (w)users_hwaredriver.c
+
+These routines allow control of transmitter and receiver hardware
+completely as the user wants.
+
+For prototype functions look at users.c, users_tr.c and users_w3sz.c
+
+Note that the file you create as (w)users_hwaredriver.c will not be
+changed when you install new versions of Linrad on top of your
+old installation. The distribution package does not contain
+any file with this name. (Be careful to make a bakup anyway.
+There is a small risk that a (w)users_hwaredriver.c has sneaked
+into a package by mistake - and then it would over-write your file.
+
+                  ******************************
+
+The user may also make his own defines in (w)users_hwaredef.h
+These defines will automatically replace the defines in hwaredef.h
+
+For prototype definitions look at users.h
+
+You may select your own pin assignments and still use the default
+control routines in hwaredriver.c
+
+Note that the file you create as users_hwaredef.h will not be
+changed when you install new versions of Linrad on top of your
+old installation. The distribution package does not contain
+any file with this name.
+
+                  *******************************
+
+NOTE: You have to run configure after you added a users file to
+have your own routines/defines compiled into Linrad.
