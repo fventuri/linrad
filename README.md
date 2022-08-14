@@ -11,7 +11,7 @@ The [References](#References) section below has more information about Linrad.
 The version of Linrad in this repository includes support for the SDRplay RSP devices using SDRplay API version 3.X. The SDRplay models supported are:
 - RSP1
 - RSP1A
-- RSP2 (and RSP1Pro)
+- RSP2 (and RSP2pro)
 - RSPduo (including Dual Tuner, Master, and Slave modes)
 - RSPdx
 
