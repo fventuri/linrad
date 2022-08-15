@@ -911,7 +911,7 @@ static void sdrplay3_display_open_api_error(int errcod)
       errmsg = "sdrplay3: sdrplay_api_ApiVersion() failed.";
       break;
     case 2613:
-      errmsg = "sdrplay3: library version doesn't match wuth include.";
+      errmsg = "sdrplay3: library version doesn't match with include.";
       break;
     case 2614:
       errmsg = "sdrplay3: sdrplay_api_DebugEnable() failed.";
