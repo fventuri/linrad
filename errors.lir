@@ -1134,6 +1134,64 @@ rmmod msi2500
 [1471]The linrad API and the installed library version is different.
 Install the latest library/driver from www.sdrplay.com.
 Should work fine with version equal or greater than 2.13
+[2600]The file par_sdrplay3 is corrupted or not consistent
+with other parameters. Use the U menu to set up your RSP device
+and do not forget to press W to save data in the main menu
+afterwards.
+[2601]Something is wrong with the sdrplay_api DLL files.
+Linrad will look for DLL files and associated binaries in the
+special directory:
+C:\Linrad\dll\
+The latest SDRplay API DLLs can be downloaded from www.sdrplay.com.
+[2602]Error saving the par_sdrplay3 file. Check the permission.
+[2610]Something is wrong with the sdrplay_api DLL files.
+Linrad will look for DLL files and associated binaries in the
+special directory:
+C:\Linrad\dll\
+The latest SDRplay API DLLs can be downloaded from www.sdrplay.com.
+[2611]Failed to open SDRplay API. Make sure the sdrplay_api service
+is up and running.
+If it is already up, you may want to restart it.
+[2612]The API function sdrplay_api_ApiVersion() failed.
+[2613]The linrad API and the installed library version are different.
+On Windows double check the sdrplay_api.dll (32 and 64 bit) under
+C:\Linrad\dll and C:\Linrad\dll\x64.
+The latest library/driver can be downloaded from www.sdrplay.com.
+[2614]The API function sdrplay_api_DebugEnable() failed.
+[2620]The API function sdrplay_api_LockDeviceApi() failed.
+[2621]Failed to find the SDRplay device.
+[2622]No RSP devices found or available.
+Double check the USB connection to the RSP, and make sure it is not
+already used by a different application.
+[2623]The API function sdrplay_api_SelectDevice() failed.
+[2624]The API function sdrplay_api_UnlockDeviceApi() failed.
+[2625]The API function sdrplay_api_GetDeviceParams() failed.
+[2630]Selected antenna is not compatible with selected RSPduo tuner.
+[2640]The device failed to start streaming.
+Check all device parameters like sample rate, frequency, and RF/IF
+attenuations.
+[2650]Unable to set bandwith for RSPduo RX2 in dual tuner mode.
+[2651]Unable to set RF attenuation/LNA state for RSPduo RX2 in
+dual tuner mode.
+[2652]Unable to set IF attenuation for RSPduo RX2 in dual tuner mode.
+[2653]Unable to set AGC parameters for RSPduo RX2 in dual tuner mode.
+[2654]Unable to set DC offset correction for RSPduo RX2 in
+dual tuner mode.
+[2655]Unable to set IQ imbalance correction for RSPduo RX2 in
+dual tuner mode.
+[2656]Unable to set RF/DAB notch filter for RSPduo RX2 in
+dual tuner mode.
+[2657]Unable to set Bias-T for RSPduo RX2 in dual tuner mode.
+[2670]Unable to change RF attenuation/LNA state.
+Double check the band and the valid RF attentuation/LNA state values
+in the SDRplay API Specification Guide.
+[2671]Unable to change passband center frequency.
+Make sure it is in the 10kHz-2GHz range.
+[2691]The API function sdrplay_api_Uninit() failed.
+[2692]The API function sdrplay_api_LockDeviceApi() failed.
+[2693]The API function sdrplay_api_ReleaseDevice() failed.
+[2694]The API function sdrplay_api_UnlockDeviceApi() failed.
+[2695]The API function sdrplay_api_Close() failed.
 [3001]Error reported by check cw.
 Read file dmp for details.
 [3002]

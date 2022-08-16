@@ -75,6 +75,7 @@ make linrad64.exe                   (64 bit version)
 copy /B "C:\Program Files\SDRplay\API\x86\sdrplay_api.dll" C:\linrad\dll\sdrplay_api.dll
 copy /B "C:\Program Files\SDRplay\API\x64\sdrplay_api.dll" C:\linrad\dll\x64\sdrplay_api.dll
 ```
+- If using the pre-compiled linrad.exe and linrad64.exe binaries, download from this repository the two files `errors.lir` and `help.lir`, and copy them to the same folder where you saved the executables.
 
 
 ## References

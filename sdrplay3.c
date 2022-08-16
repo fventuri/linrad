@@ -2759,7 +2759,7 @@ static int sdrplay3_save_configuration(char *filename)
   // write parameters
   sdrplay3_file = fopen(filename, "w");
   if (sdrplay3_file == NULL) {
-    lirerr(1501);
+    lirerr(2602);
     return -1;
   }
   sdr_pi = (int *)(&sdrplay3_parms);
