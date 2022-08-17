@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  windows-build:
+    name: Windows cross-compile
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Install dependencies
+        run: sudo apt update -qq && sudo apt install -y gcc-mingw-w64 nasm
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Setup API 3.09
+        run: |
+          cp Makefile.msys2.nodebug Makefile
+          sed -i 's/^\/\/\(#define SDRPLAY3PAR_VERNR 309\)/\1/; s/^\(#define SDRPLAY3PAR_VERNR 310\)/\/\/\1/' vernr.h
+      - name: Build 32 bit - API 3.09
+        run: make linrad.exe && mv linrad.exe linrad-API3.09.exe && rm *.oz
+      - name: Build 64 bit - API 3.09
+        run: make linrad64.exe && mv linrad64.exe linrad64-API3.09.exe && rm *.ox
+      - name: Setup API 3.10
+        run: |
+          cp Makefile.msys2.nodebug Makefile
+          sed -i 's/^\(#define SDRPLAY3PAR_VERNR 309\)/\/\/\1/; s/^\/\/\(#define SDRPLAY3PAR_VERNR 310\)/\1/' vernr.h
+      - name: Build 32 bit - API 3.10
+        run: make linrad.exe && mv linrad.exe linrad-API3.10.exe && rm *.oz
+      - name: Build 64 bit - API 3.10
+        run: make linrad64.exe && mv linrad64.exe linrad64-API3.10.exe && rm *.ox
+      - name: Checksums
+        run: sha256sum linrad-API3.09.exe linrad64-API3.09.exe linrad-API3.10.exe linrad64-API3.10.exe > checksums-sha256.txt
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          files: |
+            linrad-API3.09.exe
+            linrad64-API3.09.exe
+            linrad-API3.10.exe
+            linrad64-API3.10.exe
+            checksums-sha256.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
