@@ -23,7 +23,7 @@ The version of Linrad in this repository includes support for the SDRplay RSP de
 ```
 git clone https://github.com/fventuri/linrad.git
 cd linrad
-cp Makefile.linux Makefile
+./configure
 make xlinrad64
 ```
 

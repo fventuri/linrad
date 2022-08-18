@@ -307,8 +307,8 @@ SDRIP=Makefile sdrip.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
 SDRPLAY2=Makefile sdrplay2.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
 	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
-SDRPLAY3=Makefile sdrplay3.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
+SDRPLAY3=Makefile sdrplay3.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
 SDRVAR=Makefile sdrvar.c globdef.h sdrdef.h osnum.h
 SELLIM=Makefile sellim.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
