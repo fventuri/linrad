@@ -2344,7 +2344,7 @@ sdrip.om: $(SDRIP)
 sdrplay2.om: $(SDRPLAY2)
 	$(LCC) sdrplay2.c -DSDRPLAY2_LIBNAME=\"/usr/local/lib64/libmirsdrapi-rsp.so\" $(CFL64) sdrplay2.om
 sdrplay3.om: $(SDRPLAY3)
-	$(LCC) sdrplay3.c -DSDRPLAY3_LIBNAME=\"/usr/local/lib64/libsdrplay_api.so\" $(CFL64) sdrplay3.om
+	$(LCC) sdrplay3.c -DSDRPLAY3_LIBNAME=\"libsdrplay_api.so\" -Llibsdrplay_api.so $(CFL64) sdrplay3.om
 sdrvar.om: $(SDRVAR)
 	$(LCC) sdrvar.c $(CFL64) sdrvar.om
 sellim.om: $(SELLIM)
