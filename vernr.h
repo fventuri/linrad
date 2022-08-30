@@ -35,4 +35,5 @@
 #define SDRPLAY3PAR_VERNR 310
 #else
 #define SDRPLAY3PAR_VERNR 307
+//#define SDRPLAY3PAR_VERNR 311
 #endif

@@ -46,6 +46,8 @@
 #define SDRPLAY_API_VERSION   (float)(3.09)
 #elif SDRPLAY3PAR_VERNR == 310
 #define SDRPLAY_API_VERSION   (float)(3.10)
+#elif SDRPLAY3PAR_VERNR == 311
+#define SDRPLAY_API_VERSION   (float)(3.11)
 #endif
 
 // API Constants
@@ -441,6 +443,9 @@ typedef enum
     sdrplay_api_PowerOverloadChange   = 1,
     sdrplay_api_DeviceRemoved         = 2,
     sdrplay_api_RspDuoModeChange      = 3,
+#if SDRPLAY3PAR_VERNR >= 311
+    sdrplay_api_DeviceFailure         = 4,
+#endif
 } sdrplay_api_EventT;
 
 // Event callback parameter structs
