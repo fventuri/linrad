@@ -1341,13 +1341,6 @@ static int sdrplay3_select_bandwidth(int *line)
   samplerate = sdrplay3_get_samplerate();
 
   line[0] += 2;
-  if (samplerate < 300e3) {
-    rx_channel_params->tunerParams.bwType = sdrplay_api_BW_0_200;
-    snprintf(s, 120, "IF bandwidth autoselected: %d kHz", rx_channel_params->tunerParams.bwType);
-    lir_text(3, line[0], s);
-    return 0;
-  }
-
   // set the bandwidth to be 1536kHz for the RSPduo in dual tuner, master
   // or slave mode when the IF frequency is 2048MHz (and the RSPduo sample
   // rate is 8Msps)
@@ -1357,6 +1350,13 @@ static int sdrplay3_select_bandwidth(int *line)
        device.rspDuoMode == sdrplay_api_RspDuoMode_Slave) &&
       rx_channel_params->tunerParams.ifType == sdrplay_api_IF_2_048) {
     rx_channel_params->tunerParams.bwType = sdrplay_api_BW_1_536;
+    snprintf(s, 120, "IF bandwidth autoselected: %d kHz", rx_channel_params->tunerParams.bwType);
+    lir_text(3, line[0], s);
+    return 0;
+  }
+
+  if (samplerate < 300e3) {
+    rx_channel_params->tunerParams.bwType = sdrplay_api_BW_0_200;
     snprintf(s, 120, "IF bandwidth autoselected: %d kHz", rx_channel_params->tunerParams.bwType);
     lir_text(3, line[0], s);
     return 0;
@@ -3614,6 +3614,8 @@ void sdrplay3_input(void)
   sdrplay3_set_usb_transfer_mode();
   sdrplay3_set_notch_filters();
   sdrplay3_set_bias_t();
+
+  //sdrplay3_update_ui();
 
   fft1_block_timing();
   if (thread_command_flag[THREAD_SCREEN] != THRFLAG_NOT_ACTIVE) {
