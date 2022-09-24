@@ -26,7 +26,7 @@
 #include "osnum.h"
 #include "globdef.h"
 #include "screendef.h"
-#define MAX_SVGA_PALETTE 59
+#define MAX_SVGA_PALETTE 60
 
 /*
 // Black and white palette for (publishing)

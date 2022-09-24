@@ -1348,6 +1348,20 @@ static int sdrplay3_select_bandwidth(int *line)
     return 0;
   }
 
+  // set the bandwidth to be 1536kHz for the RSPduo in dual tuner, master
+  // or slave mode when the IF frequency is 2048MHz (and the RSPduo sample
+  // rate is 8Msps)
+  if (device.hwVer == SDRPLAY3_RSPduo_ID &&
+      (device.rspDuoMode == sdrplay_api_RspDuoMode_Dual_Tuner ||
+       device.rspDuoMode == sdrplay_api_RspDuoMode_Master ||
+       device.rspDuoMode == sdrplay_api_RspDuoMode_Slave) &&
+      rx_channel_params->tunerParams.ifType == sdrplay_api_IF_2_048) {
+    rx_channel_params->tunerParams.bwType = sdrplay_api_BW_1_536;
+    snprintf(s, 120, "IF bandwidth autoselected: %d kHz", rx_channel_params->tunerParams.bwType);
+    lir_text(3, line[0], s);
+    return 0;
+  }
+
   // list the possible bandwidths that are <= of the samplerate
   lir_text(3, line[0], "A=200 kHz");
   max_bandwidth = 'A';

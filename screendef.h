@@ -95,7 +95,7 @@ extern unsigned int sd[MAX_SC];
 
 
 
-#define MAX_SVGA_PALETTE 59
+#define MAX_SVGA_PALETTE 60
 
 
 // Note that these definitions give the order by which data is 
