@@ -17,7 +17,7 @@ jobs:
       - name: Setup API 3.09
         run: |
           cp Makefile.msys2.nodebug Makefile
-          sed -i 's/^\/\/\(#define SDRPLAY3PAR_VERNR 309\)/\1/; s/^\(#define SDRPLAY3PAR_VERNR 310\)/\/\/\1/' vernr.h
+          sed -i 's/^\(#define SDRPLAY3PAR_VERNR 3[0-9][0-9]\)/\/\/\1/; s/^\/\/\(#define SDRPLAY3PAR_VERNR 309\)/\1/' vernr.h
       - name: Build 32 bit - API 3.09
         run: make linrad.exe && mv linrad.exe linrad-API3.09.exe && rm *.oz
       - name: Build 64 bit - API 3.09
@@ -25,13 +25,21 @@ jobs:
       - name: Setup API 3.10
         run: |
           cp Makefile.msys2.nodebug Makefile
-          sed -i 's/^\(#define SDRPLAY3PAR_VERNR 309\)/\/\/\1/; s/^\/\/\(#define SDRPLAY3PAR_VERNR 310\)/\1/' vernr.h
+          sed -i 's/^\(#define SDRPLAY3PAR_VERNR 3[0-9][0-9]\)/\/\/\1/; s/^\/\/\(#define SDRPLAY3PAR_VERNR 310\)/\1/' vernr.h
       - name: Build 32 bit - API 3.10
         run: make linrad.exe && mv linrad.exe linrad-API3.10.exe && rm *.oz
       - name: Build 64 bit - API 3.10
         run: make linrad64.exe && mv linrad64.exe linrad64-API3.10.exe && rm *.ox
+      - name: Setup API 3.11
+        run: |
+          cp Makefile.msys2.nodebug Makefile
+          sed -i 's/^\(#define SDRPLAY3PAR_VERNR 3[0-9][0-9]\)/\/\/\1/; s/^\/\/\(#define SDRPLAY3PAR_VERNR 311\)/\1/' vernr.h
+      - name: Build 32 bit - API 3.11
+        run: make linrad.exe && mv linrad.exe linrad-API3.11.exe && rm *.oz
+      - name: Build 64 bit - API 3.11
+        run: make linrad64.exe && mv linrad64.exe linrad64-API3.11.exe && rm *.ox
       - name: Checksums
-        run: sha256sum linrad-API3.09.exe linrad64-API3.09.exe linrad-API3.10.exe linrad64-API3.10.exe > checksums-sha256.txt
+        run: sha256sum linrad-API3.09.exe linrad64-API3.09.exe linrad-API3.10.exe linrad64-API3.10.exe linrad-API3.11.exe linrad64-API3.11.exe > checksums-sha256.txt
       - name: Release
         uses: softprops/action-gh-release@v1
         if: startsWith(github.ref, 'refs/tags/')
@@ -41,6 +49,8 @@ jobs:
             linrad64-API3.09.exe
             linrad-API3.10.exe
             linrad64-API3.10.exe
+            linrad-API3.11.exe
+            linrad64-API3.11.exe
             checksums-sha256.txt
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
