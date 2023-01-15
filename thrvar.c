@@ -157,5 +157,5 @@ char *thread_names[THREAD_MAX]={"RxAD",  //0 = THREAD_RX_ADINPUT
                                 "Send",  //51 = THREAD_NETWORK_SEND
                                 "AHFP",  //52 = THREAD_AIRSPYHF_INPUT
                                 "SP2i",  //53 = THREAD_SDRPLAY2_INPUT
-                                "SP3i",  //53 = THREAD_SDRPLAY3_INPUT
+                                "SP3i",  //54 = THREAD_SDRPLAY3_INPUT
                                  };

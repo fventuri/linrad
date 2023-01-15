@@ -3669,7 +3669,7 @@ void sdrplay3_input(void)
 
     if (!(device.hwVer == SDRPLAY3_RSPduo_ID && device.tuner == sdrplay_api_Tuner_Both)) {
       while (!kill_all_flag &&
- ((timf1p_pa-timf1p_sdr+timf1_bytes) & timf1_bytemask) > snd[RXAD].block_bytes) {
+ ((timf1p_sdr-timf1p_pa+timf1_bytes) & timf1_bytemask) >= snd[RXAD].block_bytes) {
 #include "input_speed.c"
         finish_rx_read();
         if (kill_all_flag)
@@ -3677,8 +3677,8 @@ void sdrplay3_input(void)
       }
     } else {
       while (!kill_all_flag &&
- ((timf1p_pa-timf1p_sdr+timf1_bytes) & timf1_bytemask) > snd[RXAD].block_bytes &&
- ((timf1p_pa-timf1p_sdr2+timf1_bytes) & timf1_bytemask) > snd[RXAD].block_bytes) {
+ ((timf1p_sdr-timf1p_pa+timf1_bytes) & timf1_bytemask) >= snd[RXAD].block_bytes &&
+ ((timf1p_sdr2-timf1p_pa+timf1_bytes) & timf1_bytemask) >= snd[RXAD].block_bytes) {
 #include "input_speed.c"
         finish_rx_read();
         if (kill_all_flag)
