@@ -3190,11 +3190,28 @@ static void sdrplay3_set_bias_t(void)
   return;
 }
 
+#include <time.h>
+static struct timespec prev_time = {0, 0};
+static long callback_count = 0;
+static long diff_threshold = 5000000; // 5ms
+
 static void sdrplay3_rx_callback(short *si, short *sq, sdrplay_api_StreamCbParamsT *params, unsigned int numSamples, unsigned int reset, void *cbContext)
 {
   UNUSED(params);
   UNUSED(reset);
   UNUSED(cbContext);
+
+  struct timespec current_time;
+  clock_gettime(CLOCK_REALTIME, &current_time);
+  if (prev_time.tv_sec > 0) {
+      long diff = (current_time.tv_sec - prev_time.tv_sec) * 1000000000 + (current_time.tv_nsec - prev_time.tv_nsec);
+      if (diff > diff_threshold) {
+          fprintf(stderr, "%ld %u %ld\n", callback_count, numSamples, diff);
+      }
+  }
+  prev_time.tv_sec = current_time.tv_sec;
+  prev_time.tv_nsec = current_time.tv_nsec;
+  callback_count++;
 
   unsigned int i;
   short int *iz;
