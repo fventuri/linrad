@@ -1,5 +1,5 @@
 #define GENPARM_VERNR 10415
-#define PROGRAM_NAME "Linrad-05.01"
+#define PROGRAM_NAME "Linrad-05.02"
 #define DLL_VERSION_NUMBER 5
 #define HELP_VERNR 59
 #define ERROR_VERNR 78

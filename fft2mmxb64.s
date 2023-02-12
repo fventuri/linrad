@@ -25,6 +25,7 @@
 ; for one and two dimensional data.
 ; Each loop is present in three different forms that
 ; differ in amplitude (gain).
+section .note.GNU-stack
 
 extern fft2_short_int
 extern fft2_size

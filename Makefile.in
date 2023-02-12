@@ -766,8 +766,6 @@ bladerf.ox mirics.ox sdrplay2.ox sdrplay3.ox openhpsdr.ox httpd.ox \
 html_server.ox afedri.ox affinity.ox soundcard.ox cloudiq.ox airspyhf.ox \
 siganal_graph.ox -lole32 -lsetupapi -lcomdlg32
 
-
-
 split.ox: Makefile split64.s
 	$(WINNASM64) split64.s -o split.ox
 fft2mmxa.ox: Makefile fft2mmxa64.s
@@ -1746,11 +1744,6 @@ openhpsdr.ol oclprogs.ol loadalsa.ol lfxsys.ol airspyhf.ol siganal_graph.ol \
 @CUFFTPATH32@ \
 -lpthread @LIBRT@ -lm -ldl $(LIBMACOSX)
 
-	@echo " "
-	@echo "You may want to disable pulseaudio in Ubuntu with this command:"
-	@echo "sudo pasuspender -- ./xlinrad"
-	@echo " "
-
 wxsys.ol: $(WXSYS)
 	$(LCC) wxsys.c $(CFL) wxsys.ol
 xvar.ol: xvar.c thrdef.h globdef.h xdef.h osnum.h
@@ -2099,11 +2092,6 @@ airspyhf.om siganal_graph.om \
 @X11_64_LD@ \
 @CUFFTPATH64@ \
 -lpthread @LIBRT@ -lm -ldl $(LIBMACOSX)
-
-	@echo " "
-	@echo "You may want to disable pulseaudio in Ubuntu with this command:"
-	@echo "sudo pasuspender -- ./xlinrad64"
-	@echo " "
 
 wxsys.om: $(WXSYS)
 	$(LCC) wxsys.c $(CFL64) wxsys.om

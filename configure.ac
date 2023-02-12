@@ -1,6 +1,8 @@
 AC_PREREQ(2.50)
 AC_INIT(xmain.c)
 AC_MSG_CHECKING([OS])
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([ft245.c])
 BITS=`(getconf LONG_BIT)`
 AC_SUBST(BITS)
 setterm -term linux -back white
@@ -675,7 +677,7 @@ if test "$DARWIN" = "-DDARWIN=0"; then
   if test "$X" = "#"; then
     ST=""
   else
-    ST="-s"
+    ST="-s -no-pie"
   fi
 else
   ST="-Wl,-no_pie"
@@ -1626,7 +1628,7 @@ AC_SUBST(PORTAUDIO32_LD)
 AC_SUBST(PORTAUDIO64_OK)
 AC_SUBST(PORTAUDIO64_LD)
 # *********************************************************************
-AC_OUTPUT(Makefile ft245.c)
+AC_OUTPUT
 SHOW_MISSING="0"
 if test "$SVGALIB32_OK" = "0"; then
   SHOW_MISSING="1"
@@ -2592,24 +2594,29 @@ if test "$SHOW32" = "1"; then
     echo "Not present: libmirisdr.${LIBEXT} ${TXT32} (./configure --with-mirics-32)"
     if test "$HELP" = "1" -o "$HELP" = "9"; then
       setterm -term linux -fore red
-      echo "This package is needed for the Mirics USB dongles and SDRPlay"      
+      echo "This package is needed for the Mirics USB dongles and SDRPlay"
       if test "$BITS" = "32"; then
-        if test "$HAVE_CMAKE" = ""; then
-          install_cmake
+        if test "$LIBUSB1_32_OK" = "0"; then
+          echo "First install libusb-1.0 like this:"
+          install_libusb1_32
         else
-          if test "$HAVE_GIT" = ""; then
-            install_git
+          if test "$HAVE_CMAKE" = ""; then
+            install_cmake
           else
-            echo "Install the library like this:"
-            echo "   cd /usr/src/"
-            echo "   git clone https://github.com/f4exb/libmirisdr-4.git"
-            echo "   cd libmirisdr-4"
-            echo "   mkdir build"
-            echo "   cd build"
-            echo "   cmake .."
-            echo "   make"
-            echo "   make install"
-            echo "Go back to the linrad directory and run ./configure again."
+            if test "$HAVE_GIT" = ""; then
+              install_git
+            else
+              echo "Install the library like this:"
+              echo "   cd /usr/src/"
+              echo "   git clone https://github.com/f4exb/libmirisdr-4.git"
+              echo "   cd libmirisdr-4"
+              echo "   mkdir build"
+              echo "   cd build"
+              echo "   cmake .."
+              echo "   make"
+              echo "   make install"
+              echo "Go back to the linrad directory and run ./configure again."
+            fi
           fi
         fi
       else
@@ -2860,14 +2867,18 @@ if test "$SHOW32" = "1"; then
           echo "Debian, Ubuntu: apt-get install libxext-dev"
           echo "SuSE: zypper install xorg-x11-libXext-devel"
           echo "Old Fedora: yum install libXext-devel"
-          echo  Fedora 22 and later: dnf install libXext-devel
+          echo "Fedora 22 and later: dnf install libXext-devel"
           echo "PCLinuxOS: apt-get install libxext-devel"
           echo "Mandriva: urpmi libxext6-devel"
           echo "Mageia: urpmi libxext-devel"
         else
-          echo "Debian, Ubuntu: apt-get install ia32-libs-dev"
-          echo "------: If ia32-libs-dev is missing install ia32-libs and add a symbolic link"
-          echo "------: If that fails, copy from a 32 bit system"
+          echo "Debian, Ubuntu, run these commands:"
+          echo "sudo dpkg --add-architecture i386"
+          echo "sudo apt-get update"
+          echo "apt-get install libxext-dev:i386"
+          echo "old Debian, Ubuntu: apt-get install ia32-libs-dev"
+          echo "  If ia32-libs-dev is missing install ia32-libs and add a symbolic link"
+          echo "  If that fails, copy from a 32 bit system"
           echo "Older Fedora: yum install libXext-devel.i586"
           echo "Old Fedora: yum install libXext-devel.i686"
           echo "Fedora 22 and later: dnf install libXext.i686 libXext-devel.i686"
@@ -2962,12 +2973,18 @@ if test "$SHOW32" = "1"; then
         echo "PCLinuxOS: apt-get install libx11-devel"
         echo "Mac OSX: Install XQuartz http://xquartz.macosforge.org/landing"
       else
-        echo "Debian, Ubuntu: apt-get install ia32-libs-dev libc6-dev-i386"
-        echo "--------: If ia32-libs-dev is missing, install ia32-libs and add a symbolic link:"
-        echo "--------: ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so"
-        echo "--------: Copy libX11.so from a 32 bit installation if ia32-libs fails."
-        echo "--------: Use ldd to find what more 32 bit libraries to copy."
+        echo "Debian, Ubuntu, run these commands:" 
+        echo "sudo dpkg --add-architecture i386; sudo apt-get update"
+        echo "sudo apt-get install libc6:i386 libx11-6:i386 libdbus-1-dev:i386"
+        echo "sudo ln -s /usr/lib/i386-linux-gnu/libX11.so.6.4.0 /usr/lib/i386-linux-gnu/libX11.so"
+        echo "old Debian, Ubuntu: apt-get install ia32-libs-dev libc6-dev-i386"
+        echo "old--------: If ia32-libs-dev is missing, install ia32-libs and add a symbolic link:"
+        echo "old--------: ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so"
+        echo "old--------: Copy libX11.so from a 32 bit installation if ia32-libs fails."
+        echo "old--------: Use ldd to find what more 32 bit libraries to copy."
         echo "SuSE: zypper install xorg-x11-libX11-devel-32bit"
+#On Red Hat base Linux distros (RHEL, CentOS, Scientific Linux):
+#sudo yum install glibc.i686 libgcc.i686 libX11.i686        
         echo "Older Fedora: yum install libX11-devel.i586"
         echo "Old Fedora: yum install libX11-devel.i686"
         echo "Fedora 22 and later: dnf install libX11.i686 libX11-devel.i686"
@@ -2992,8 +3009,12 @@ if test "$SHOW32" = "1"; then
         setterm -term linux -fore red
         echo "Install the ALSA package like this:" 
         if test "$BITS" = "64"; then
+          echo "Debian, Ubuntu Run these commands:"
+          echo "sudo dpkg --add-architecture i386"
+          echo "sudo apt-get update"
+          echo "sudo apt-get install libasound2-dev:i386"
           echo "Old Debian, Ubuntu: apt-get install libasound2-dev lib32asound2"
-          echo "New Debian, Ubuntu: apt-get install lib32asound2-dev"
+          echo "Old Debian, Ubuntu: apt-get install lib32asound2-dev"
           echo "Mandriva: urpmi libalsa-oss-devel"
           echo "Mageia: urpmi libalsa2-devel"
           echo "SuSE: zypper install alsa-devel-32bit"
@@ -3262,22 +3283,27 @@ if test "$BITS" = "64"; then
       if test "$HELP" = "1" -o "$HELP" = "1009"; then
         setterm -term linux -fore red
         echo "This package is needed for the Mirics USB dongles and SDRPlay"      
-        if test "$HAVE_CMAKE" = ""; then
-          install_cmake
+        if test "$LIBUSB1_64_OK" = "0"; then
+          echo "First install libusb-1.0 like this:"
+          install_libusb1_64
         else
-          if test "$HAVE_GIT" = ""; then
-            install_git
+          if test "$HAVE_CMAKE" = ""; then
+            install_cmake
           else
-            echo "Install the library like this:"
-            echo "   cd /usr/src/"
-            echo "   git clone https://github.com/f4exb/libmirisdr-4.git"
-            echo "   cd libmirisdr-4"
-            echo "   mkdir build"
-            echo "   cd build"
-            echo "   cmake .."
-            echo "   make"
-            echo "   make install"
-            echo "Go back to the linrad directory and run ./configure again."
+            if test "$HAVE_GIT" = ""; then
+              install_git
+            else
+              echo "Install the library like this:"
+              echo "   cd /usr/src/"
+              echo "   git clone https://github.com/f4exb/libmirisdr-4.git"
+              echo "   cd libmirisdr-4"
+              echo "   mkdir build"
+              echo "   cd build"
+              echo "   cmake .."
+              echo "   make"
+              echo "   make install"
+              echo "Go back to the linrad directory and run ./configure again."
+            fi
           fi
         fi
         setterm -term linux -fore black
@@ -3296,7 +3322,7 @@ if test "$BITS" = "64"; then
         echo " "
       fi
     fi
-    # 64 bit ----------------- SDRPlay devices - API v3 ------------------------
+# 64 bit ----------------- SDRPlay devices - API v3 ------------------------
     if test "$LIBSDRPLAY364_OK" = "0"; then
       echo "Not present: libsdrplay_api.${LIBEXT} (64bit) (./configure --with-sdrplay3-64)"
       if test "$HELP" = "1" -o "$HELP" = "1025"; then

@@ -111,6 +111,7 @@
 // portaudio devices. Those devices cause a crash on assert error
 // due to a bug in ALSA. See pa.c 
 
+//#define DUMPFILE TRUE
 #define DUMPFILE FALSE
 
 // ************************************************************
