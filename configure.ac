@@ -1,12 +1,12 @@
 AC_PREREQ(2.50)
+setterm -term linux -back white
+setterm -term linux -fore black
 AC_INIT(xmain.c)
 AC_MSG_CHECKING([OS])
 AC_CONFIG_FILES([Makefile])
 AC_CONFIG_FILES([ft245.c])
 BITS=`(getconf LONG_BIT)`
 AC_SUBST(BITS)
-setterm -term linux -back white
-setterm -term linux -fore black
 OS=`uname`
 AC_SUBST(OS, "${OS}")
 MACHINE=$(uname -m)
@@ -135,6 +135,13 @@ else
     M64=""
   fi
 fi
+NOPIE="-no-pie"
+${CC} csplit.c -no-pie -c -o x.ol 2> x.x
+chmod 777 x.x
+Y=`cat x.x`
+if test "$Y" != ""; then
+  NOPIE=""
+fi
 AC_SUBST(M32)
 AC_SUBST(M64)
 ${CC} lxsys.c -DHAVE_PARPORT=1 -c -o x.ol 2> x.x
@@ -248,13 +255,21 @@ if test "$MAKE" = ""; then
   echo -------------------------------------------------------
   exit
 fi
+AC_PATH_PROG(HAVE_FILE, file)
+if test "$HAVE_FILE" = ""; then
+  echo -------------------------------------------------------
+  echo Can not find file which will be needed to find libraries for hardware.
+  echo Install file and run configure again.
+  echo Debian, Ubuntu: apt-get install file
+  echo -------------------------------------------------------
+  exit
+fi
 AC_PATH_PROG(HAVE_WGET, wget)
 AC_PATH_PROG(HAVE_PKG_CONFIG, pkg-config)
 AC_PATH_PROG(HAVE_LIBTOOL, libtoolize)
 AC_PATH_PROG(HAVE_AUTOMAKE, automake)
 AC_PATH_PROG(HAVE_CMAKE, cmake)
 AC_PATH_PROG(HAVE_GIT, git)
-AC_PATH_PROG(HAVE_ALIEN, alien)
 AC_PATH_PROG(HAVE_SUBVERSION, svn)
 AC_PATH_PROG(HAVE_XXD, xxd)
 AC_PATH_PROG(HAVE_CPP, g++)
@@ -677,10 +692,10 @@ if test "$DARWIN" = "-DDARWIN=0"; then
   if test "$X" = "#"; then
     ST=""
   else
-    ST="-s -no-pie"
+    ST="-s $NOPIE"
   fi
 else
-  ST="-Wl,-no_pie"
+  ST="-Wl,$NOPIE"
 fi
 AC_SUBST(ST)
 # ********************************************************************
@@ -821,7 +836,7 @@ if test "$X11_32_OK" = "1"; then
   fi
 fi
 if test "$X11_64_OK" = "1"; then
-  ${CC} ${M64} verify_x11.c $X11_64_INC $X11_64_LD -o verify_x11.om  2> x.x
+  ${CC} ${M64} verify_x11.c $X11_64_INC $X11_64_LD -o verify_x11.om 2> x.x
   chmod 777 x.x
   Y=`cat x.x`
   if test "$Y" = ""; then
@@ -841,7 +856,7 @@ X11_32_ALL_OK="$X11_32_H"
 X11_64_ALL_OK="$X11_64_H"
 if test "$X11_32_OK" = "0"; then
   X11_32_ALL_OK="0"
-fi
+ fi
 if test "$X11_64_OK" = "0"; then
   X11_64_ALL_OK="0"
 fi
@@ -1175,33 +1190,35 @@ fi
 if test "$CLFFT64_OK" = "2"; then
   CLFFTPATH64="${CLFFT64_LD} -lstdc++" 
 fi
-if test "$BITS" = "64"; then
-  if test "$CLFFT64_OK" = "0"; then
-    AC_CHECK_FILE( $(realpath ./)/build/extlibs/libclFFT.a, \
-       CLFFTPATH64="$(realpath ./)/build/extlibs/libclFFT.a -lstdc++") 
-    if test "$CLFFTPATH64" != ""; then    
-      AC_CHECK_FILE( $(realpath ./)/extlibs/clFFT/src/include/clFFT.h, \
-        CLFFT64_INC="-I$(realpath ./)/extlibs/freeocl/include \
-        -I$(realpath ./)/extlibs/clFFT/src/include \
-        -I$(realpath ./)/extlibs/clFFT/src/build/include/")
-      if test "$CLFFT64_INC" != ""; then
-        ldconfig $(realpath ./)/build/extlibs/
-        CLFFT64_OK="1"
+if test "$HAVE_REALPATH" != ""; then  
+  if test "$BITS" = "64"; then
+    if test "$CLFFT64_OK" = "0"; then
+      AC_CHECK_FILE( $(realpath ./)/build/extlibs/libclFFT.a, \
+         CLFFTPATH64="$(realpath ./)/build/extlibs/libclFFT.a -lstdc++") 
+      if test "$CLFFTPATH64" != ""; then    
+        AC_CHECK_FILE( $(realpath ./)/extlibs/clFFT/src/include/clFFT.h, \
+          CLFFT64_INC="-I$(realpath ./)/extlibs/freeocl/include \
+          -I$(realpath ./)/extlibs/clFFT/src/include \
+          -I$(realpath ./)/extlibs/clFFT/src/build/include/")
+        if test "$CLFFT64_INC" != ""; then
+          ldconfig $(realpath ./)/build/extlibs/
+          CLFFT64_OK="1"
+        fi
       fi
     fi
-  fi
-else
-  if test "$CLFFT32_OK" = "0"; then
-    AC_CHECK_FILE( $(realpath ./)/build/extlibs/libclFFT.a, \
-       CLFFTPATH32="$(realpath ./)/build/extlibs/libclFFT.a -lstdc++") 
-    if test "$CLFFTPATH32" != ""; then    
-      AC_CHECK_FILE( $(realpath ./)/extlibs/clFFT/src/include/clFFT.h, \
-        CLFFT32_INC="-I$(realpath ./)/extlibs/freeocl/include \
-        -I$(realpath ./)/extlibs/clFFT/src/include \
-        -I$(realpath ./)/extlibs/clFFT/src/build/include/")
-      if test "$CLFFT32_INC" != ""; then
-        ldconfig $(realpath ./)/build/extlibs/
-        CLFFT32_OK="1"
+  else
+    if test "$CLFFT32_OK" = "0"; then
+      AC_CHECK_FILE( $(realpath ./)/build/extlibs/libclFFT.a, \
+         CLFFTPATH32="$(realpath ./)/build/extlibs/libclFFT.a -lstdc++") 
+      if test "$CLFFTPATH32" != ""; then    
+        AC_CHECK_FILE( $(realpath ./)/extlibs/clFFT/src/include/clFFT.h, \
+          CLFFT32_INC="-I$(realpath ./)/extlibs/freeocl/include \
+          -I$(realpath ./)/extlibs/clFFT/src/include \
+          -I$(realpath ./)/extlibs/clFFT/src/build/include/")
+        if test "$CLFFT32_INC" != ""; then
+          ldconfig $(realpath ./)/build/extlibs/
+          CLFFT32_OK="1"
+        fi
       fi
     fi
   fi
@@ -1880,7 +1897,7 @@ echo "Go back to the linrad directory and run ./configure again."
 install_libtecla(){
 echo "First install libtecla:"
 echo "   cd /usr/src"
-echo "   wget http://www.astro.caltech.edu/~mcs/tecla/libtecla.tar.gz"
+echo "   wget --no-check-certificate http://www.astro.caltech.edu/~mcs/tecla/libtecla.tar.gz"
 echo "   tar xzf libtecla.tar.gz"
 echo "   cd libtecla"
 echo "   ./configure"
@@ -1896,30 +1913,13 @@ echo "PCLinuxOS: apt-get install pkg-config"
 echo "SuSE: zypper install pkg-config"
 echo "Then run ./configure again."
 }
-install_alien(){
-echo "You have to install alien first"
-echo "Debian, Ubuntu: apt-get install alien"
-echo "Old Fedora: yum install alien"
-echo "Fedora 22 and later: dnf install alien"
-echo "Mageia: urpmi alien"
-echo "SuSE: install from source"
-echo "PCLinuxOS: apt-get install alien"
-echo "Sabayon: equo install app-arch/alien"
-echo "  You may also install from source code like this:"
-echo "  Note that wget and pearl must be installed."
-echo "     cd /usr/src"
-echo "     wget http://http.debian.net/debian/pool/main/a/alien/alien_8.95.tar.xz"
-echo "     tar xvf alien_8.95.tar.xz"
-echo "     cd alien-8.95"
-echo "     perl Makefile.PL; make; make install"
-echo "  Go back to the linrad directory and run ./configure again."
-}
 install_xxd(){
 echo First install xxd.
 echo This package is included in mainstream Linux distributions.
 echo Search the Internet for help on how to install xxd or
 echo install from source https://aur.archlinux.org/packages/xxd/
-echo Debian, Ubuntu: apt-get install bsdmainutils
+echo Debian, Ubuntu: apt-get install xxd
+echo old Debian, Ubuntu: apt-get install bsdmainutils
 echo Old Fedora: yum install vim-common
 echo Fedora 22 and later: dnf install vim-common
 echo Sabayon: equo install app-editors/vim
@@ -1984,9 +1984,9 @@ if test "$HAVE_WGET" = ""; then
   install_wget
 else
   echo "   cd /usr/src"
-  echo "   wget http://www.sm5bsz.com/linuxdsp/archive/svgalib/svga1925-3bsz.tbz"
-  echo "   tar xvfj svga1925-3bsz.tbz"
-  echo "   cd svgalib-1.9.25-3bsz"
+  echo "   wget http://www.sm5bsz.com/linuxdsp/archive/svgalib/svga1925-4bsz.tbz"
+  echo "   tar xvfj svga1925-4bsz.tbz"
+  echo "   cd svgalib-1.9.25-4bsz"
   echo "   make install"
   echo "(.../utils may fail but that does not matter)"
   echo "  Go back to the linrad directory and run ./configure again."
@@ -2064,7 +2064,12 @@ if test "$BITS" = "32"; then
   echo "PCLinuxOS: apt-get install libusb-compat0.1-devel"
   echo "Then run ./configure again."
 else
-  echo "Debian,Ubuntu: From source code or a 32 bit system."
+  echo "Debian, Ubuntu, run these commands:"
+  echo "dpkg --add-architecture i386"
+  echo "apt-get update"
+  echo "apt-get install libusb-dev:i386"
+  echo "Debian,Ubuntu: 
+  From source code or a 32 bit system."
   echo "Older Fedora: yum install libusb-devel.i586"
   echo "Old Fedora: yum install libusb-devel.i686"
   echo "Fedora 22 and later: dnf install libusb.i686 libusb-devel.i686"
@@ -2086,6 +2091,7 @@ install_libusb64(){
 echo "To install old libusb, use one of these commands:"
 echo "Debian,Ubuntu: apt-get install libusb-dev"
 echo "Modern Debian: ln -s /lib/x86_64-linux-gnu/libusb-0.1.so.4.4.4 /lib/x86_64-linux-gnu/libusb.so"
+echo "If command fails, remove the old libusb.so which is a text file."
 echo "Old Fedora: yum install libusb-devel"
 echo "Fedora 22 and later: dnf install libusb-devel"
 echo "SuSE: zypper install libusb-compat-devel"
@@ -2666,10 +2672,10 @@ if test "$SHOW32" = "1"; then
     echo "Not present: libairspy.${LIBEXT} ${TXT32} (./configure --with-airspy-32)" 
     if test "$HELP" = "1" -o "$HELP" = "13"; then
       setterm -term linux -fore red
-      echo "This package is needed for the Airspy receiver."
       if test "$BITS" = "32"; then
         install_libairspy
       else
+        echo "This package is needed for the Airspy receiver."
         echo "Copy from a 32 bit installation."
         echo "Then run ./configure again."
       fi
@@ -2702,30 +2708,22 @@ if test "$SHOW32" = "1"; then
         if test "$HAVE_WGET" = ""; then
           install_wget
         else  
-          if test "$HAVE_ALIEN" = ""; then
-            install_alien
+          echo "Install the libfdms1 library like this:"
+          echo "(copy and paste into the command line)"
+          echo "  cd /usr/src"
+          echo "  mkdir libfdms1"
+          echo "  cd libfdms1"
+          echo "  wget http://www.sm5bsz.com/linuxdsp/archive/libfdms1-1.0.tgz"
+          echo "  tar xvfz libfdms1-1.0.tgz"
+          if test "$BITS" = "32"; then
+            echo "  cp usr/local/lib/* /usr/local/lib"
           else
-            if test "$HAVE_RPM" = ""; then
-              install_rpm
-            else
-              echo "Install the libfdms1 library like this:"
-              echo "(copy and paste into the command line)"
-              echo "  cd /usr/src"
-              echo "  mkdir libfdms1"
-              echo "  cd libfdms1"
-              echo "  wget http://sdr.eladit.com/FDM-S1%20Sampler/Linux/old/libfdms1_1.0-1_i386.deb ."
-              echo "  alien --scripts --to-tgz libfdms1_1.0-1_i386.deb"
-              echo "  tar xvfz libfdms1-1.0.tgz"
-              if test "$BITS" = "32"; then
-                echo "  cp usr/local/lib/* /usr/local/lib"
-              else
-                echo "  cp usr/local/lib/* /usr/lib32"
-                echo "or copy to some other suitable location."
-                echo "For SuSE, /usr/lib" 
-              fi
-              echo "Go back to the linrad directory and run ./configure again."
-            fi
+            echo "  cp usr/local/lib/* /usr/lib32"
+            echo "or copy to some other suitable location."
+            echo "For SuSE, /usr/lib" 
           fi
+          echo "  cp usr/local/lib/* /usr/local/lib"
+          echo "Go back to the linrad directory and run ./configure again."
         fi
         setterm -term linux -fore black
         echo " "
@@ -2749,6 +2747,10 @@ if test "$SHOW32" = "1"; then
         echo "Then run ./configure again."
         echo "Udev is believed to be part of most Linux distributions"
       else
+        echo "Debian, Ubuntu:"
+        echo "   dpkg --add-architecture i386"
+        echo "   apt-get update"
+        echo "   apt-get install libudev-dev:i386"
         echo "Fedora: yum install systemd-devel.i686"
         echo "Fedora: ln -s /usr/lib/libudev.so.1.2.1 /usr/lib/libudev.so"
         echo "Fedora 22 and later: dnf install systemd.i686 systemd-compat-libs.i686"
@@ -2873,8 +2875,8 @@ if test "$SHOW32" = "1"; then
           echo "Mageia: urpmi libxext-devel"
         else
           echo "Debian, Ubuntu, run these commands:"
-          echo "sudo dpkg --add-architecture i386"
-          echo "sudo apt-get update"
+          echo "dpkg --add-architecture i386"
+          echo "apt-get update"
           echo "apt-get install libxext-dev:i386"
           echo "old Debian, Ubuntu: apt-get install ia32-libs-dev"
           echo "  If ia32-libs-dev is missing install ia32-libs and add a symbolic link"
@@ -2974,17 +2976,18 @@ if test "$SHOW32" = "1"; then
         echo "Mac OSX: Install XQuartz http://xquartz.macosforge.org/landing"
       else
         echo "Debian, Ubuntu, run these commands:" 
-        echo "sudo dpkg --add-architecture i386; sudo apt-get update"
-        echo "sudo apt-get install libc6:i386 libx11-6:i386 libdbus-1-dev:i386"
-        echo "sudo ln -s /usr/lib/i386-linux-gnu/libX11.so.6.4.0 /usr/lib/i386-linux-gnu/libX11.so"
+        echo "dpkg --add-architecture i386; apt-get update"
+        echo "apt-get install libc6:i386 libx11-6:i386 libdbus-1-dev:i386"
+        echo "ln -s /usr/lib/i386-linux-gnu/libX11.so.6.4.0 /usr/lib/i386-linux-gnu/libX11.so"
+        echo "Note that you may have another version than 6.4.0"
         echo "old Debian, Ubuntu: apt-get install ia32-libs-dev libc6-dev-i386"
         echo "old--------: If ia32-libs-dev is missing, install ia32-libs and add a symbolic link:"
-        echo "old--------: ln -s /usr/lib/i386-linux-gnu/libX11.so.6.3.0 /usr/lib/i386-linux-gnu/libX11.so"
+        echo "old--------: ln -s /usr/lib/i386-linux-gnu/libX11.so.6.4.0 /usr/lib/i386-linux-gnu/libX11.so"
         echo "old--------: Copy libX11.so from a 32 bit installation if ia32-libs fails."
         echo "old--------: Use ldd to find what more 32 bit libraries to copy."
         echo "SuSE: zypper install xorg-x11-libX11-devel-32bit"
-#On Red Hat base Linux distros (RHEL, CentOS, Scientific Linux):
-#sudo yum install glibc.i686 libgcc.i686 libX11.i686        
+        echo "On Red Hat base Linux distros (RHEL, CentOS, Scientific Linux):"
+        echo "    yum install glibc.i686 libgcc.i686 libX11.i686"
         echo "Older Fedora: yum install libX11-devel.i586"
         echo "Old Fedora: yum install libX11-devel.i686"
         echo "Fedora 22 and later: dnf install libX11.i686 libX11-devel.i686"
@@ -3010,9 +3013,9 @@ if test "$SHOW32" = "1"; then
         echo "Install the ALSA package like this:" 
         if test "$BITS" = "64"; then
           echo "Debian, Ubuntu Run these commands:"
-          echo "sudo dpkg --add-architecture i386"
-          echo "sudo apt-get update"
-          echo "sudo apt-get install libasound2-dev:i386"
+          echo "dpkg --add-architecture i386"
+          echo "apt-get update"
+          echo "apt-get install libasound2-dev:i386"
           echo "Old Debian, Ubuntu: apt-get install libasound2-dev lib32asound2"
           echo "Old Debian, Ubuntu: apt-get install lib32asound2-dev"
           echo "Mandriva: urpmi libalsa-oss-devel"
@@ -3227,28 +3230,41 @@ if test "$BITS" = "64"; then
       echo "Not present: libOpenCL.${LIBEXT} (64 bit) (./configure --with-opencl-64)"
       if test "$HELP" = "1" -o "$HELP" = "1022"; then
         setterm -term linux -fore red
-        echo "One or the other of these is needed to use the graphics card for fast FFT"      
-        echo "Debian, Ubuntu: apt-get install nvidia-opencl-dev"        
-        echo "Debian, Ubuntu: apt-get install amd-opencl-dev"
-        echo "----: Note that non-free has to be specified in /etc/apt/sources.list"
-        echo "Fedora 22 and later: dnf install ocl-icd-devel opencl-utils-devel"
-        echo "Mageia: urpmi lib64opencl1 lib64opencl-devel"
-        echo Then run ./configure again.
+        if test "$HAVE_REALPATH" = ""; then  
+          echo "First install realpath:"
+          echo "Debian, Ubuntu: apt-get install realpath"
+          echo "Run ./configure again to get the actual commands."
+        else
+          echo "One or the other of these is needed to use the graphics card for fast FFT"      
+          echo "Debian, Ubuntu: apt-get install nvidia-opencl-dev"        
+          echo "Debian, Ubuntu: apt-get install amd-opencl-dev"
+          echo "----: Note that non-free has to be specified in /etc/apt/sources.list"
+          echo "Fedora 22 and later: dnf install ocl-icd-devel opencl-utils-devel"
+          echo "Mageia: urpmi lib64opencl1 lib64opencl-devel"
+          echo Then run ./configure again.
+        fi 
         setterm -term linux -fore black
         echo " "
       fi
     else
       if test "$CLFFTPATH64" == ""; then
-        echo "Not present: libclFFT.${LIBEXT} (64bit) (./configure --with-clfft-64)"
+          echo "Not present: libclFFT.${LIBEXT} (64bit) (./configure --with-clfft-64)"
         if test "$HELP" = "1" -o "$HELP" = "1021"; then
           setterm -term linux -fore red
-          echo "This package allows usage of OpenCL and clFFT on graphics card."      
-          if test "$HAVE_CPP" = ""; then
-            install_cpp
+          if test "$HAVE_REALPATH" = ""; then  
+            echo "First install realpath:"
+            echo "Debian, Ubuntu: apt-get install realpath"
+            echo "Run ./configure again to get the actual commands."
+            echo " "
           else
-            install_clfft
+            echo "This package allows usage of OpenCL and clFFT on graphics card."      
+            if test "$HAVE_CPP" = ""; then
+              install_cpp
+            else
+              install_clfft
+            fi
+            setterm -term linux -fore black
           fi
-        setterm -term linux -fore black
         fi
       else 
         if test "$CLFFT64_INC" == ""; then
@@ -3339,7 +3355,6 @@ if test "$BITS" = "64"; then
       echo "Not present: libairspy.${LIBEXT} (64bit)  (./configure --with-airspy-64)"
       if test "$HELP" = "1" -o "$HELP" = "1013"; then
         setterm -term linux -fore red
-        echo "This package is needed for the Airspy receiver."
         install_libairspy
         setterm -term linux -fore black
         echo " "
@@ -3365,25 +3380,16 @@ if test "$BITS" = "64"; then
           if test "$HAVE_WGET" = ""; then
             install_wget
           else  
-            if test "$HAVE_ALIEN" = ""; then
-              install_alien
-            else
-              if test "$HAVE_RPM" = ""; then
-                install_rpm
-              else
-                echo Install the libfdms1 library like this:
-                echo "(copy and paste into the command line)"
-                echo "  cd /usr/src"
-                echo "  mkdir libfdms1"
-                echo "  cd libfdms1"
-                echo "  wget http://sdr.eladit.com/FDM-S1%20Sampler/Linux/libfdms1-64bit-1.0.1-2.x86_64.rpm ."
-                echo "  alien --scripts --to-tgz libfdms1-64bit-1.0.1-2.x86_64.rpm"
-                echo "  tar xvfz libfdms1-64bit-1.0.1.tgz"
-                echo "  mkdir /usr/lib/x86_64-linux-gnu"
-                echo "  cp usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu"
-                echo "Go back to the linrad directory and run ./configure again."
-              fi
-            fi 
+            echo Install the libfdms1 library like this:
+            echo "(copy and paste into the command line)"
+            echo "  cd /usr/src"
+            echo "  mkdir libfdms1"
+            echo "  cd libfdms1"
+            echo "  wget http://sm5bsz.com/linuxdsp/archive/libfdms1-64bit-1.0.1.tgz"
+            echo "  tar xvfz libfdms1-64bit-1.0.1.tgz"
+            echo "  mkdir /usr/lib/x86_64-linux-gnu"
+            echo "  cp usr/lib/x86_64-linux-gnu/* /usr/lib/x86_64-linux-gnu"
+            echo "Go back to the linrad directory and run ./configure again."
             echo " "
           fi
           setterm -term linux -fore black
@@ -3581,7 +3587,7 @@ if test "$BITS" = "64"; then
     fi
   fi
 fi
-setterm -term linux --default
+setterm -term linux -default
 #------------------------------------------------------------------
 echo " "
 if test ${OS} = "Darwin"; then

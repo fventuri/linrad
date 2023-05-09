@@ -737,12 +737,13 @@ else
             }
           }
         if(bg_carrfilter_y[kk] == old_y2)color=58;
-        if(bg_filterfunc_y[kk] == old_y2)color=14;
+        if(fft1_correlation_flag != 2 && 
+                               bg_filterfunc_y[kk] == old_y2)color=14;
         color1=bg_background[old_y1];
         if( (kk == curv_xpixel && old_y1 >= bg_y4 && old_y1 < bg_y3) ||
             (kk == flat_xpixel && old_y1 >= bg_ymax && old_y1 < bg_y4) )
           {
-          color1=14;
+          if(fft1_correlation_flag != 2)color1=14;
           }
         else 
           {
@@ -754,7 +755,8 @@ else
             }
           }
         if(bg_carrfilter_y[kk] == old_y1)color1=58;
-        if(bg_filterfunc_y[kk] == old_y1)color1=14;
+        if(fft1_correlation_flag != 2 &&
+                                bg_filterfunc_y[kk] == old_y1)color1=14;
         if(kk < bgbutt[BG_SQUELCH_LEVEL].x1)
           {
           lir_setpixel(kk,old_y2,color);
@@ -781,14 +783,13 @@ else
         }
       else
         {  
-// new_y1 != new_y2
         if( new_y2 != old_y2)
           {
           color2=bg_background[old_y2];
           if( (kk == curv_xpixel && old_y2 >= bg_y4 && old_y2 < bg_y3) ||
               (kk == flat_xpixel && old_y2 >= bg_ymax && old_y2 < bg_y4) )
             {
-            color2=14;
+            if(fft1_correlation_flag != 2)color2=14;
             }
           else 
             {  
@@ -800,7 +801,8 @@ else
               }
             }
           if(bg_carrfilter_y[kk] == old_y2)color2=58;
-          if(bg_filterfunc_y[kk] == old_y2)color2=14;
+          if(bg_filterfunc_y[kk] == old_y2 && 
+                                 fft1_correlation_flag != 2)color2=14;
           if(kk < bgbutt[BG_SQUELCH_LEVEL].x1)
             {
             lir_setpixel(kk,old_y2,color2);
@@ -825,7 +827,7 @@ else
           if( (kk == curv_xpixel && old_y1 >= bg_y4 && old_y1 < bg_y3) ||
               (kk == flat_xpixel && old_y1 >= bg_ymax && old_y1 < bg_y4) )
             {
-            color1=14;
+            if(fft1_correlation_flag != 2)color1=14;
             }
           else 
             {  
@@ -837,7 +839,8 @@ else
               }
             }
           if(bg_carrfilter_y[kk] == old_y1)color1=58;
-          if(bg_filterfunc_y[kk] == old_y1)color1=14;
+          if(bg_filterfunc_y[kk] == old_y1 &&
+                               fft1_correlation_flag != 2)color1=14;
           if(kk < bgbutt[BG_SQUELCH_LEVEL].x1)
             {
             lir_setpixel(kk,old_y1,color1);

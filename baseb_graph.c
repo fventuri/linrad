@@ -411,18 +411,21 @@ if(use_bfo == 0)
   }
 if(bfo_xpixel > 0)
   {
-  if(bg_filterfunc_y[bfo_xpixel] > 0)
+  if(fft1_correlation_flag != 2)  
+    {
+    if(bg_filterfunc_y[bfo_xpixel] > 0)
                      lir_setpixel(bfo_xpixel,bg_filterfunc_y[bfo_xpixel],14);
-  if(bg_filterfunc_y[bfo10_xpixel] > 0)
+    if(bg_filterfunc_y[bfo10_xpixel] > 0)
                  lir_setpixel(bfo10_xpixel,bg_filterfunc_y[bfo10_xpixel],14);
-  if(bg_filterfunc_y[bfo100_xpixel] > 0)
+    if(bg_filterfunc_y[bfo100_xpixel] > 0)
                lir_setpixel(bfo100_xpixel,bg_filterfunc_y[bfo100_xpixel],14);
+    }
   if(bg_carrfilter_y[bfo_xpixel] > 0)
-                     lir_setpixel(bfo_xpixel,bg_carrfilter_y[bfo_xpixel],14);
+                     lir_setpixel(bfo_xpixel,bg_carrfilter_y[bfo_xpixel],58);
   if(bg_carrfilter_y[bfo10_xpixel] > 0)
-                 lir_setpixel(bfo10_xpixel,bg_carrfilter_y[bfo10_xpixel],14);
+                 lir_setpixel(bfo10_xpixel,bg_carrfilter_y[bfo10_xpixel],58);
   if(bg_carrfilter_y[bfo100_xpixel] > 0)
-               lir_setpixel(bfo100_xpixel,bg_carrfilter_y[bfo100_xpixel],14);
+               lir_setpixel(bfo100_xpixel,bg_carrfilter_y[bfo100_xpixel],58);
   }
 // When we arrive here only bg.bfo_freq is defined.
 // Set up the other variables we need that depend on it. 
@@ -1512,7 +1515,7 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
       }
     else
       {    
-      lir_setpixel(i,iy,14);
+      if(fft1_correlation_flag != 2)lir_setpixel(i,iy,14);
       }
     }
   else
@@ -2559,8 +2562,11 @@ switch (mouse_active_flag-1)
   break;
 
   case BG_MIXER_MODE:
-  bg.mixer_mode++;
-  if(bg.mixer_mode > 2)bg.mixer_mode=1;
+  if(fft1_correlation_flag == 0)
+    { 
+    bg.mixer_mode++;
+    if(bg.mixer_mode > 2)bg.mixer_mode=1;
+    }
   break;
 
   case BG_FILTER_SHIFT:
@@ -4019,6 +4025,7 @@ if(errcnt < 2)
      bg.agc_hang > 9
      )goto bg_default;
   }
+if(fft1_correlation_flag > 0)bg.mixer_mode=2;     
 bg_no_of_notches=0;
 bg_current_notch=0;
 new_bg_agc_flag=bg.agc_flag;

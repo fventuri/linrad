@@ -59,7 +59,7 @@
 #include <windows.h>
 #include "wscreen.h"
 #define RECV_FLAG 0
-#if !defined __MINGW64_VERSION_MAJOR || __MINGW64_VERSION_MAJOR < 10
+#if !defined __MINGW64_VERSION_MAJOR || __MINGW64_VERSION_MAJOR < 9
 typedef struct{
 struct in_addr imr_multiaddr;   // IP multicast address of group
 struct in_addr imr_interface;   // local IP address of interface
