@@ -1651,7 +1651,13 @@ fq_valstep=numchar*hz_per_pixel*text_width;
 j=adjust_scale(&fq_valstep);
 fact=1;
 i=0;
-if(fq_valstep > 1)
+if(fq_valstep < 1)
+  {
+  i=0;
+  fmt="%.3f";
+  fact=1;
+  }  
+if(fq_valstep >= 1)
   {
   i=1;
   fmt="%.3f";

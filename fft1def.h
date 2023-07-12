@@ -244,7 +244,6 @@ extern FFT_SETUP_INFO fft_cntrl[MAX_FFT_VERSIONS];
 
 extern int timf1_bytes;
 extern int timf1_bytemask;
-extern int timf1_neg;
 extern int timf1_blockbytes;
 extern int timf1_usebytes;
 extern char *timf1_char;

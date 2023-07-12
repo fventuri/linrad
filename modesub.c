@@ -1868,7 +1868,7 @@ memalloc_max=max;
 memalloc_mem=mm;
 }
 
-void mem(int num, void *pointer, unsigned int size, int scratch_size)
+void mem(int num, void *pointer, size_t size, int scratch_size)
 {
 if(lir_errcod !=0)return;
 // Skip if outside array. Error code will come on return from memalloc.
@@ -1905,12 +1905,30 @@ totbytes=16+DEBMEM;
 dt=totbytes;
 for(i=0; i<memalloc_no; i++)
   {
+  if((0x8000000000000000&
+     (memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM)) !=0)
+     {
+     PERMDEB"\nERROR %s",s);
+#if IA64 == 0
+     PERMDEB"\n%d %x %x",memalloc_mem[i].num, 
+                memalloc_mem[i].size, (size_t)0x8000000000000000);
+#else
+#if(OSNUM == OSNUM_WINDOWS)
+     PERMDEB"\n%d %llu %llu",memalloc_mem[i].num, 
+                memalloc_mem[i].size, (size_t)0x8000000000000000);
+#else
+     PERMDEB"\n%d %lx %lx",memalloc_mem[i].num, 
+                memalloc_mem[i].size, (size_t)0x8000000000000000);
+#endif
+#endif
+     
+     lirerr(1472);
+     return 0;
+     }
   totbytes+=memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM;
   dt+=memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM;
   }
 if(fabs(dt-totbytes) > 100)return 0;
-DEB"%s: %3.1f Megabytes(%d arrays)\n",s,
-                             totbytes*0.000001,(unsigned int)memalloc_no);
 handle[0]=(size_t*)(malloc(totbytes+16));
 if(handle[0] == 0)return 0;
 mask=(size_t)-16;

@@ -1292,8 +1292,8 @@ char *text;
 
 typedef struct {
 void *pointer;
-int size;
-int scratch_size;
+size_t size;
+size_t scratch_size;
 int num;
 } MEM_INF;
 

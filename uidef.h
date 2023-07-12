@@ -497,7 +497,7 @@ void coherent_cw_detect(void);
 void clear_coherent(void);
 void clear_cg_traces(void);
 void init_memalloc(MEM_INF *mem, size_t max);
-void mem(int num, void *pointer, unsigned int size, int scratch_size);
+void mem(int num, void *pointer, size_t size, int scratch_size);
 size_t memalloc( size_t **handle, char *s);
 void memcheck(int n, MEM_INF *mm, size_t **handle);
 void ncw_rx(void);

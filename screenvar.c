@@ -197,12 +197,12 @@ int tg_oldy;
 int tg_yborder;
 int tg_old_band;
 
-int fftx_totmem;
-int baseband_totmem;
-int afc_totmem;
-int hires_totmem;
-int fft3_totmem;
-int radar_totmem;
+size_t fftx_totmem;
+size_t baseband_totmem;
+size_t afc_totmem;
+size_t hires_totmem;
+size_t fft3_totmem;
+size_t radar_totmem;
 
 int bg_waterf_sum_counter;
 float *bg_waterf_sum;

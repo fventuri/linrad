@@ -458,7 +458,7 @@ if(sw_onechan)
     }
   }
 else
-  {  
+  {
   if(fft1_correlation_flag == 2)
     {
 #define MAX_CORRPOW_CNT 8
@@ -469,6 +469,7 @@ else
     k=(int)((float)fft3_size*bg_noise_bw/timf3_sampling_speed)/
                                                          (2*bg.coh_factor);
     ia=fft3_size/2-bg_xpoints;
+    if(ia < 0)ia=0;
     ib=fft3_size/2-k;
 // Compute power spectrum within the baseband window while
 // excluding points within the carrier filter. Store in fft3_tmp

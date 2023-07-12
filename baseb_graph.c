@@ -484,7 +484,7 @@ if(bg_agc_hang_pts > baseband_size/2)bg_agc_hang_pts=baseband_size/2;
 /*void construct_fir(int win, int siz, int n, int *points, int ct, 
                                               float *fir, float small)
 */
-void construct_fir(int win, int siz, int n, int *points, int ct, 
+int construct_fir(int win, int siz, int n, int *points, int ct, 
                                               float *fir, float zsmall)
 
 {
@@ -495,6 +495,7 @@ float *fir_window;
 unsigned short int *fir_permute;
 COSIN_TABLE *fir_tab;
 cutoff=ct;
+if(siz < 16)return FALSE;
 if(cutoff < 1)cutoff=1;
 if(cutoff>=siz/2)cutoff=siz/2-1;
 // Construct a FIR filter of size siz with a cut-off frequency cutoff.
@@ -505,7 +506,7 @@ firbuf=malloc(siz*(3*sizeof(float)+sizeof(short int)+sizeof(COSIN_TABLE)/2));
 if(firbuf == NULL)
   {
   lirerr(493367);
-  return;
+  return FALSE;
   }
 fir_window=&firbuf[siz*2];
 fir_permute=(void*)(&fir_window[siz]);
@@ -594,6 +595,7 @@ for(i=0; i<points[0]; i++)
   {
   fir[i]*=t1;
   }
+return(TRUE);
 }
 
 
@@ -637,7 +639,9 @@ if(t1<genparm[BASEBAND_STORAGE_TIME])t1=genparm[BASEBAND_STORAGE_TIME];
 // Allocate memory for transformation from fft3 to the baseband.
 // We are already in the baseband but the filter in use may allow 
 // a reduction of the sampling speed.
-baseband_size=t1*baseband_sampling_speed;
+t1*=baseband_sampling_speed;
+if(t1 > 0x0FFFFFFF)t1=0x0FFFFFFF;
+baseband_size=t1;
 make_power_of_two(&baseband_size);
 daout_bufmask=daout_size-1;
 cg_size=2+(COH_SIDE*text_width)/3;
@@ -848,7 +852,7 @@ if(rx_mode == MODE_FM)
     mem(333,&fmfil70_fir,fmfil70_size*sizeof(float),0);
     mem(334,&fm1_all,fm1_size*sizeof(float),0);
     }
-  }  
+  }
 if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
   {
 #if NET_BASEBRAW_MODE == WFM_FM_FIRST_LOWPASS || \
@@ -902,10 +906,6 @@ if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
   basebraw_mode=DWORD_INPUT;
   basebraw_passband_direction=1;
 #endif
-
-
-
-
   basebrawnet_block_bytes=(basebraw_ad_channels*basebraw_rf_channels*
                                     basebraw_sampling_speed)/ui.max_dma_rate;
   make_power_of_two(&basebrawnet_block_bytes);
@@ -919,6 +919,7 @@ if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
   mem(7578,&basebraw_netsend_buffer,basebrawnet_size,0);
   }
 baseband_totmem=memalloc(&baseband_handle,"baseband");
+if(kill_all_flag)return;
 if(baseband_totmem == 0)
   {
   lir_status=LIR_OK;
@@ -1012,12 +1013,22 @@ if(fm_pilot_size > 0)
 
 
 #endif
-  construct_fir(7,fmfil70_size, fmfil70_n, 
-                                 &fmfil70_points, i, fmfil70_fir, 0.00001);
+  k=construct_fir(7,fmfil70_size, fmfil70_n, 
+                           &fmfil70_points, i, fmfil70_fir, 0.00001);
+  if(!k)
+    {
+    lirerr(1473);
+    return;
+    }                           
 // *********************** fmfil55 *********************************          
   i=fmfil55_size*53000/baseband_sampling_speed;
-  construct_fir(7,fmfil55_size, fmfil55_n, 
-                                 &fmfil55_points, i, fmfil55_fir, 0.00001);
+  k=construct_fir(7,fmfil55_size, fmfil55_n, 
+                            &fmfil55_points, i, fmfil55_fir, 0.00001);
+  if(!k)
+    {
+    lirerr(1474);
+    return;
+    }
 // *********************** fmfil *********************************          
   t1=15000;
   if(genparm[DA_OUTPUT_SPEED] < 40000)
@@ -1025,12 +1036,22 @@ if(fm_pilot_size > 0)
     t1*=genparm[DA_OUTPUT_SPEED]/40000.;
     }
   i=fmfil_size*t1/baseband_sampling_speed;
-  construct_fir(7,fmfil_size, fmfil_n, 
+  k=construct_fir(7,fmfil_size, fmfil_n, 
                                  &fmfil_points, i, fmfil_fir, 0.00001);
+  if(!k)
+    {
+    lirerr(1475);
+    return;
+    }
 // *********************** fmfil_rds ********************************
   i=fmfil_rds_size*4000/baseband_sampling_speed;
-  construct_fir(7,fmfil_rds_size, fmfil_rds_n, 
-                               &fmfil_rds_points, i, fmfil_rds_fir, 0.0001);
+  k=construct_fir(7,fmfil_rds_size, fmfil_rds_n, 
+                           &fmfil_rds_points, i, fmfil_rds_fir, 0.0001);
+  if(!k)
+    {
+    lirerr(1476);
+    return;
+    }
 // *****************************************************************
 // collect the RDS phase in a leaky integrator of about 0.01 second.
   rds_f1=pow(0.5,100/baseband_sampling_speed);
@@ -1244,6 +1265,7 @@ if(k > 2)
     {
     mix2.size=2*fft3_size/k;
     init_basebmem();
+    if(kill_all_flag)return;
     baseb_reset_counter++;
     }
   }
@@ -1255,6 +1277,7 @@ else
     {
     mix2.size=fft3_size;
     init_basebmem();
+    if(kill_all_flag)return;
     baseb_reset_counter++;
     }  
   }
@@ -3642,7 +3665,7 @@ else
       freq_readout_x1=ix2;
       }
     }
-  }  
+  } 
 freq_readout_x1+=text_width;  
 freq_readout_y1=iy1;
 ix2=bg.xright-2;
@@ -3847,8 +3870,13 @@ if(rx_mode == MODE_FM)
   {
 // *********************** fm_audiofil *********************************          
   i=1000*fm_audiofil_size*bg.fm_audio_bw/baseband_sampling_speed;
-  construct_fir(7,fm_audiofil_size, fm_audiofil_n, 
+  k=construct_fir(7,fm_audiofil_size, fm_audiofil_n, 
                    &fm_audiofil_points, i, fm_audiofil_fir, 0.00001);
+if(!k)
+    {
+    lirerr(1477);
+    return;
+    }
   fm0_ph1=0;
   fm0_ph2=0;
   fm1_ph1=0;
@@ -4052,7 +4080,7 @@ bfo_xpixel=-1;
 if(ui.operator_skil != OPERATOR_SKIL_EXPERT)
   {
   bg.oscill_on=0;
-  }  
+  }
 init_baseband_sizes();
 make_baseband_graph(FALSE);
 if(kill_all_flag)return;

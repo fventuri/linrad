@@ -2364,7 +2364,7 @@ if(diskread_flag != 0)
 void main_menu(void)
 {
 int rx_rf_channels;
-int i, j, k;
+int i, j, k, n1, n2;
 int uiupd, line;
 char s[256], ss[80];
 int message_line;
@@ -2385,11 +2385,21 @@ if(kill_all_flag) goto menu_x;
 // with his hardware but some routines, e.g. txtest may change
 // the A/D parameters and/or other parameters.
 // We will always start here with the initial ui parameters.
-if (ui.max_dma_rate < MIN_DMA_RATE || ui.max_dma_rate > MAX_DMA_RATE) 
+    if(ui.operator_skil == OPERATOR_SKIL_EXPERT)
+      {
+      n1=MIN_DMA_RATE_EXP;
+      n2=MAX_DMA_RATE_EXP;
+      }
+    else
+      {
+      n1=MIN_DMA_RATE;
+      n2=MAX_DMA_RATE;
+      }
+if (ui.max_dma_rate < n1 || ui.max_dma_rate > n2) 
   {
   ui.max_dma_rate=DEFAULT_MAX_DMA_RATE;
   }
-if (ui.min_dma_rate < MIN_DMA_RATE || ui.min_dma_rate > ui.max_dma_rate) 
+if (ui.min_dma_rate < n1 || ui.min_dma_rate > n2) 
   {
   ui.min_dma_rate=DEFAULT_MIN_DMA_RATE;
   }

@@ -354,12 +354,12 @@ extern int tg_old_band;
 extern double phasing_time;
 
 extern int afc_curx;
-extern int fftx_totmem;
-extern int baseband_totmem;
-extern int afc_totmem;
-extern int hires_totmem;
-extern int fft3_totmem;
-extern int radar_totmem;
+extern size_t fftx_totmem;
+extern size_t baseband_totmem;
+extern size_t afc_totmem;
+extern size_t hires_totmem;
+extern size_t fft3_totmem;
+extern size_t radar_totmem;
 extern int s_meter_avg_filled_flag;
 extern ROUTINE current_mouse_activity;
 extern int mouse_active_flag;

@@ -311,7 +311,6 @@ int save_rw_bytes;
 
 float timf1_sampling_speed;
 int timf1_bytes;
-int timf1_neg;
 int timf1_bytemask;
 int timf1_blockbytes;
 int timf1_usebytes;
