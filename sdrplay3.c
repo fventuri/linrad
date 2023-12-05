@@ -48,6 +48,8 @@
 #define SDRPLAY_API_VERSION   (float)(3.10)
 #elif SDRPLAY3PAR_VERNR == 311
 #define SDRPLAY_API_VERSION   (float)(3.11)
+#elif SDRPLAY3PAR_VERNR == 312
+#define SDRPLAY_API_VERSION   (float)(3.12)
 #endif
 
 // API Constants
@@ -267,6 +269,14 @@ typedef enum
     sdrplay_api_RspDuo_AMPORT_2 = 0,
 } sdrplay_api_RspDuo_AmPortSelectT;
 
+#if SDRPLAY3PAR_VERNR >= 312
+typedef struct 
+{
+     unsigned char resetGainUpdate;      // default: 0
+     unsigned char resetRfUpdate;        // default: 0
+} sdrplay_api_RspDuo_ResetSlaveFlagsT;
+#endif
+
 // RSPduo parameter structs
 typedef struct
 {
@@ -280,6 +290,9 @@ typedef struct
     unsigned char tuner1AmNotchEnable;
     unsigned char rfNotchEnable;
     unsigned char rfDabNotchEnable;
+#if SDRPLAY3PAR_VERNR >= 312
+    sdrplay_api_RspDuo_ResetSlaveFlagsT resetSlaveFlags;
+#endif
 } sdrplay_api_RspDuoTunerParamsT;
 
 // RSPdx parameter enums
@@ -557,6 +570,9 @@ typedef enum
     sdrplay_api_Update_RspDx_RfNotchControl        = 0x00000008,
     sdrplay_api_Update_RspDx_RfDabNotchControl     = 0x00000010,
     sdrplay_api_Update_RspDx_HdrBw                 = 0x00000020,
+#if SDRPLAY3PAR_VERNR >= 312
+    sdrplay_api_Update_RspDuo_ResetSlaveFlags      = 0x00000040,
+#endif
 } sdrplay_api_ReasonForUpdateExtension1T;
 
 
