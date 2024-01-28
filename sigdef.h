@@ -347,12 +347,17 @@ extern int sg_siz;
 extern int sg_corrnum;
 extern int sg_numpow;
 extern int sg_y0;
+extern int sg_mode3_ymid;
+extern int sg_mode3_ypix;
+
 extern int sg_first_xpixel;
 extern int sg_last_xpixel;
+extern int sg_ytop2;
 extern double sg_reset_time;
 extern double sg_display_time;
 extern int sg_valid;
 extern int corrpow_cnt;
+
 
 extern int fftn_tmp_size;
 extern int siganal_totmem;
@@ -360,6 +365,7 @@ extern double *sg_fft;
 extern float *sg_pwr;
 extern double *sg_pwrsum;
 extern double *sg_corrsum;
+extern double *sg_anpn_corr;
 extern double *sg_window;
 extern D_COSIN_TABLE *sg_tab;
 extern unsigned int *sg_permute;
@@ -373,6 +379,8 @@ extern short int *sg_ancspectrum;
 extern short int *sg_pn1spectrum;
 extern short int *sg_pn2spectrum;
 extern short int *sg_pncspectrum;
+extern short int *sg_anpncorr_ispectrum;
+extern short int *sg_anpncorr_qspectrum;
 
 extern float *mix2_tmp;
 extern float *mix2_pwr;

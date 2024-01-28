@@ -525,7 +525,7 @@ else
     t1/=r1*ib;
     t2/=r2*ib;
     sprintf(s, "fft3 %6.2f",10*log10(1000*fabs(t1+t2)));
-    lir_pixwrite(sg_last_xpixel-30*text_width,sg.ytop+4*text_height,s);
+    lir_pixwrite(sg_last_xpixel-16*text_width,sg.ytop+15*text_height/2,s);
     if(t1 < 0.01 && t2 < 0.01)
       {
       t1=(float)(MAX_CORRPOW_CNT)/(float)(MAX_CORRPOW_CNT+1);
@@ -540,7 +540,7 @@ else
     else
       {
       sprintf(s, "fft3 skip %6.2f",10*log10(1000*fabs(t1+t2)));
-      lir_pixwrite(sg_last_xpixel-35*text_width,sg.ytop+5*text_height,s);
+      lir_pixwrite(sg_last_xpixel-16*text_width,sg.ytop+9*text_height,s);
       sg_inhibit_count=MAX_SG_INHIBIT_COUNT;
       }
     }

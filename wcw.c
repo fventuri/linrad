@@ -1746,7 +1746,7 @@ more_fft3:;
 #endif
   k=(fft3_pa-fft3_px+fft3_totsiz)&fft3_mask;
   k/=fft3_block;
-  if(audio_dump_flag == 0 && k >= 2)
+  if(audio_dump_flag == 0 && k >= 3)
     {
     fft3_overload_ticks++;
     if(fft3_overload_ticks > 5)

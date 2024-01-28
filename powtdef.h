@@ -16,6 +16,7 @@ extern unsigned int powtim_y2;
 extern int powtim_scalepix;
 extern int powtim_pause_flag;
 extern int adtest_channel;
+extern int adtest_iq_mode;
 extern double adtest_scale;
 extern int adtest_new;
 

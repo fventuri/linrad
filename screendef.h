@@ -93,6 +93,7 @@ extern unsigned int sd[MAX_SC];
 #define TXTEST_PEAK_POWER_COLOR 10
 #define TXTEST_WIDE_AVERAGE_COLOR 12
 
+#define NO_SG_MODES 4
 
 
 #define MAX_SVGA_PALETTE 60
@@ -185,7 +186,7 @@ extern int bg_waterf_block;
 extern int bg_waterf_lines;
 extern float bg_waterf_yfac;
 
-extern char sg_modes[3];
+extern char sg_modes[NO_SG_MODES];
 extern float sg_hz_per_pixel;
 
 extern unsigned char *wg_background;

@@ -42,12 +42,12 @@ char *cw_item_text[256-CW_DASH]={"WORDSEP","SPACE","DOT","DASH"};
 
 unsigned char morsascii1[2]={
  'E',//.
-'T'};//_
+ 'T'};//_
 unsigned char morsascii2[4]={
  'I',//..
  'A',//._
  'N',//_.
-'M'};//__
+ 'M'};//__
 unsigned char morsascii3[8]={
  'S',//...
  'U',//.._
@@ -307,8 +307,11 @@ int sg_siz;
 int sg_corrnum;
 int sg_numpow;
 int sg_y0;
+int sg_mode3_ymid;
+int sg_mode3_ypix;
 int sg_first_xpixel;
 int sg_last_xpixel;
+int sg_ytop2;
 double sg_reset_time;
 double sg_display_time;
 int sg_valid;
@@ -320,6 +323,7 @@ double *sg_fft;
 float *sg_pwr;
 double *sg_pwrsum;
 double *sg_corrsum;
+double *sg_anpn_corr;
 double *sg_window;
 D_COSIN_TABLE *sg_tab;
 unsigned int *sg_permute;
@@ -331,6 +335,8 @@ short int *sg_ancspectrum;
 short int *sg_pn1spectrum;
 short int *sg_pn2spectrum;
 short int *sg_pncspectrum;
+short int *sg_anpncorr_ispectrum;
+short int *sg_anpncorr_qspectrum;
 
 float reg_dot_power[5];
 float reg_dot_re[5];

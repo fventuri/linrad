@@ -3250,8 +3250,9 @@ if(fft1_correlation_flag == 0)
 else
   {
   k=sizeof(double);
+  if(fft1_correlation_flag == 2)k*=4;
   }
-if(t1*k > (float)(0x40000000))
+if(t1*k > (float)(0x4FFFFFFF))
   {
   fft3_size/=2;
   fft3_size_error("RAM memory");

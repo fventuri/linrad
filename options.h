@@ -151,8 +151,8 @@
 // Linrad can display buffer usage as bars on screen when "T"
 // is pressed to provide timing info. This option is however
 // rather time-consuming and not often helpful 
-//#define BUFBARS TRUE
-#define BUFBARS FALSE
+#define BUFBARS TRUE
+//#define BUFBARS FALSE
 #include "bufbars.h"
 // **************************************************************
 //           ---- Internal signal generator  ----

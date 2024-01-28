@@ -1905,30 +1905,16 @@ totbytes=16+DEBMEM;
 dt=totbytes;
 for(i=0; i<memalloc_no; i++)
   {
-  if((0x8000000000000000&
-     (memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM)) !=0)
-     {
-     PERMDEB"\nERROR %s",s);
-#if IA64 == 0
-     PERMDEB"\n%d %x %x",memalloc_mem[i].num, 
-                memalloc_mem[i].size, (size_t)0x8000000000000000);
-#else
-#if(OSNUM == OSNUM_WINDOWS)
-     PERMDEB"\n%d %llu %llu",memalloc_mem[i].num, 
-                memalloc_mem[i].size, (size_t)0x8000000000000000);
-#else
-     PERMDEB"\n%d %lx %lx",memalloc_mem[i].num, 
-                memalloc_mem[i].size, (size_t)0x8000000000000000);
-#endif
-#endif
-     
-     lirerr(1472);
-     return 0;
-     }
   totbytes+=memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM;
   dt+=memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM;
+  if(dt-(double)(totbytes) != 0)
+   {
+   PERMDEB"\nERROR %s totbytes=%f wanted %f",s,(double)(totbytes),dt);
+   printf("\nERROR %s totbytes=%f wanted %f",s,(double)(totbytes),dt);
+   lirerr(1472);
+   return 0;
+   }
   }
-if(fabs(dt-totbytes) > 100)return 0;
 handle[0]=(size_t*)(malloc(totbytes+16));
 if(handle[0] == 0)return 0;
 mask=(size_t)-16;

@@ -115,6 +115,8 @@ void do_siganal(void)
 {
 int i, j, pa, px;
 double dt1, dt2, dt3, dt4;
+double ch1_ani, ch1_anq, ch2_ani, ch2_anq;
+double ch1_pni, ch1_pnq, ch2_pni, ch2_pnq;
 for(j=0; j<4; j+=2)
   {
   i=0;
@@ -143,22 +145,6 @@ for(j=0; j<4; j+=2)
                                                 sg_window[i]/dt3;
     sg_tmp[2*i  ]=dt4;
     }
-    
-
-/*
-if(old_timf3_pa != timf3_pa)
-  {
-  if(dt1 > 0)
-    {
-    mix1_selfreq[0]-=0.000001;
-    }
-  else
-    {
-    mix1_selfreq[0]+=0.000001;
-    }
-  old_timf3_pa=timf3_pa;
-  }  
-*/  
   d_fftforward(sg_siz, sg.fft_n, sg_tmp, sg_tab, sg_permute);
 // separate the AN parts and the PN parts for i=1 to sg_siz-1
 // AN[0]=tmp[0]
@@ -201,9 +187,9 @@ if(old_timf3_pa != timf3_pa)
     sg_pwr[pa+j   ]=dt2*(pow(sg_tmp[2*i  ]+sg_tmp[2*(sg_siz-i)  ],2.)+
                       pow(sg_tmp[2*i+1]-sg_tmp[2*(sg_siz-i)+1],2.));
     sg_fft[j+4*i  ]=dt3*(sg_tmp[2*i  ]+sg_tmp[2*(sg_siz-i)  ]);
-    sg_fft[j+4*i+1]=dt3*sg_tmp[2*i+1]-sg_tmp[2*(sg_siz-i)+1];
+    sg_fft[j+4*i+1]=dt3*(sg_tmp[2*i+1]-sg_tmp[2*(sg_siz-i)+1]);
 //PN
-      sg_pwr[pa+j+1]=dt2*(pow(sg_tmp[2*i  ]-sg_tmp[2*(sg_siz-i)  ],2.)+
+    sg_pwr[pa+j+1]=dt2*(pow(sg_tmp[2*i  ]-sg_tmp[2*(sg_siz-i)  ],2.)+
                           pow(sg_tmp[2*i+1]+sg_tmp[2*(sg_siz-i)+1],2.));
     sg_fft[2*sg_siz+4*i+j  ]=dt3*(sg_tmp[2*i  ]-sg_tmp[2*(sg_siz-i)  ]);
     sg_fft[2*sg_siz+4*i+j+1]=dt3*(sg_tmp[2*i+1]+sg_tmp[2*(sg_siz-i)+1]);
@@ -211,15 +197,37 @@ if(old_timf3_pa != timf3_pa)
     }
   }
 sg_corrnum++;
-for(i=0; i<sg_siz; i++)
+for(i=0; i<sg_siz/2; i++)
   {
-  sg_corrsum[2*i  ]+=(sg_fft[4*i  ]*sg_fft[4*i+2]+
-                            sg_fft[4*i+1]*sg_fft[4*i+3]);
-                          
-  sg_corrsum[2*i+1]+=(sg_fft[4*i+1]*sg_fft[4*i+2]-
-                            sg_fft[4*i  ]*sg_fft[4*i+3]);
+  ch1_ani=sg_fft[4*i  ];
+  ch2_ani=sg_fft[4*i+2];
+  ch1_anq=sg_fft[4*i+1];
+  ch2_anq=sg_fft[4*i+3];
+  sg_corrsum[2*i  ]+=ch1_ani*ch2_ani+ch1_anq*ch2_anq;
+  sg_corrsum[2*i+1]+=ch1_anq*ch2_ani-ch1_ani*ch2_anq;
+  ch1_pni=sg_fft[4*i+2*sg_siz  ];
+  ch2_pni=sg_fft[4*i+2*sg_siz+2];
+  ch1_pnq=sg_fft[4*i+2*sg_siz+1];
+  ch2_pnq=sg_fft[4*i+2*sg_siz+3];
+  sg_corrsum[2*i+sg_siz  ]+=ch1_pni*ch2_pni+ch1_pnq*ch2_pnq;
+  sg_corrsum[2*i+sg_siz+1]+=ch1_pnq*ch2_pni-ch1_pni*ch2_pnq;
+// correlation between an and pn.
+  sg_anpn_corr[2*i  ]+=ch1_ani*ch2_pni+ch1_anq*ch2_pnq;
+  sg_anpn_corr[2*i+1]+=ch1_anq*ch2_pni-ch1_ani*ch2_pnq;
+  }
+/*
+if(sg_numpow == 1000)
+  {  
+  for(j=0; j<sg_siz/2; j++)
+    {
+    dt1=sqrt(sg_anpn_corr[2*j  ]*sg_anpn_corr[2*j  ]+
+            sg_anpn_corr[2*j+1]*sg_anpn_corr[2*j+1]);
 
-  }                          
+    fprintf(dmp,"\nj=%d  %f  %f",j,sg_anpn_corr[2*j  ]/dt1,
+                               sg_anpn_corr[2*j+1]/dt1);
+    }                              
+  }
+*/                            
 sg_numpow++;
 if(sg_valid)
   {
@@ -353,6 +361,21 @@ if(sg.xgain != t1)
 sc[SC_SG_REDRAW]++;
 }
 
+void set_ytop2(void)
+{
+if(sg.mode == 3)
+  {
+  sg_ytop2=sg.ytop-(sg.ytop-sg.ybottom)/4;
+  sg_mode3_ymid=(sg.ytop+sg_ytop2)/2;
+  sg_mode3_ypix=sg_ytop2-sg_mode3_ymid;
+  if(sg_mode3_ypix > sg_mode3_ymid-sg.ytop)sg_mode3_ypix=sg_mode3_ymid-sg.ytop;
+  sg_mode3_ypix--;
+  }
+else
+  {
+  sg_ytop2=sg.ytop;
+  }  
+}
 
 void mouse_continue_siganal_graph(void)
 {
@@ -365,6 +388,7 @@ switch (mouse_active_flag-1)
   case SG_TOP:
   graph_borders((void*)&sg,0);
   sg.ytop=mouse_y;
+  set_ytop2();
   graph_borders((void*)&sg,15);
   break;
 
@@ -407,7 +431,8 @@ switch (mouse_active_flag-1)
   
   case SG_NEW_MODE:
   sg.mode++;
-  if(sg.mode >= 3)sg.mode=0;
+  if(sg.mode >= NO_SG_MODES)sg.mode=0;
+  set_ytop2();
   make_modepar_file(GRAPHTYPE_SG);
   sc[SC_SG_REDRAW]++;
   leftpressed=BUTTON_IDLE;  
@@ -552,7 +577,7 @@ sgbutt[SG_BOTTOM].y2=sg.ybottom;
 // Draw the border lines
 //graph_borders((void*)&sg,7);
 settextcolor(7);
-iy1=sg.ytop+2;
+iy1=sg.ytop+text_height/2;
 y2=iy1+text_height;
 x2=sg.xright-2;
 x1=x2-17*text_width/2;
@@ -567,7 +592,7 @@ sgbutt[SG_NEW_FFT_N].x2=x2;
 sgbutt[SG_NEW_FFT_N].y1=iy1;
 sgbutt[SG_NEW_FFT_N].y2=y2;
 x1-=3*text_width/2;
-make_button(x1,sg.ytop+text_height/2+3,sgbutt, SG_NEW_MODE,sg_modes[sg.mode]);
+make_button(x1,sg.ytop+text_height,sgbutt, SG_NEW_MODE,sg_modes[sg.mode]);
 iy1+=text_height+2;
 y2+=text_height+2;
 x2=sg.xright-2;
@@ -612,6 +637,10 @@ mem(12,&sg_pn1spectrum,screen_width*sizeof(short int),0);
 mem(13,&sg_pn2spectrum,screen_width*sizeof(short int),0);
 mem(14,&sg_ancspectrum,2*screen_width*sizeof(short int),0);
 mem(15,&sg_pncspectrum,2*screen_width*sizeof(short int),0);
+mem(16,&sg_anpn_corr,2*sg_siz*sizeof(double),0);
+mem(17,&sg_anpncorr_ispectrum,2*screen_width*sizeof(short int),0);
+mem(17,&sg_anpncorr_qspectrum,2*screen_width*sizeof(short int),0);
+
 // ******************************************************************
 siganal_totmem=memalloc(&siganal_handle,"siganal");
 for(i=0; i<screen_width; i++)sg_an1spectrum[i]=sg_y0;
@@ -620,12 +649,14 @@ for(i=0; i<screen_width; i++)sg_pn1spectrum[i]=sg_y0;
 for(i=0; i<screen_width; i++)sg_pn2spectrum[i]=sg_y0;
 for(i=0; i<2*screen_width; i++)sg_ancspectrum[i]=sg_y0;
 for(i=0; i<2*screen_width; i++)sg_pncspectrum[i]=sg_y0;
+for(i=0; i<2*screen_width; i++)sg_anpncorr_ispectrum[i]=sg_mode3_ymid;
+for(i=0; i<2*screen_width; i++)sg_anpncorr_qspectrum[i]=sg_mode3_ymid;
 init_d_fft(0, sg.fft_n, sg_siz, sg_tab, sg_permute);
 make_d_window(4,sg_siz, 8, sg_window);
 // init noise power spectra at the zero level
 memset(sg_fft,0,sg_siz*4*sizeof(float));
 memset(sg_corrsum,0,sg_siz*2*sizeof(double));
-
+memset(sg_anpn_corr,0,sg_siz*sizeof(double));
 memset(sg_pwrsum,0,sg_siz*2*sizeof(double));
 sg_display_time=current_time();
 resume_thread(THREAD_SCREEN);
@@ -663,7 +694,7 @@ sg_default:
   sg.check=SG_VERNR;
   }
 if(sg.mode < 0 ||
-   sg.mode > 2 ||
+   sg.mode >= NO_SG_MODES ||
    sg.avg < 1 ||
    sg.ymax < 0 ||
    sg.ymax > 220 ||
@@ -672,6 +703,7 @@ if(sg.mode < 0 ||
    sg.xgain < 0.001 ||
    sg.xgain > 900 ||
    sg.check != SG_VERNR)goto sg_default;
+set_ytop2();
 siganal_graph_scro=no_of_scro;
 reinit_sg=FALSE;
 make_siganal_graph(FALSE);

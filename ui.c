@@ -1253,6 +1253,10 @@ wavcont:;
         if(ui.rx_rf_channels == 2)adtest_channel^=1;
         break;
 
+        case 'M':
+        if(ui.rx_rf_channels == 2)adtest_iq_mode^=1;
+        break;
+
         case 'P':
         powtim_pause_flag=1;
         break;

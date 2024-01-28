@@ -1464,8 +1464,6 @@ int i,k;
 settextcolor(7);
 sprintf(s,"%c",sg_modes[sg.mode]);
 show_button(&sgbutt[SG_NEW_MODE],s);
-sprintf(s,"Avg %4d",sg.avg);
-show_button(&sgbutt[SG_NEW_AVGNUM],s);
 sprintf(s,"N %2d",sg.fft_n);
 show_button(&sgbutt[SG_NEW_FFT_N],s);
 sprintf(ss,"%2.1f",sg.ygain);
@@ -1480,10 +1478,12 @@ while(i>=0)
   s[k]=ss[i];
   i--;
   k--;
-  } 
+  }
 show_button(&sgbutt[SG_NEW_YGAIN],s);
 sprintf(s,"C %2d",sg.ymax);
 show_button(&sgbutt[SG_NEW_YMAX],s);
+sprintf(s,"Avg %4d",sg.avg);
+show_button(&sgbutt[SG_NEW_AVGNUM],s);
 if(sg.xgain >= 1)
   {
   sprintf(s,"Xgain %5.0f",sg.xgain);
@@ -1499,9 +1499,9 @@ void sg_line(int x1, int iy1, int x2, int y2, char c)
 {
 if(x2 > sg.xright-18*text_width)
   {
-  if(iy1 < sg.ytop+7*text_height && y2 < sg.ytop+7*text_height)return;
-  if(iy1 < sg.ytop+7*text_height)iy1=sg.ytop+7*text_height;
-  if(y2 < sg.ytop+7*text_height)y2=sg.ytop+7*text_height;
+  if(iy1 < sg_ytop2+7*text_height || y2 < sg.ytop+7*text_height)return;
+  if(iy1 < sg_ytop2+7*text_height)iy1=sg.ytop+7*text_height;
+  if(y2 < sg_ytop2+7*text_height)y2=sg.ytop+7*text_height;
   }
 lir_line(x1,iy1,x2,y2,c);
 }  
@@ -1510,13 +1510,13 @@ void  sg_setpixel(int ix,int iy, char c)
 {
 if(ix > sg.xright-18*text_width)
   {
-  if(iy < sg.ytop+7*text_height)return;
+  if(iy < sg_ytop2+7*text_height)return;
   }
 if(c != 0)
   {
   lir_setpixel(ix, iy, c);
   if(iy < sg_y0)lir_setpixel(ix, iy-1, c);
-  if(iy > sg.ytop)lir_setpixel(ix, iy+1, c);
+  if(iy > sg_ytop2)lir_setpixel(ix, iy+1, c);
   }
 else
   {
@@ -1534,6 +1534,7 @@ int iyp1, iyp2, iypc, iypq;
 int sg_last_point;
 float anq, an2, an1, anc;
 float pnq, pn2, pn1, pnc;
+float anpn_i, anpn_q;
 float pwrfac,yfac;
 float rat;
 char anc_color, pnc_color;
@@ -1553,6 +1554,7 @@ rat=(float)fft3_size/(float)sg_siz;
 switch (sg.mode)
   {
   case 0:
+zz:;  
   while(ib < sg_last_point && ix < sg_last_xpixel)
     {
     anc=0;
@@ -1576,8 +1578,8 @@ switch (sg.mode)
     iypc=yfac*(log10(pwrfac*pnc/sg_corrnum)+sg.ymax/10.);
     if(iyac < 0)iyac=0;
     if(iypc < 0)iypc=0;
-    iyac+=sg.ytop+text_height;
-    iypc+=sg.ytop+text_height;
+    iyac+=sg_ytop2+text_height;
+    iypc+=sg_ytop2+text_height;
     if(iyac > sg_y0)iyac=sg_y0;
     if(iypc > sg_y0)iypc=sg_y0;
     if(ix != sg_first_xpixel)
@@ -1656,10 +1658,10 @@ switch (sg.mode)
     if(iyp1 < 0)iyp1=0;
     if(iyp2 < 0)iyp2=0;
     if(iypc < 0)iypc=0;
-    iypq+=sg.ytop+text_height;
-    iyp1+=sg.ytop+text_height;
-    iyp2+=sg.ytop+text_height;
-    iypc+=sg.ytop+text_height;
+    iypq+=sg_ytop2+text_height;
+    iyp1+=sg_ytop2+text_height;
+    iyp2+=sg_ytop2+text_height;
+    iypc+=sg_ytop2+text_height;
     if(iypq > sg_y0)iypq=sg_y0;
     if(iyp1 > sg_y0)iyp1=sg_y0;
     if(iyp2 > sg_y0)iyp2=sg_y0;
@@ -1731,10 +1733,10 @@ switch (sg.mode)
     if(iya1 < 0)iya1=0;
     if(iya2 < 0)iya2=0;
     if(iyac < 0)iyac=0;
-    iyaq+=sg.ytop+text_height;
-    iya1+=sg.ytop+text_height;
-    iya2+=sg.ytop+text_height;
-    iyac+=sg.ytop+text_height;
+    iyaq+=sg_ytop2+text_height;
+    iya1+=sg_ytop2+text_height;
+    iya2+=sg_ytop2+text_height;
+    iyac+=sg_ytop2+text_height;
     if(iyaq > sg_y0)iyaq=sg_y0;
     if(iya1 > sg_y0)iya1=sg_y0;
     if(iya2 > sg_y0)iya2=sg_y0;
@@ -1751,30 +1753,107 @@ switch (sg.mode)
       sg_ancspectrum[2*ix+1]=sg_ancspectrum[2*ix];  
       sg_ancspectrum[2*ix]=iyac;
       }  
-   sg_setpixel(ix,sg_an1spectrum[ix],0);
-   sg_setpixel(ix,sg_an2spectrum[ix],0);
-   sg_setpixel(ix,sg_pn1spectrum[ix],0);
-   sg_setpixel(ix,iya1,11);
-   sg_setpixel(ix,iya2,13);
-   sg_setpixel(ix,iyaq,12);
-   sg_an1spectrum[ix]=iya1;
-   sg_an2spectrum[ix]=iya2;
-   sg_pn1spectrum[ix]=iyaq;
-   ib+=n;
+    sg_setpixel(ix,sg_an1spectrum[ix],0);
+    sg_setpixel(ix,sg_an2spectrum[ix],0);
+    sg_setpixel(ix,sg_pn1spectrum[ix],0);
+    sg_setpixel(ix,iya1,11);
+    sg_setpixel(ix,iya2,13);
+    sg_setpixel(ix,iyaq,12);
+    sg_an1spectrum[ix]=iya1;
+    sg_an2spectrum[ix]=iya2;
+    sg_pn1spectrum[ix]=iyaq;
+    ib+=n;
     ia+=n;
     ix+=sg_pixels_per_point;
     }
   break;
+
+  case 3:
+  while(ib < sg_last_point && ix < sg_last_xpixel)
+    {
+    anpn_i=0;
+    anpn_q=0;
+    anc=0;
+    anq=0;
+    pnc=0;
+    pnq=0;
+    for(i=ia; i<ib; i++)
+      {
+      anc+=sg_corrsum[2*i];
+      anq+=sg_corrsum[2*i+1];
+      pnc+=sg_corrsum[sg_siz+2*i];
+      pnq+=sg_corrsum[sg_siz+2*i+1];
+      anpn_i+=sg_anpn_corr[2*i  ];
+      anpn_q+=sg_anpn_corr[2*i+1];
+      }
+    anpn_i/=sqrt(anc*anc+anq*anq+pnc*pnc+pnq*pnq);  
+    anpn_q/=sqrt(anc*anc+anq*anq+pnc*pnc+pnq*pnq);  
+    if(anpn_i > 1)anpn_i=1;
+    if(anpn_q > 1)anpn_q=1;
+    if(anpn_i < -1)anpn_i=-1;
+    if(anpn_q < -1)anpn_q=-1;
+    iyac=sg_mode3_ypix*anpn_i+sg_mode3_ymid;
+    iypc=sg_mode3_ypix*anpn_q+sg_mode3_ymid;
+    if(ix != sg_first_xpixel)
+      {
+      sg_line(ix-sg_pixels_per_point,
+              sg_anpncorr_ispectrum[2*(ix-sg_pixels_per_point)+1],
+              ix,
+              sg_anpncorr_ispectrum[2*ix],0);
+      sg_anpncorr_ispectrum[2*ix+1]=sg_anpncorr_ispectrum[2*ix];  
+      sg_anpncorr_ispectrum[2*ix]=iyac;
+      sg_line(ix-sg_pixels_per_point,
+              sg_anpncorr_ispectrum[2*(ix-sg_pixels_per_point)],
+              ix,
+              sg_anpncorr_ispectrum[2*ix],15);
+
+      sg_line(ix-sg_pixels_per_point,
+              sg_anpncorr_qspectrum[2*(ix-sg_pixels_per_point)+1],
+              ix,
+              sg_anpncorr_qspectrum[2*ix],0);
+      sg_anpncorr_qspectrum[2*ix+1]=sg_anpncorr_qspectrum[2*ix];  
+      sg_anpncorr_qspectrum[2*ix]=iypc;
+      sg_line(ix-sg_pixels_per_point,
+              sg_anpncorr_qspectrum[2*(ix-sg_pixels_per_point)],
+              ix,
+              sg_anpncorr_qspectrum[2*ix],14);
+      }
+    else
+      {
+      sg_anpncorr_ispectrum[2*ix+1]=sg_anpncorr_ispectrum[2*ix];  
+      sg_anpncorr_ispectrum[2*ix]=iyac;
+      sg_anpncorr_qspectrum[2*ix+1]=sg_anpncorr_qspectrum[2*ix];  
+      sg_anpncorr_qspectrum[2*ix]=iypc;
+      }  
+
+
+
+
+//fprintf(dmp,"\n%d %f  %f",ix,anpn_i, anpn_q);
+   
+    ib+=n;
+    ia+=n;
+    ix+=sg_pixels_per_point;
+    }
+
+ix=sg_first_xpixel;
+ia=0;
+n=sg_points_per_pixel;
+ib=n;
+n2=n/2;
+
+  goto zz;
+  break;
   }
 sprintf(s, "%6d",sg_corrnum);
-lir_pixwrite(sg_last_xpixel-10*text_width,sg.ytop+4*text_height,s);
+lir_pixwrite(sg_last_xpixel-10*text_width,sg.ytop+9*text_height/2,s);
 if(recent_time > sg_display_time+1)
   {
   i=recent_time-sg_reset_time;
   j=i/3600;
   i%=3600;
   sprintf(s, "%02d.%02d.%02d",j,i/60,i%60);
-  lir_pixwrite(sg_last_xpixel-10*text_width,sg.ytop+5*text_height,s);
+  lir_pixwrite(sg_last_xpixel-10*text_width,sg.ytop+11*text_height/2,s);
   sg_display_time=recent_time;
   }
 }
@@ -1787,12 +1866,12 @@ float x1, x2, y;
 short int ypix;
 double ydb;
 memset(sg_background, 0, screen_height*sizeof(char));
-hide_mouse(sg.xleft,sg.xright,sg.ytop,sg.ybottom);
+hide_mouse(sg.xleft,sg.xright,sg_ytop2,sg.ybottom);
 lir_fillbox(sg.xleft,sg.ytop,sg.xright-sg.xleft+1,sg.ybottom-sg.ytop+1,0);
 graph_borders((void*)&sg,7);
 settextcolor(7);
 // place sg.ymax dB at the top of the dB scale 
-ypix=sg.ytop+text_height;
+ypix=sg_ytop2+text_height;
 ydb=-sg.ymax;
 // sg.ygain is vertical scale in dB/pixel.
 while(ypix < sg_y0)
@@ -1818,6 +1897,13 @@ x2=sg_last_xpixel;
 fq_scale(x1, x2, y, sg_first_xpixel, -1., 
            sg_points_per_pixel*sg_hz_per_pixel/sg_pixels_per_point);
 show_sg_buttons();
+if(sg.mode == 3)
+  {
+  i=sg_last_xpixel-18*text_width;
+  lir_hline(sg_first_xpixel,sg_mode3_ymid, i, 12);
+  lir_hline(sg_first_xpixel,sg_mode3_ymid+sg_mode3_ypix, i, 12);
+  lir_hline(sg_first_xpixel,sg_mode3_ymid-sg_mode3_ypix, i, 12);
+  }
 }
 
 void show_wg_buttons(int all)

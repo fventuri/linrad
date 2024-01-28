@@ -260,7 +260,7 @@ int local_bg_waterf_ptr;
 int local_bg_yborder;
 int s_meter_avg_filled_flag;
 
-char sg_modes[3]={' ','P','A'}; 
+char sg_modes[NO_SG_MODES]={'B','P','A','M'}; 
 
 char ch2_phase_symbol[MAX_CH2_PHASES]={'+','-','c'};
 

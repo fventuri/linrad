@@ -36,6 +36,7 @@ int powtim_scalepix;
 int powtim_pause_flag;
 
 int adtest_channel;
+int adtest_iq_mode;
 double adtest_scale;
 int adtest_new;
 
