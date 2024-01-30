@@ -3864,19 +3864,9 @@ sdrplay3_stop_streaming:
     goto sdrplay3_close_api;
   }
 sdrplay3_release_device:
-  err = sdrplay_api_LockDeviceApi();
-  if (err != sdrplay_api_Success) {
-    lirerr(2692);
-    goto sdrplay3_close_api;
-  }
   err = sdrplay_api_ReleaseDevice(&device);
   if (err != sdrplay_api_Success) {
     lirerr(2693);
-    goto sdrplay3_close_api;
-  }
-  err = sdrplay_api_UnlockDeviceApi();
-  if (err != sdrplay_api_Success) {
-    lirerr(2694);
     goto sdrplay3_close_api;
   }
 sdrplay3_close_api:
