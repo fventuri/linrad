@@ -670,7 +670,7 @@ update_meter_time=current_time();
 void init_coherent_graph(void)
 {
 int xsiz, ysiz;
-if(fft1_correlation_flag == 2)return;
+if(fft1_correlation_flag >= 2)return;
 xsiz=3*cg_size+2;
 ysiz=xsiz+5*text_height+4;
 if (read_modepar_file(GRAPHTYPE_CG) == 0)

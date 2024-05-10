@@ -1537,6 +1537,7 @@ mg_flag=0;
 tg_flag=0;
 rg_flag=0;
 sg_flag=0;
+vg_flag=0;
 xg_flag=0;
 eme_active_flag=0;
 timinfo_flag=0;

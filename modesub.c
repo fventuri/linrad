@@ -234,8 +234,8 @@ usb2lpt_flag=FALSE;
 old_fdms1_ratenum=-1;
 fg_truncation_error=0;
 mg_meter_file=NULL;
-sg_inhibit_count=MAX_SG_INHIBIT_COUNT;
 corr_afc_count=MAX_CORR_AFC_COUNT;
+fft1_skip_flag=1;
 }
  
 int skip_calibration(void)

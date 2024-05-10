@@ -483,19 +483,11 @@ for(i=0; i<THREAD_MAX; i++)
       thread_command_flag[i]=THRFLAG_KILL;
       if(thread_waitsem[i] != -1)
         {
-#if(OSNUM == OSNUM_LINUX)
-        lir_event_flag[i]=TRUE;
-#else        
         lir_set_event(thread_waitsem[i]);
-#endif
         }
       if(i == THREAD_RX_OUTPUT)
         {
-#if(OSNUM == OSNUM_LINUX)
-        lir_event_flag[EVENT_BASEB]=TRUE;
-#else        
         lir_set_event(EVENT_BASEB);
-#endif
         }
       lir_sleep(100);
       }
@@ -508,7 +500,7 @@ DEB"\nremaining no of threads=%d",k);
 if(k==0)goto ok_exit;
 j=-5;
 fprintf( stderr,"\n");
-while(j<100)
+while(j<10)
   {
   j++;
   if(j > 0)fprintf( stderr,"%d ",j);
@@ -533,19 +525,11 @@ while(j<100)
             {
             if(thread_waitsem[i] != -1)
               {
-#if (OSNUM == OSNUM_LINUX)
-              lir_event_flag[i]=TRUE;
-#else        
               lir_set_event(thread_waitsem[i]);
-#endif
               }
             if(i == THREAD_RX_OUTPUT)
               {
-#if (OSNUM == OSNUM_LINUX)
-              lir_event_flag[EVENT_BASEB]=TRUE;
-#else        
               lir_set_event(EVENT_BASEB);
-#endif
               }
             thread_command_flag[i]=THRFLAG_KILL;
             }
@@ -567,8 +551,8 @@ if(dmp != 0)
   PERMDEB"\n\nTHREAD(S) FAIL TO STOP");
   for(i=0; i<THREAD_MAX; i++)
     {
-    PERMDEB"\nThr=%d status=%d   cmd=%d",i,thread_status_flag[i],
-                                         thread_command_flag[i]);
+    PERMDEB"\nThr=%d status=%d cmd %d",i,thread_status_flag[i],
+                                              thread_command_flag[i]);
     }  
   PERMDEB"\n");
   fflush(dmp);
@@ -733,7 +717,7 @@ if(x0>=0)
       while(txt[i] != 0)
         {
         k=(unsigned char)(txt[i]);
-        if(x+text_width > screen_width)goto errx;
+        if(x > screen_width)goto errx;
         lir_putbox(x,
                    y,
                    font_w,
@@ -756,6 +740,15 @@ void h_line_error(int x1, int y, int x2)
 fprintf( stderr,
    "\nTrying to write horizontal line outside screen x=%d to %d, y=%d",
        x1,x2,y);
+}
+
+void lir_setcross(int x, int y, unsigned char color)
+{
+lir_setpixel(x,y,color);
+lir_setpixel(x+1,y+1,color);
+lir_setpixel(x+1,y-1,color);
+lir_setpixel(x-1,y+1,color);
+lir_setpixel(x-1,y-1,color);
 }
 
 void setpixel_error(int x, int y)
@@ -2119,7 +2112,7 @@ if(a[0].ybottom>screen_height-1)
 void avoid_graph_collision(WG_PARMS *a, WG_PARMS *b)
 {
 int ix,jx,iy,jy;
-int la,ra,ta,ba;
+int la,ra,ta,ba,i;
 // One border line of graph a has been changed.
 // Check if graph a now is on top of graph b.
 // If there is a collission, find out what border line to move which
@@ -2129,6 +2122,7 @@ int la,ra,ta,ba;
 // During start, this simple procedure may fail, therefore
 // some security is added at the end of this routine. 
 if(a==b)return;
+graph_mincheck(a);
 ix=b[0].xright-a[0].xleft+1;
 jx=b[0].xleft-a[0].xright+1;
 if(ix*jx>0)goto check;
@@ -2145,22 +2139,30 @@ if(la<ra)
     {
     if(la<ta)
       {
+      i=a[0].xright-a[0].xleft;
       a[0].xleft=b[0].xright+1;
+      a[0].xright=a[0].xleft+i;
       }
     else  
       {
+      i=a[0].ybottom-a[0].ytop;
       a[0].ytop=b[0].ybottom+1;
+      a[0].ybottom=a[0].ytop+i;
       }
     }
   else
     {
     if(la<ba)
       {
+      i=a[0].xright-a[0].xleft;
       a[0].xleft=b[0].xright+1;
+      a[0].xright=a[0].xleft+i;
       }
     else  
       {
+      i=a[0].ybottom-a[0].ytop;
       a[0].ybottom=b[0].ytop-1;
+      a[0].ytop=a[0].ybottom-i;
       }
     }  
   }
@@ -2170,22 +2172,30 @@ else
     {
     if(ra<ta)
       {
+      i=a[0].xright-a[0].xleft;
       a[0].xright=b[0].xleft-1;
+      a[0].xright=a[0].xleft-i;
       }
     else  
       {
+      i=a[0].ybottom-a[0].ytop;
       a[0].ytop=b[0].ybottom+1;
+      a[0].ybottom=a[0].ytop+i;
       }
     }
   else
     {
     if(ra<ba)
       {
+      i=a[0].xright-a[0].xleft;
       a[0].xright=b[0].xleft-1;
+      a[0].xleft=a[0].xright-i;
       }
     else  
       {
+      i=a[0].ybottom-a[0].ytop;
       a[0].ybottom=b[0].ytop-1;
+      a[0].ytop=a[0].ybottom-i;
       }
     }  
   }
@@ -2210,6 +2220,7 @@ if(mg_flag)avoid_graph_collision(a,(void*)(&mg));
 if(tg_flag)avoid_graph_collision(a,(void*)(&tg));
 if(rg_flag)avoid_graph_collision(a,(void*)(&rg));
 if(sg_flag)avoid_graph_collision(a,(void*)(&sg));
+if(vg_flag)avoid_graph_collision(a,(void*)(&vg));
 if(xg_flag)avoid_graph_collision(a,(void*)(&xg));
 }
 

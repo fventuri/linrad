@@ -961,6 +961,7 @@ while(extio_command_flag != EXTIO_COMMAND_KILL_ALL)
   extio_command_flag=EXTIO_COMMAND_DONE;
   }
 kill:;
+fprintf(dmp,"\nwait for menu");
 pthread_join(thread_identifier_main_menu,0);
 skipmenu:;
 refresh_screen_flag=FALSE;
@@ -989,6 +990,7 @@ else
   }
 #endif 	
 exitmain:;
+fprintf(dmp,"\n exitmain");
 users_close_devices();
 lir_close_serport();
 free(vga_font);

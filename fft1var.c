@@ -105,6 +105,7 @@ float *reg_min;
 float *reg_ston;
 int *reg_first_point;
 int *reg_length;
+int fft1_skip_flag;
 
 COSIN_TABLE *fft1tab;
 D_COSIN_TABLE *d_fft1tab;

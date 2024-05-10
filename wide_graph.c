@@ -194,6 +194,7 @@ if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
     mix1_selfreq[0]=t1;
     add_mix1_cursor(0);
     sc[SC_SHOW_CENTER_FQ]++;
+    baseb_reset_counter++;
     break;
     
     case 1:

@@ -563,12 +563,12 @@ if(mg.scale_type < 0 || mg.scale_type >= MG_SCALE_MAX)goto mg_default;
 if(genparm[SECOND_FFT_ENABLE] == 0 && 
                               mg.scale_type == MG_SCALE_STON)goto mg_default;
 if(mg.avgnum < 1 || mg.avgnum > baseband_sampling_speed*3600)goto mg_default;
-if(mg.ygain < 0.01 || mg.ygain > 100000)goto mg_default;
-if(fabs(mg.cal_dbm) > 1000)goto mg_default;
-if(fabs(mg.cal_ston) > 1000)goto mg_default;
-if(fabs(mg.cal_dbhz) > 1000)goto mg_default;
-if(fabs(mg.cal_ston_sigshift) > 1000)goto mg_default;
-if(fabs(mg.cal_s_units) > 100)goto mg_default;
+if(mg.ygain < 0.01 || mg.ygain > 10000000.)goto mg_default;
+if(fabs(mg.cal_dbm) > 1000.)goto mg_default;
+if(fabs(mg.cal_ston) > 1000.)goto mg_default;
+if(fabs(mg.cal_dbhz) > 1000.)goto mg_default;
+if(fabs(mg.cal_ston_sigshift) > 1000.)goto mg_default;
+if(fabs(mg.cal_s_units) > 100.)goto mg_default;
 if(mg.check != MG_VERNR)goto mg_default; 
 if(mg.tracks < 0 || mg.tracks > 3)goto mg_default;
 make_meter_graph(FALSE);
@@ -595,7 +595,7 @@ else
 
 void manage_meter_graph(void)
 {
-if(fft1_correlation_flag == 2)return;
+if(fft1_correlation_flag >= 2)return;
 sc[SC_UPDATE_METER_GRAPH]=sd[SC_UPDATE_METER_GRAPH];
 if(cg.meter_graph_on == 1)
   {

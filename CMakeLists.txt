@@ -417,6 +417,7 @@ set (LINRAD_SOURCES
   wse.c
   hires_graph.c
   meter_graph.c
+  allan_graph.c
   rxin.c
   rxout.c
   wcw.c

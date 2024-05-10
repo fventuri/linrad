@@ -163,7 +163,7 @@ if( bg_waterf_lines != -1)awake_screen();
 
 void make_fft3_all(void)
 {
-char s[80];
+char s[30];
 int ja,jb,im;
 int i,iw,j,k,m,p0,ss,poffs;
 int mm, ia, ib, ic, jr, pa, pb;
@@ -182,6 +182,14 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
   d_z=&d_fft3[fft3_pa+ss*mm*fft3_size];
   if(mix1_selfreq[ss] >= 0)
     {
+    if(fft1_correlation_flag == 2)
+      {
+      sprintf(s,"%d",fft3_pa/(32*fft3_size));
+      i=0;
+      while(s[i]!=0)i++;
+      i--;
+      lir_pixwrite(sg_last_xpixel-text_width,sg_ytop2+13*text_height/2,&s[i]);
+     }
 // Frequency no ss is selected.
 // **********************************************************
 // **************  ONE CHANNEL ******************************
@@ -286,7 +294,7 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
           z[ic+3]=d_fftn_tmp[4*ia+3]-d_fftn_tmp[4*ia+7];
           }
 // Find the strongest signal within the baseband bandwidth.
-        if(fft1_correlation_flag == 2 && sg_inhibit_count == 0)
+        if(fft1_correlation_flag == 2 && basebcorr_inhibit_count == 0)
           {
           if(corr_afc_count < MAX_CORR_AFC_COUNT)
             {
@@ -335,7 +343,7 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
                 t1*=(float)timf3_sampling_speed/fft3_size;
                 mix1_selfreq[0]+=t1;
                 add_mix1_cursor(0);
-                sg_inhibit_count=MAX_SG_INHIBIT_COUNT;
+                baseb_reset_counter++;
                 timf3_pd=timf3_pc;
                 corr_afc_count=0;
                 sc[SC_SHOW_CENTER_FQ]++;  
@@ -463,8 +471,9 @@ else
     {
 #define MAX_CORRPOW_CNT 8
 #define MAX_CORRPOW_SKIP 4
-    if(sg_inhibit_count > 1)goto corrpow_x;
-    if(sg_inhibit_count == 1)corrpow_cnt=0;
+    if(basebcorr_inhibit_count > 1)goto corrpow_x;
+    if(basebcorr_inhibit_count == 1)corrpow_cnt=0;
+    if(!basebcorr_enable_flag)goto corrpow_x;
     corrpow_cnt++;
     k=(int)((float)fft3_size*bg_noise_bw/timf3_sampling_speed)/
                                                          (2*bg.coh_factor);
@@ -524,8 +533,7 @@ else
       }
     t1/=r1*ib;
     t2/=r2*ib;
-    sprintf(s, "fft3 %6.2f",10*log10(1000*fabs(t1+t2)));
-    lir_pixwrite(sg_last_xpixel-16*text_width,sg.ytop+15*text_height/2,s);
+    sprintf(fft3_level, "fft3 %6.2f",10*log10(1000*fabs(t1+t2)));
     if(t1 < 0.01 && t2 < 0.01)
       {
       t1=(float)(MAX_CORRPOW_CNT)/(float)(MAX_CORRPOW_CNT+1);
@@ -539,9 +547,8 @@ else
       }
     else
       {
-      sprintf(s, "fft3 skip %6.2f",10*log10(1000*fabs(t1+t2)));
-      lir_pixwrite(sg_last_xpixel-16*text_width,sg.ytop+9*text_height,s);
-      sg_inhibit_count=MAX_SG_INHIBIT_COUNT;
+      sprintf(fft3_skip, "fft3 skip %6.2f",10*log10(1000*fabs(t1+t2)));
+      baseb_reset_counter++;
       }
     }
 corrpow_x:;        
@@ -561,7 +568,7 @@ corrpow_x:;
     fft3_power[k+1]=(t3*t3+t4*t4)*fft3_fqwin_inv[i>>2];
     i+=4;
     bg_waterf_sum[iw]+=fft3_power[k];
-    if(bg_twopol !=0 || fft1_correlation_flag ==2)
+    if(bg_twopol !=0 || fft1_correlation_flag >=2)
                                       bg_waterf_sum[iw]+=fft3_power[k+1];
     iw++;
     x1+=fft3_power[k  ];
@@ -586,7 +593,7 @@ corrpow_x:;
     fft3_power[k+1]=(t3*t3+t4*t4)*fft3_fqwin_inv[i>>2];
     i+=4;
     bg_waterf_sum[iw]+=fft3_power[k];
-    if(bg_twopol !=0 || fft1_correlation_flag ==2)
+    if(bg_twopol !=0 || fft1_correlation_flag >=2)
                                       bg_waterf_sum[iw]+=fft3_power[k+1];
     iw++;
     p0=k-bg_show_pa;
@@ -616,7 +623,7 @@ corrpow_x:;
     fft3_power[k+1]=(t3*t3+t4*t4)*fft3_fqwin_inv[i>>2];
     i+=4;
     bg_waterf_sum[iw]+=fft3_power[k];
-    if(bg_twopol !=0 || fft1_correlation_flag ==2)
+    if(bg_twopol !=0 || fft1_correlation_flag >=2)
                                          bg_waterf_sum[iw]+=fft3_power[k+1];
     iw++;
     x1+=fft3_power[k  ];
@@ -651,7 +658,7 @@ if(bg_avg_counter > ((bg.fft_avgnum+8)>>4)+1)
   if(bg_filter_points > 5 && 
                      2*bg_filter_points < bg_xpoints)update_squelch();
   bg_avg_counter=0;
-  if(recent_time-fft3_show_time > 0.05 || fft1_correlation_flag == 2)
+  if(recent_time-fft3_show_time > 0.05 || fft1_correlation_flag >= 2)
     {
     fft3_show_time=recent_time;
     sc[SC_SHOW_FFT3]++;

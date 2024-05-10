@@ -24,7 +24,6 @@
 #include "osnum.h"
 #include "globdef.h"
 #include "sdrdef.h"
-#include "vernr.h"
 
 char *sdr14_name_string="SDR-14";
 char *sdriq_name_string="SDR-IQ";
@@ -34,11 +33,7 @@ char *excalibur_name_string="Excalibur";
 char *rtl2832_name_string="RTL2832 USB";
 char *mirics_name_string="Mirics USB";
 char *sdrplay2_name_string="SDRPlay RSP1a/RSP2";
-#if SDRPLAY3PAR_VERNR >= 314
-char *sdrplay3_name_string="SDRplay v3.X RSP1/RSP1A/RSP1B/RSP2/RSPduo/RSPdx";
-#else
 char *sdrplay3_name_string="SDRplay v3.X RSP1/RSP1A/RSP2/RSPduo/RSPdx";
-#endif
 char *bladerf_name_string="bladeRF";
 char *pcie9842_name_string="PCIe9842";
 char *openhpsdr_name_string="OpenHPSDR";

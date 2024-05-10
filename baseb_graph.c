@@ -222,10 +222,13 @@ if(fft1_correlation_flag != 0)
   memset(&d_baseb[2*nn],0,2*k*sizeof(double));
   memset(&d_baseb_carrier[2*nn],0,2*k*sizeof(double));
   }
+else
+  {
+  memset(&baseb_carrier[2*nn],0,2*k*sizeof(float));
+  memset(&baseb_carrier_ampl[nn],0,k*sizeof(float));
+  }
 memset(&baseb[2*nn],0,2*k*sizeof(float));
-memset(&baseb_carrier[2*nn],0,2*k*sizeof(float));
 memset(&baseb_totpwr[nn],0,k*sizeof(float));
-memset(&baseb_carrier_ampl[nn],0,k*sizeof(float));
 if(bg.agc_flag != 0)
   {
   memset(&baseb_agc_level[nn],0,k*sizeof(float));
@@ -249,7 +252,6 @@ if(genparm[CW_DECODE_ENABLE] != 0)
   memset(&baseb_sho2[2*nn],0,2*k*sizeof(float));
   memset(&baseb_envelope[2*nn],0,2*k*sizeof(float));
   }
-sg_inhibit_count=5;
 baseb_pa=0;
 baseb_pb=0;
 baseb_pc=0;
@@ -411,7 +413,7 @@ if(use_bfo == 0)
   }
 if(bfo_xpixel > 0)
   {
-  if(fft1_correlation_flag != 2)  
+  if(fft1_correlation_flag <= 1)  
     {
     if(bg_filterfunc_y[bfo_xpixel] > 0)
                      lir_setpixel(bfo_xpixel,bg_filterfunc_y[bfo_xpixel],14);
@@ -767,7 +769,6 @@ if(fft1_correlation_flag != 0)
   {
   mem(202,&d_baseb_carrier,baseband_size*4*sizeof(double),0);
   mem(205,&d_baseb,baseband_size*4*sizeof(double),0);
-  mem(302,&baseb_carrier,baseband_size*4*sizeof(float),0);
   mem(305,&baseb,baseband_size*4*sizeof(float),0);
   mem(309,&d_mix2_table,mix2.size*sizeof(D_COSIN_TABLE)/2,0);
   }
@@ -775,9 +776,9 @@ else
   {  
   mem(2,&baseb_carrier,baseband_size*2*sizeof(float),0);
   mem(5,&baseb,baseband_size*2*sizeof(float),0);
+  mem(7,&baseb_carrier_ampl,baseband_size*sizeof(float),0);
   }
 mem(6,&baseb_totpwr,baseband_size*sizeof(float),0);
-mem(7,&baseb_carrier_ampl,baseband_size*sizeof(float),0);
 mem(3,&baseb_raw,baseband_size*2*sizeof(float),0);
 mem(4,&baseb_raw_orthog,baseband_size*2*sizeof(float),0);
 mem(8,&mix2.permute,mix2.size*sizeof(short int),0);
@@ -1421,10 +1422,12 @@ for(i=0; i<fft3_size; i++)
   bg_ytmp[i]/=t1;
   }
 j=bg_first_xpoint;
+bg_carrfilter_points=0;
 for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   {
   if(bg_ytmp[j] > 0.000000001)
     {
+    bg_carrfilter_points++;
     iy=2*bg.yfac_log*log10(1./bg_ytmp[j]);  
     iy=bg_ymax-1+iy;
     if(iy>bg_y0)
@@ -1442,6 +1445,16 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
     }
   bg_carrfilter_y[i]=iy;
   j++;
+  }
+if(fft1_correlation_flag == 2)
+  {
+  lir_sched_yield();
+  sc[SC_SG_REDRAW]++;
+  }
+if(fft1_correlation_flag == 3)
+  {
+  lir_sched_yield();
+  sc[SC_VG_REDRAW]++;
   }
 if(bg.mixer_mode == 1)
   {
@@ -1538,7 +1551,7 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
       }
     else
       {    
-      if(fft1_correlation_flag != 2)lir_setpixel(i,iy,14);
+      if(fft1_correlation_flag <= 1)lir_setpixel(i,iy,14);
       }
     }
   else
@@ -2426,7 +2439,7 @@ switch (mouse_active_flag-1)
   break;
 
   case  BG_TOGGLE_COHERENT:
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(bg_twopol == 0 && bg_delay == 0)
       {
@@ -2436,7 +2449,7 @@ switch (mouse_active_flag-1)
   break;
 
   case  BG_TOGGLE_PHASING:
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(bg_coherent == 0)
       {
@@ -2448,7 +2461,7 @@ switch (mouse_active_flag-1)
   break;
 
   case BG_TOGGLE_TWOPOL:
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(bg_coherent == 0)
       {
@@ -2771,6 +2784,7 @@ switch (bfo_flag)
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
+    baseb_reset_counter++;
     }
   break;
   
@@ -2785,6 +2799,7 @@ switch (bfo_flag)
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
+    baseb_reset_counter++;
     }
   break;
     
@@ -3250,7 +3265,7 @@ if(fft1_correlation_flag == 0)
 else
   {
   k=sizeof(double);
-  if(fft1_correlation_flag == 2)k*=4;
+  if(fft1_correlation_flag >= 2)k*=4;
   }
 if(t1*k > (float)(0x4FFFFFFF))
   {
@@ -3304,7 +3319,7 @@ if(fft1_correlation_flag != 0)
   mem( 106,&d_fft3_fqwin_inv,fft3_size*sizeof(double),0);
   mem( 107,&d_basebcarr_fir,fft3_size*sizeof(double),0);
   mem( 108,&d_fftn_tmp,4*fftn_tmp_size*sizeof(double),0);
-  if(fft1_correlation_flag == 2)
+  if(fft1_correlation_flag >= 2)
     {
     mem( 109,&fft3_cleansum,4*bg_xpoints*sizeof(float),0);
     }
@@ -3397,7 +3412,7 @@ if(fft1_correlation_flag != 0)
     k--;
     }
   make_d_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], d_fft3_window);
-  if(fft1_correlation_flag == 2)
+  if(fft1_correlation_flag >= 2)
     {
     memset(fft3_cleansum,0,bg_xpoints*ui.rx_rf_channels*sizeof(float));
     }
@@ -3637,7 +3652,7 @@ if(rx_mode == MODE_FM)
 else   
   {
   freq_readout_x1=ix2;
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     bgbutt[BG_TOGGLE_AGC].x1=ix1;
     bgbutt[BG_TOGGLE_AGC].x2=ix2;
@@ -3686,7 +3701,7 @@ if(rx_mode == MODE_AM && bg.mixer_mode == 1)
   bgbutt[BG_FILTER_SHIFT].y2=iy2;
   }
 // Make the squelch buttons. They will be placed on screen by make_bg_filter.
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   ix2=ix1-2;
   ix1=ix2-3*text_width/2;
@@ -3784,7 +3799,7 @@ bgbutt[BG_TOGGLE_BYTES].x2=ix2;
 bgbutt[BG_TOGGLE_BYTES].y1=iy1;
 bgbutt[BG_TOGGLE_BYTES].y2=iy2;
 // **************   Make the button for the amplitude expander
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   if(use_bfo != 0)
     {
@@ -3811,7 +3826,7 @@ bgbutt[BG_SEL_COHFAC].x2=ix2;
 bgbutt[BG_SEL_COHFAC].y1=iy1;
 bgbutt[BG_SEL_COHFAC].y2=iy2;
 // ****************************************************************
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   if(use_bfo != 0)
     {
@@ -4061,7 +4076,7 @@ new_bg_agc_flag=bg.agc_flag;
 if(bg.wheel_stepn<-30 || bg.wheel_stepn >30)bg.wheel_stepn=0;
 bfo_flag=0;  
 mix2.size=-1;
-if(fft1_correlation_flag == 2)genparm[OUTPUT_MODE]=51;
+if(fft1_correlation_flag >= 2)genparm[OUTPUT_MODE]=51;
 new_daout_bytes=1+(genparm[OUTPUT_MODE]&1);           //bit 0
 new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);   //bit 1
 bg_expand=(genparm[OUTPUT_MODE]>>2)&3;                //bit 2 and 3

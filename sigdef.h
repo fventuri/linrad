@@ -92,17 +92,22 @@ float im;
 
 // for the meter fraph
 #define DB2DBM 106
+
+extern char fft3_level[12];
+extern char fft3_skip[17];
+
+
 void mg_compute_stonavg(void);
 
+extern int bg_filter_points;
+extern int bg_carrfilter_points;
 
 extern int baseb_min_block;
 extern int baseb_output_block;
 #define MAX_CORR_AFC_COUNT 15
-#define MAX_SG_INHIBIT_COUNT 7
 extern int corr_afc_count;
-extern int sg_inhibit_count;
-extern int sg_enable_flag;
-
+extern int basebcorr_inhibit_count;
+extern int basebcorr_enable_flag;
 extern int basebraw_test_cnt1;
 extern int basebraw_test_cnt2;
 extern int basebraw_test_cnt3;
@@ -111,7 +116,6 @@ extern float rds_f1;
 extern float rds_f2;
 extern float rds_phase;
 extern float rds_power;
-extern int bg_filter_points;
 extern float *squelch_info;
 extern double squelch_turnon_time;
 extern int squelch_on;
@@ -337,6 +341,37 @@ extern int baseb_py;
 extern int baseb_px;
 extern float baseb_fx;
 
+extern size_t *allan_handle;
+extern int vg_siz;
+extern double *vg_phase;
+extern int *vg_tau;
+extern double *vg_asum;
+extern double *vg_acorrsum;
+extern double *vg_hsum;
+extern double *vg_hcorrsum;
+extern double *vg_amplitude;
+extern double *vg_asum_ampl;
+extern double *vg_acorrsum_ampl;
+extern double *vg_hsum_ampl;
+extern double *vg_hcorrsum_ampl;
+extern int *vg_start_pointer;
+extern int *vg_n;
+extern int *vg_sumno;
+extern int vg_no_of_tau;
+extern int vg_first_xpixel;
+extern int vg_last_xpixel;
+extern float vg_xpix_per_decade;
+extern float vg_ypix_per_decade;
+extern int vg_yt;
+extern int vg_yb;
+extern int vg_freq_xpix;
+extern double vg_basebfreq;
+extern short int *vg_y1pix;
+extern short int *vg_y2pix;
+extern short int *vg_ycpix;
+extern short int *vg_decimal_xpixel;
+extern short int *vg_decimal_ypixel;
+
 extern size_t *siganal_handle;
 extern int sg_pa;
 extern int sg_px;
@@ -349,18 +384,25 @@ extern int sg_numpow;
 extern int sg_y0;
 extern int sg_mode3_ymid;
 extern int sg_mode3_ypix;
-
 extern int sg_first_xpixel;
 extern int sg_last_xpixel;
+extern float sg_first_logfreq;
+extern float sg_last_logfreq;
+extern int sg_first_logpoint;
+extern int sg_last_logpoint;
+extern float sg_log_scale;
+extern float sg_logoffset;
+extern float sg_log_xfac;
+extern float sg_log_zerfreq;
+extern float sg_log_intfreq;
+
 extern int sg_ytop2;
 extern double sg_reset_time;
-extern double sg_display_time;
 extern int sg_valid;
 extern int corrpow_cnt;
 
 
 extern int fftn_tmp_size;
-extern int siganal_totmem;
 extern double *sg_fft;
 extern float *sg_pwr;
 extern double *sg_pwrsum;
@@ -370,17 +412,20 @@ extern double *sg_window;
 extern D_COSIN_TABLE *sg_tab;
 extern unsigned int *sg_permute;
 extern double *sg_tmp;
-extern char *sg_background;
 extern void do_siganal(void);
+extern void do_allan(void);
 
-extern short int *sg_an1spectrum;
-extern short int *sg_an2spectrum;
 extern short int *sg_ancspectrum;
-extern short int *sg_pn1spectrum;
-extern short int *sg_pn2spectrum;
 extern short int *sg_pncspectrum;
 extern short int *sg_anpncorr_ispectrum;
 extern short int *sg_anpncorr_qspectrum;
+extern short int *sg_oldancspectrum;
+extern short int *sg_oldpncspectrum;
+extern short int *sg_oldanpncorr_ispectrum;
+extern short int *sg_oldanpncorr_qspectrum;
+extern short int *sg_an1spectrum;
+extern short int *sg_pn1spectrum;
+extern short int *sg_pn2spectrum;
 
 extern float *mix2_tmp;
 extern float *mix2_pwr;
@@ -515,4 +560,6 @@ void init_baseband_sizes(void);
 void make_bg_filter(void);
 void clear_baseb_arrays(int nn,int k);
 void clear_baseb(void);
+void make_allan_graph(int flag1, int flag2);
+void make_siganal_graph(int flag1, int flag2);
 

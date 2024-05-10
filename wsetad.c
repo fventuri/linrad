@@ -1909,11 +1909,7 @@ switch(lir_inkey)
   line++;
   lir_text(4,line,"S = SDRplay ver2 (RSP1a/RSPII/RSPduo)");
   line++;
-#if SDRPLAY3PAR_VERNR >= 314
-  lir_text(4,line,"T = SDRplay ver3 (RSP1/RSP1A/RSP1B/RSP2/RSPduo/RSPdx)");
-#else
   lir_text(4,line,"T = SDRplay ver3 (RSP1/RSP1A/RSP2/RSPduo/RSPdx)");
-#endif
   line++;
   if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
     {

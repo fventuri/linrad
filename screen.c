@@ -63,6 +63,34 @@ void show_map65_buttons(void);
 void show_sellim_buttons(void);
 void phasing(void);
 
+double get_center_frequency(void)
+{
+double dt1;
+if( (ui.converter_mode & CONVERTER_USE) != 0)
+  {
+  if( (ui.converter_mode & CONVERTER_LO_BELOW) != 0)
+    {
+    if( (ui.converter_mode & CONVERTER_UP) == 0)
+      {
+      dt1=converter_offset_mhz+fg.passband_center;  
+      }
+    else
+      {
+      dt1=fg.passband_center-converter_offset_mhz;
+      }
+    }
+  else
+    {
+    dt1=converter_offset_mhz-fg.passband_center;  
+    }
+  }
+else
+  {
+  dt1=fg.passband_center;
+  }
+return dt1;
+}  
+
 void redraw_radar_graph(void)
 {
 char s[80];
@@ -737,13 +765,13 @@ else
             }
           }
         if(bg_carrfilter_y[kk] == old_y2)color=58;
-        if(fft1_correlation_flag != 2 && 
+        if(fft1_correlation_flag <= 1 && 
                                bg_filterfunc_y[kk] == old_y2)color=14;
         color1=bg_background[old_y1];
         if( (kk == curv_xpixel && old_y1 >= bg_y4 && old_y1 < bg_y3) ||
             (kk == flat_xpixel && old_y1 >= bg_ymax && old_y1 < bg_y4) )
           {
-          if(fft1_correlation_flag != 2)color1=14;
+          if(fft1_correlation_flag <= 1)color1=14;
           }
         else 
           {
@@ -755,7 +783,7 @@ else
             }
           }
         if(bg_carrfilter_y[kk] == old_y1)color1=58;
-        if(fft1_correlation_flag != 2 &&
+        if(fft1_correlation_flag <= 1 &&
                                 bg_filterfunc_y[kk] == old_y1)color1=14;
         if(kk < bgbutt[BG_SQUELCH_LEVEL].x1)
           {
@@ -789,7 +817,7 @@ else
           if( (kk == curv_xpixel && old_y2 >= bg_y4 && old_y2 < bg_y3) ||
               (kk == flat_xpixel && old_y2 >= bg_ymax && old_y2 < bg_y4) )
             {
-            if(fft1_correlation_flag != 2)color2=14;
+            if(fft1_correlation_flag <= 1)color2=14;
             }
           else 
             {  
@@ -802,7 +830,7 @@ else
             }
           if(bg_carrfilter_y[kk] == old_y2)color2=58;
           if(bg_filterfunc_y[kk] == old_y2 && 
-                                 fft1_correlation_flag != 2)color2=14;
+                                 fft1_correlation_flag <= 1)color2=14;
           if(kk < bgbutt[BG_SQUELCH_LEVEL].x1)
             {
             lir_setpixel(kk,old_y2,color2);
@@ -827,7 +855,7 @@ else
           if( (kk == curv_xpixel && old_y1 >= bg_y4 && old_y1 < bg_y3) ||
               (kk == flat_xpixel && old_y1 >= bg_ymax && old_y1 < bg_y4) )
             {
-            if(fft1_correlation_flag != 2)color1=14;
+            if(fft1_correlation_flag <= 1)color1=14;
             }
           else 
             {  
@@ -840,7 +868,7 @@ else
             }
           if(bg_carrfilter_y[kk] == old_y1)color1=58;
           if(bg_filterfunc_y[kk] == old_y1 &&
-                               fft1_correlation_flag != 2)color1=14;
+                               fft1_correlation_flag <= 1)color1=14;
           if(kk < bgbutt[BG_SQUELCH_LEVEL].x1)
             {
             lir_setpixel(kk,old_y1,color1);
@@ -1244,8 +1272,6 @@ while(ia != ic)
   }
 }
 
-
-
 void show_timf2(void)
 {
 #define TIMF2_YSCALE 0.3      
@@ -1464,6 +1490,8 @@ int i,k;
 settextcolor(7);
 sprintf(s,"%c",sg_modes[sg.mode]);
 show_button(&sgbutt[SG_NEW_MODE],s);
+sprintf(s,"%s",sg_xscales[sg.xscale]);
+show_button(&sgbutt[SG_NEW_XSCALE],s);
 sprintf(s,"N %2d",sg.fft_n);
 show_button(&sgbutt[SG_NEW_FFT_N],s);
 sprintf(ss,"%2.1f",sg.ygain);
@@ -1473,6 +1501,7 @@ if(ss[i] == '.' && ss[i+1] == '0')ss[i]=0;
 i=strlen(ss);
 sprintf(s,"dB      ");
 k=6;
+k+=i-2;
 while(i>=0)
   {
   s[k]=ss[i];
@@ -1497,38 +1526,224 @@ show_button(&sgbutt[SG_NEW_XGAIN],s);
 
 void sg_line(int x1, int iy1, int x2, int y2, char c)
 {
-if(x2 > sg.xright-18*text_width)
+int y;
+if(sg.xscale == 0)
   {
-  if(iy1 < sg_ytop2+7*text_height || y2 < sg.ytop+7*text_height)return;
-  if(iy1 < sg_ytop2+7*text_height)iy1=sg.ytop+7*text_height;
-  if(y2 < sg_ytop2+7*text_height)y2=sg.ytop+7*text_height;
+  y=sg.ytop;
   }
+else
+  {
+  y=sg_ytop2;
+  }
+//if(sg.mode != 3)
+  {    
+  if(x2 > sg.xright-21*text_width)
+    {
+    if(iy1 < y+11*text_height || y2 < y+11*text_height)return;
+    if(iy1 < y+11*text_height)iy1=y+11*text_height;
+    if(y2 < y+11*text_height)y2=y+11*text_height;
+    }
+  }  
 lir_line(x1,iy1,x2,y2,c);
 }  
 
 void  sg_setpixel(int ix,int iy, char c)
 {
-if(ix > sg.xright-18*text_width)
+int y;
+if(sg.xscale == 0)
   {
-  if(iy < sg_ytop2+7*text_height)return;
-  }
-if(c != 0)
-  {
-  lir_setpixel(ix, iy, c);
-  if(iy < sg_y0)lir_setpixel(ix, iy-1, c);
-  if(iy > sg_ytop2)lir_setpixel(ix, iy+1, c);
+  y=sg.ytop;
   }
 else
   {
-  lir_setpixel(ix, iy, sg_background[iy]);
-  if(iy < sg_y0)lir_setpixel(ix, iy-1, sg_background[iy-1]);
-  if(iy > sg.ytop)lir_setpixel(ix, iy+1, sg_background[iy+1]);
+  y=sg_ytop2;
   }  
+if(ix > sg.xright-22*text_width)
+  {
+  if(iy < y+12*text_height)return;
+  }
+lir_setcross(ix, iy, c);
 }  
+
+int sg_logpix_from_point(int point)
+  {
+  return sg_first_xpixel+
+    (int)(0.5+(log10(point*baseband_sampling_speed/(sg_siz*sg_log_zerfreq))-
+                log10(sg_first_logfreq/sg_log_zerfreq))/sg_log_scale);
+  }
+
+int sg_logpix_from_freq(float f)
+  {
+  return sg_first_xpixel+
+      (int)(0.5+(log10(f/sg_log_zerfreq)-
+             log10(sg_first_logfreq/sg_log_zerfreq))/sg_log_scale);
+  }
+
+void fill_sg_graph(void)
+{
+char s[80];
+int i, j, k, xa;
+float x1, x2, y, t1, t2;
+short int ypix;
+double ydb;
+settextcolor(7);
+// place sg.ymax dB at the top of the dB scale 
+ypix=sg_ytop2+text_height;
+ydb=-sg.ymax;
+// sg.ygain is vertical scale in dB/pixel.
+while(ypix < sg_y0)
+  {
+  if(sg.ygain < 1)
+    {
+    sprintf(s,"%.1f",ydb-0.00001F);
+    }
+  else
+    {
+    sprintf(s,"%d",(int)(ydb-0.00001F));
+    }
+  i=strlen(s);
+  xa=sg_last_xpixel;
+  if(ypix < sg_ytop2+11*text_height)xa-=21*text_width;
+  lir_hline(sg_first_xpixel,ypix,xa, SG_DBSCALE_COLOR);
+  lir_pixwrite(sg.xleft+2+(6-i)*text_width,ypix-text_height/2,s);
+  ypix+=2*text_height;
+  ydb-=sg.ygain;
+  }
+y=sg_y0-1;
+x1=sg.xleft+text_width;
+x2=sg_last_xpixel;
+if(sg.xscale == 0)
+  {
+  fq_scale(x1, x2, y, sg_first_xpixel, -1., 
+           sg_points_per_pixel*sg_hz_per_pixel/sg_pixels_per_point);
+  }
+else
+  {
+// Logarithmic scale
+// The lowest frequency we want to display is bin #8 in the sg transform
+// or 3/4 of the total width of the carrier filter whichever largest.
+  sg_first_logfreq=(float)bg_carrfilter_points/(2*fft3_size);
+  t1=8.0/sg_siz;
+  if(t1 > sg_first_logfreq)sg_first_logfreq=t1;
+  sg_first_logpoint=0.5+sg_first_logfreq*sg_siz;;
+  sg_first_logfreq*=baseband_sampling_speed;
+  sg_last_logfreq=0.375*baseband_sampling_speed;;
+  sg_last_logpoint=3*sg_siz/8;
+  t1=.001*sg_first_logfreq;
+  i=3;
+  j=0;
+  while(j == 0)
+    {
+    j=t1;
+    t1*=10;
+    i--;
+    }
+  i++;
+  sg_log_zerfreq=0.1*t1;
+  sg_log_scale=log10(sg_last_logfreq/sg_first_logfreq)/
+                                       (sg_last_xpixel-sg_first_xpixel);
+  t2=pow(10,i);
+  t1=j*t2;  
+// t1 is the first integer frequency, t2 the increment and i the 
+// decimal position.
+  xa=0;
+  sg_log_intfreq=t1;
+  sg_logoffset=log10(sg_log_intfreq/sg_log_zerfreq);
+  sg_log_xfac=(sg_log_zerfreq/sg_log_intfreq)*(sg_log_zerfreq/sg_log_intfreq);
+  while(xa < sg_last_xpixel)
+    {
+    j++;
+    t1+=t2;
+    if(j == 10)
+      {
+      j=1;
+      t2*=10;
+      }
+    xa=sg_logpix_from_freq(t1);
+    if(xa > sg_last_xpixel-3*text_width)break;
+    k=sg.ytop;
+    if(xa > sg_last_xpixel-20*text_width)
+      {
+      k+=11*text_height;
+      if(sg.mode == 3)
+        {
+        lir_line(xa,sg_ytop2,xa,sg.ytop,SG_DBSCALE_COLOR);  
+        k=sg_ytop2+11*text_width;
+        }
+      }  
+    lir_line(xa,sg_y0,xa,k,SG_DBSCALE_COLOR);  
+    if(j==1 || j==5)
+      {
+      lir_line(xa-1,sg_y0,xa-1,sg_y0-3,15);
+      lir_line(xa,sg_y0,xa,sg_y0-3,15);
+      lir_line(xa+1,sg_y0,xa+1,sg_y0-3,15);
+      if(t1 < 1.0)
+        {
+        sprintf(s,"%.1f",t1);
+        }
+      else
+        {
+        if(t1 < 10)
+          {
+          sprintf(s," %d",(int)t1);
+          }
+        else
+          {
+          sprintf(s,"%d",(int)t1);
+          }
+        }
+      lir_pixwrite(xa-3*text_width/2,sg_y0+text_height/2,s);
+      }
+    }
+  }
+if(sg.mode == 3)
+  {
+  lir_hline(sg_first_xpixel,sg_mode3_ymid, sg_last_xpixel, 12);
+  lir_hline(sg_first_xpixel,sg_mode3_ymid+sg_mode3_ypix, sg_last_xpixel, 12);
+  lir_hline(sg_first_xpixel,sg_mode3_ymid-sg_mode3_ypix, sg_last_xpixel, 12);
+  settextcolor(15);
+  lir_pixwrite(sg.xleft+2*text_width,sg.ytop+2*text_height,"Re");
+  settextcolor(14);
+  lir_pixwrite(sg.xleft+2*text_width,sg.ytop+4*text_height,"Im");
+  settextcolor(7);
+  }
+if(sg.xscale == 0)
+  {
+  if(sg.mode == 1 || sg.mode == 2)
+    {
+    i=1+sg_first_xpixel+(sg_last_xpixel-sg_first_xpixel)/16;
+    i-=sg_pixels_per_point;
+    sg_line(i,sg.ybottom,sg_last_xpixel,sg.ybottom,2);
+    sg_line(i,sg.ybottom-1,sg_last_xpixel,sg.ybottom-1,2);
+    sg_line(i,sg.ybottom-2,sg_last_xpixel,sg.ybottom-2,2);
+    }
+  }
+lir_pixwrite(sg_last_xpixel-12*text_width,sg_ytop2+15*text_height/2,fft3_level);
+lir_pixwrite(sg_last_xpixel-17*text_width,sg_ytop2+17*text_height/2,fft3_skip);
+sprintf(s, "%6d",sg_corrnum);
+lir_pixwrite(sg_last_xpixel-10*text_width,sg_ytop2+9*text_height/2,s);
+i=recent_time-sg_reset_time;
+j=i/3600;
+i%=3600;
+sprintf(s, "%02d:%02d:%02d",j,i/60,i%60);
+lir_pixwrite(sg_last_xpixel-10*text_width,sg_ytop2+11*text_height/2,s);
+}
+
+void redraw_siganal_graph(void)
+{
+lir_sched_yield();  
+hide_mouse(sg.xleft,sg.xright,sg.ytop,sg.ybottom);
+lir_fillbox(sg.xleft,sg.ytop,sg.xright-sg.xleft+1,sg.ybottom-sg.ytop+1,0);
+graph_borders((void*)&sg,7);
+fill_sg_graph();
+show_sg_buttons();
+}
 
 void update_siganal_graph(void)
 {
-int i, j, n, n2, ia, ib, ix;
+float logsum_pn, logsum_an;
+int logsum_n;
+int i, n, n2, ia, ib, ix, iy, ixold;
 int iya1, iya2, iyac, iyaq;
 int iyp1, iyp2, iypc, iypq;
 int sg_last_point;
@@ -1541,21 +1756,43 @@ char anc_color, pnc_color;
 char s[80];
 // sg_spectrum is the y-value currently on screen.
 hide_mouse(sg_first_xpixel, sg_last_xpixel, sg.ytop, sg.ybottom);
+fill_sg_graph();
 // Average the spectrum over n points.
-ix=sg_first_xpixel;
-ia=0;
-n=sg_points_per_pixel;
-ib=n;
+if(sg.xscale == 0)
+  {
+  ix=sg_first_xpixel;
+  n=sg_points_per_pixel;
+  ia=0;
+  ib=n;
+  iy=ix+n;
+  }
+else
+  {  
+  ia=sg_first_logpoint;
+  ix=sg_logpix_from_point(ia);
+  ib=ia;
+  iy=ix;
+  while(ix == iy)
+    {
+    ib+=1;
+    iy=sg_logpix_from_point(ib);
+    }
+  n=ib-ia;
+  }
 n2=n/2;
 pwrfac=sg_siz/(3.956*baseband_sampling_speed);
 yfac=-20*text_height/sg.ygain;
 sg_last_point=3*sg_siz/8;
 rat=(float)fft3_size/(float)sg_siz;
+logsum_pn=0;
+logsum_an=0;
+logsum_n=0;
+ixold=ix;
 switch (sg.mode)
   {
   case 0:
-zz:;  
-  while(ib < sg_last_point && ix < sg_last_xpixel)
+zz:;
+  while(ib < sg_last_point && iy < sg_last_xpixel)
     {
     anc=0;
     pnc=0;
@@ -1576,45 +1813,52 @@ zz:;
     if(pnc < 1.e-25)pnc=1.e-25;
     iyac=yfac*(log10(pwrfac*anc/sg_corrnum)+sg.ymax/10.);
     iypc=yfac*(log10(pwrfac*pnc/sg_corrnum)+sg.ymax/10.);
-    if(iyac < 0)iyac=0;
-    if(iypc < 0)iypc=0;
+    if(iyac < 1)iyac=1;
+    if(iypc < 1)iypc=1;
     iyac+=sg_ytop2+text_height;
     iypc+=sg_ytop2+text_height;
-    if(iyac > sg_y0)iyac=sg_y0;
-    if(iypc > sg_y0)iypc=sg_y0;
+    if(iyac > sg_y0-1)iyac=sg_y0-1;
+    if(iypc > sg_y0-1)iypc=sg_y0-1;
     if(ix != sg_first_xpixel)
       {
-      sg_line(ix-sg_pixels_per_point,
-              sg_ancspectrum[2*(ix-sg_pixels_per_point)+1],
-              ix,
-              sg_ancspectrum[2*ix],0);
-      sg_ancspectrum[2*ix+1]=sg_ancspectrum[2*ix];  
-      sg_ancspectrum[2*ix]=iyac;
-      sg_line(ix-sg_pixels_per_point,
-              sg_ancspectrum[2*(ix-sg_pixels_per_point)],
-              ix,
-              sg_ancspectrum[2*ix],15);
-      sg_line(ix-sg_pixels_per_point,
-              sg_pncspectrum[2*(ix-sg_pixels_per_point)+1],
-              ix,
-              sg_pncspectrum[2*ix],0);
-      sg_pncspectrum[2*ix+1]=sg_pncspectrum[2*ix];  
-      sg_pncspectrum[2*ix]=iypc;
-      sg_line(ix-sg_pixels_per_point,
-              sg_pncspectrum[2*(ix-sg_pixels_per_point)],
-              ix,
-              sg_pncspectrum[2*ix],14);
+      sg_line(ixold,sg_oldancspectrum[ixold],ix,sg_ancspectrum[ix],0);
+      sg_oldancspectrum[ix]=sg_ancspectrum[ix];
+      sg_ancspectrum[ix]=iyac;
+      sg_line(ixold, sg_ancspectrum[ixold], ix, sg_ancspectrum[ix],15);
+      sg_line(ixold,sg_oldpncspectrum[ixold],ix,sg_pncspectrum[ix],0);
+      sg_oldpncspectrum[ix]=sg_pncspectrum[ix];
+      sg_pncspectrum[ix]=iypc;
+      sg_line(ixold, sg_pncspectrum[ixold], ix, sg_pncspectrum[ix],14);
       }
     else
       {
-      sg_ancspectrum[2*ix+1]=sg_ancspectrum[2*ix];  
-      sg_ancspectrum[2*ix]=iyac;
-      sg_pncspectrum[2*ix+1]=sg_pncspectrum[2*ix];  
-      sg_pncspectrum[2*ix]=iypc;
-      }  
-    ib+=n;
-    ia+=n;
-    ix+=sg_pixels_per_point;
+      sg_oldpncspectrum[ix]=sg_pncspectrum[ix];
+      sg_oldancspectrum[ix]=sg_ancspectrum[ix];
+      sg_ancspectrum[ix]=iyac;
+      sg_pncspectrum[ix]=iypc;
+      }
+    ixold=ix;
+    if(sg.xscale == 0)
+      {
+      ib+=n;
+      ia+=n;
+      ix+=sg_pixels_per_point;
+      iy=ix;
+      }
+    else
+      {   
+      ia=ib+1;
+      ib=ia;
+      ix=sg_logpix_from_point(ia);
+      iy=ix;
+      while(ix == iy)
+        {
+        ib+=1;
+        iy=sg_logpix_from_point(ib);
+        }
+      n=ib-ia;
+      n2=n/2;
+      }     
     }
   break;
     
@@ -1639,7 +1883,7 @@ zz:;
       }
     else
       {
-      pnc_color=41;
+      pnc_color=3;
       }
     pnc=fabs(pnc);  
     pnc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
@@ -1654,43 +1898,70 @@ zz:;
     iyp1=yfac*(log10(pwrfac*pn1/sg_numpow)+sg.ymax/10.);
     iyp2=yfac*(log10(pwrfac*pn2/sg_numpow)+sg.ymax/10.);
     iypc=yfac*(log10(pwrfac*pnc/sg_corrnum)+sg.ymax/10.);
-    if(iypq < 0)iypq=0;
-    if(iyp1 < 0)iyp1=0;
-    if(iyp2 < 0)iyp2=0;
-    if(iypc < 0)iypc=0;
+    if(iypq < 1)iypq=1;
+    if(iyp1 < 1)iyp1=1;
+    if(iyp2 < 1)iyp2=1;
+    if(iypc < 1)iypc=1;
     iypq+=sg_ytop2+text_height;
     iyp1+=sg_ytop2+text_height;
     iyp2+=sg_ytop2+text_height;
     iypc+=sg_ytop2+text_height;
-    if(iypq > sg_y0)iypq=sg_y0;
-    if(iyp1 > sg_y0)iyp1=sg_y0;
-    if(iyp2 > sg_y0)iyp2=sg_y0;
-    if(iypc > sg_y0)iypc=sg_y0;
+    if(iypq > sg_y0-1)iypq=sg_y0-1;
+    if(iyp1 > sg_y0-1)iyp1=sg_y0-1;
+    if(iyp2 > sg_y0-1)iyp2=sg_y0-1;
+    if(iypc > sg_y0-1)iypc=sg_y0-1;
     if(ix != sg_first_xpixel)
       {
-      sg_line(ix-sg_pixels_per_point,sg_pncspectrum[2*(ix-sg_pixels_per_point)+1],ix,sg_pncspectrum[2*ix],0);
-      sg_pncspectrum[2*ix+1]=sg_pncspectrum[2*ix];  
-      sg_pncspectrum[2*ix]=iypc;
-      sg_line(ix-sg_pixels_per_point,sg_pncspectrum[2*(ix-sg_pixels_per_point)],ix,sg_pncspectrum[2*ix],pnc_color);
+      sg_line(ixold,sg_oldpncspectrum[ixold],ix,sg_pncspectrum[ix],0);
+      sg_oldpncspectrum[ix]=sg_pncspectrum[ix];
+      sg_pncspectrum[ix]=iypc;
+      sg_line(ixold,sg_pncspectrum[ixold],ix,iypc,pnc_color);
+      if(ix > sg_first_xpixel+(sg_last_xpixel-sg_first_xpixel)/16)
+        {
+        logsum_n++;
+        logsum_pn+=log10(pwrfac*pnc/sg_corrnum);
+        }
       }
     else
       {
-      sg_pncspectrum[2*ix+1]=sg_pncspectrum[2*ix];  
-      sg_pncspectrum[2*ix]=iypc;
-      }  
+      sg_oldpncspectrum[ix]=sg_pncspectrum[ix];
+      sg_pncspectrum[ix]=iypc;
+      }
     sg_setpixel(ix,sg_an1spectrum[ix],0);
     sg_setpixel(ix,sg_pn1spectrum[ix],0);
     sg_setpixel(ix,sg_pn2spectrum[ix],0);
     sg_setpixel(ix,iypq,12);
-    sg_setpixel(ix,iyp1,11);
+    sg_setpixel(ix,iyp1,10);
     sg_setpixel(ix,iyp2,13);
     sg_an1spectrum[ix]=iypq;
     sg_pn1spectrum[ix]=iyp1;
     sg_pn2spectrum[ix]=iyp2;
-    ib+=n;
-    ia+=n;
-    ix+=sg_pixels_per_point;
+    ixold=ix;
+    if(sg.xscale == 0)
+      {
+      ib+=n;
+      ia+=n;
+      ix+=sg_pixels_per_point;
+      iy=ix;
+      }
+    else
+      {   
+      ia=ib+1;
+      ib=ia;
+      ix=sg_logpix_from_point(ia);
+      iy=ix;
+      while(ix == iy)
+        {
+        ib+=1;
+        iy=sg_logpix_from_point(ib);
+        }
+      n=ib-ia;
+      n2=n/2;
+      }     
     }
+  sprintf(s,"Avg %6.2f",-10*logsum_pn/logsum_n);
+  lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
+  fprintf(stderr,"\n%d PN= %.2f",sg_corrnum,-10*logsum_pn/logsum_n);
   break;
 
   case 2:
@@ -1729,43 +2000,69 @@ zz:;
     iya2=yfac*(log10(pwrfac*an2/sg_numpow)+sg.ymax/10.);
     iyac=yfac*(log10(pwrfac*anc/sg_corrnum)+sg.ymax/10.);
     iyaq=yfac*(log10(pwrfac*anq/sg_corrnum)+sg.ymax/10.);
-    if(iyaq < 0)iyaq=0;
-    if(iya1 < 0)iya1=0;
-    if(iya2 < 0)iya2=0;
-    if(iyac < 0)iyac=0;
+    if(iyaq < 1)iyaq=1;
+    if(iya1 < 1)iya1=1;
+    if(iya2 < 1)iya2=1;
+    if(iyac < 1)iyac=1;
     iyaq+=sg_ytop2+text_height;
     iya1+=sg_ytop2+text_height;
     iya2+=sg_ytop2+text_height;
     iyac+=sg_ytop2+text_height;
-    if(iyaq > sg_y0)iyaq=sg_y0;
-    if(iya1 > sg_y0)iya1=sg_y0;
-    if(iya2 > sg_y0)iya2=sg_y0;
-    if(iyac > sg_y0)iyac=sg_y0;
+    if(iyaq > sg_y0-1)iyaq=sg_y0-1;
+    if(iya1 > sg_y0-1)iya1=sg_y0-1;
+    if(iya2 > sg_y0-1)iya2=sg_y0-1;
+    if(iyac > sg_y0-1)iyac=sg_y0-1;
     if(ix != sg_first_xpixel)
       {
-      sg_line(ix-sg_pixels_per_point,sg_ancspectrum[2*(ix-sg_pixels_per_point)+1],ix,sg_ancspectrum[2*ix],0);
-      sg_ancspectrum[2*ix+1]=sg_ancspectrum[2*ix];  
-      sg_ancspectrum[2*ix]=iyac;
-      sg_line(ix-sg_pixels_per_point,sg_ancspectrum[2*(ix-sg_pixels_per_point)],ix,sg_ancspectrum[2*ix],anc_color);
+      sg_line(ixold,sg_oldancspectrum[ixold],ix,sg_ancspectrum[ix],0);
+      sg_oldancspectrum[ix]=sg_ancspectrum[ix];
+      sg_ancspectrum[ix]=iyac;
+      sg_line(ixold,sg_ancspectrum[ixold],ix,sg_ancspectrum[ix],anc_color);
+      if(ix > sg_first_xpixel+(sg_last_xpixel-sg_first_xpixel)/16)
+        {
+        logsum_n++;
+        logsum_an+=log10(pwrfac*anc/sg_corrnum);
+        }
       }
     else
       {
-      sg_ancspectrum[2*ix+1]=sg_ancspectrum[2*ix];  
-      sg_ancspectrum[2*ix]=iyac;
+      sg_oldancspectrum[ix]=sg_ancspectrum[ix];
+      sg_ancspectrum[ix]=iyac;
       }  
     sg_setpixel(ix,sg_an1spectrum[ix],0);
-    sg_setpixel(ix,sg_an2spectrum[ix],0);
     sg_setpixel(ix,sg_pn1spectrum[ix],0);
-    sg_setpixel(ix,iya1,11);
+    sg_setpixel(ix,sg_pn2spectrum[ix],0);
+    sg_setpixel(ix,iya1,10);
     sg_setpixel(ix,iya2,13);
     sg_setpixel(ix,iyaq,12);
-    sg_an1spectrum[ix]=iya1;
-    sg_an2spectrum[ix]=iya2;
-    sg_pn1spectrum[ix]=iyaq;
-    ib+=n;
-    ia+=n;
-    ix+=sg_pixels_per_point;
+    sg_an1spectrum[ix]=iyaq;
+    sg_pn1spectrum[ix]=iya1;
+    sg_pn2spectrum[ix]=iya2;
+    ixold=ix;
+    if(sg.xscale == 0)
+      {
+      ib+=n;
+      ia+=n;
+      ix+=sg_pixels_per_point;
+      }
+    else
+      {   
+      ia=ib+1;
+      ib=ia;
+      ix=sg_logpix_from_point(ia);
+      iy=ix;
+      while(ix == iy)
+        {
+        ib+=1;
+        iy=sg_logpix_from_point(ib);
+        }
+      n=ib-ia;
+      n2=n/2;
+      }     
     }
+  sprintf(s,"Avg %6.2f",-10*logsum_an/logsum_n);
+  lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
+  fprintf(stderr,"\n%d AN= %.2f",sg_corrnum,-10*logsum_an/logsum_n);
   break;
 
   case 3:
@@ -1786,8 +2083,8 @@ zz:;
       anpn_i+=sg_anpn_corr[2*i  ];
       anpn_q+=sg_anpn_corr[2*i+1];
       }
-    anpn_i/=sqrt(anc*anc+anq*anq+pnc*pnc+pnq*pnq);  
-    anpn_q/=sqrt(anc*anc+anq*anq+pnc*pnc+pnq*pnq);  
+    anpn_i/=sqrt(2*(anc*anc+anq*anq+pnc*pnc+pnq*pnq));  
+    anpn_q/=sqrt(2*(anc*anc+anq*anq+pnc*pnc+pnq*pnq));  
     if(anpn_i > 1)anpn_i=1;
     if(anpn_q > 1)anpn_q=1;
     if(anpn_i < -1)anpn_i=-1;
@@ -1796,114 +2093,478 @@ zz:;
     iypc=sg_mode3_ypix*anpn_q+sg_mode3_ymid;
     if(ix != sg_first_xpixel)
       {
-      sg_line(ix-sg_pixels_per_point,
-              sg_anpncorr_ispectrum[2*(ix-sg_pixels_per_point)+1],
-              ix,
-              sg_anpncorr_ispectrum[2*ix],0);
-      sg_anpncorr_ispectrum[2*ix+1]=sg_anpncorr_ispectrum[2*ix];  
-      sg_anpncorr_ispectrum[2*ix]=iyac;
-      sg_line(ix-sg_pixels_per_point,
-              sg_anpncorr_ispectrum[2*(ix-sg_pixels_per_point)],
-              ix,
-              sg_anpncorr_ispectrum[2*ix],15);
-
-      sg_line(ix-sg_pixels_per_point,
-              sg_anpncorr_qspectrum[2*(ix-sg_pixels_per_point)+1],
-              ix,
-              sg_anpncorr_qspectrum[2*ix],0);
-      sg_anpncorr_qspectrum[2*ix+1]=sg_anpncorr_qspectrum[2*ix];  
-      sg_anpncorr_qspectrum[2*ix]=iypc;
-      sg_line(ix-sg_pixels_per_point,
-              sg_anpncorr_qspectrum[2*(ix-sg_pixels_per_point)],
-              ix,
-              sg_anpncorr_qspectrum[2*ix],14);
+      sg_line(ixold,sg_oldanpncorr_ispectrum[ixold],ix,
+                    sg_anpncorr_ispectrum[ix],0);
+      sg_oldanpncorr_ispectrum[ix]=sg_anpncorr_ispectrum[ix];
+      sg_anpncorr_ispectrum[ix]=iyac;
+      sg_line(ixold,sg_anpncorr_ispectrum[ixold],ix,
+                    sg_anpncorr_ispectrum[ix],15);
+      sg_line(ixold,sg_oldanpncorr_qspectrum[ixold],ix,
+                    sg_anpncorr_qspectrum[ix],0);
+      sg_oldanpncorr_qspectrum[ix]=sg_anpncorr_qspectrum[ix];
+      sg_anpncorr_qspectrum[ix]=iypc;
+      sg_line(ixold,sg_anpncorr_qspectrum[ixold],ix,
+                    sg_anpncorr_qspectrum[ix],14);
       }
     else
       {
-      sg_anpncorr_ispectrum[2*ix+1]=sg_anpncorr_ispectrum[2*ix];  
-      sg_anpncorr_ispectrum[2*ix]=iyac;
-      sg_anpncorr_qspectrum[2*ix+1]=sg_anpncorr_qspectrum[2*ix];  
-      sg_anpncorr_qspectrum[2*ix]=iypc;
+      sg_oldanpncorr_ispectrum[ix]=sg_anpncorr_ispectrum[ix];  
+      sg_oldanpncorr_qspectrum[ix]=sg_anpncorr_qspectrum[ix];  
+      sg_anpncorr_ispectrum[ix]=iyac;
+      sg_anpncorr_qspectrum[ix]=iypc;
       }  
-
-
-
-
-//fprintf(dmp,"\n%d %f  %f",ix,anpn_i, anpn_q);
-   
-    ib+=n;
-    ia+=n;
-    ix+=sg_pixels_per_point;
+    ixold=ix;
+    if(sg.xscale == 0)
+      {
+      ib+=n;
+      ia+=n;
+      ix+=sg_pixels_per_point;
+      iy=ix;
+      }
+    else
+      {   
+      ia=ib+1;
+      ib=ia;
+      ix=sg_logpix_from_point(ia);
+      iy=ix;
+      while(ix == iy)
+        {
+        ib+=1;
+        iy=sg_logpix_from_point(ib);
+        }
+      n=ib-ia;
+      n2=n/2;
+      }     
     }
-
-ix=sg_first_xpixel;
-ia=0;
-n=sg_points_per_pixel;
-ib=n;
-n2=n/2;
-
-  goto zz;
-  break;
-  }
-sprintf(s, "%6d",sg_corrnum);
-lir_pixwrite(sg_last_xpixel-10*text_width,sg.ytop+9*text_height/2,s);
-if(recent_time > sg_display_time+1)
-  {
-  i=recent_time-sg_reset_time;
-  j=i/3600;
-  i%=3600;
-  sprintf(s, "%02d.%02d.%02d",j,i/60,i%60);
-  lir_pixwrite(sg_last_xpixel-10*text_width,sg.ytop+11*text_height/2,s);
-  sg_display_time=recent_time;
-  }
-}
-
-void redraw_siganal_graph(void)
-{
-char s[80];
-int i;
-float x1, x2, y;
-short int ypix;
-double ydb;
-memset(sg_background, 0, screen_height*sizeof(char));
-hide_mouse(sg.xleft,sg.xright,sg_ytop2,sg.ybottom);
-lir_fillbox(sg.xleft,sg.ytop,sg.xright-sg.xleft+1,sg.ybottom-sg.ytop+1,0);
-graph_borders((void*)&sg,7);
-settextcolor(7);
-// place sg.ymax dB at the top of the dB scale 
-ypix=sg_ytop2+text_height;
-ydb=-sg.ymax;
-// sg.ygain is vertical scale in dB/pixel.
-while(ypix < sg_y0)
-  {
-  if(sg.ygain < 1)
+  if(sg.xscale == 0)
     {
-    sprintf(s,"%.1f",ydb-0.00001F);
+    ix=sg_first_xpixel;
+    n=sg_points_per_pixel;
+    ia=0;
+    ib=n;  
+    iy=ix+sg_pixels_per_point;
     }
   else
     {
-    sprintf(s,"%d",(int)(ydb-0.00001F));
+    ia=sg_first_logpoint;
+    ix=sg_logpix_from_point(ia);
+    ib=ia;
+    iy=ix;
+    while(ix == iy)
+      {
+      ib+=1;
+      iy=sg_logpix_from_point(ib);
+      }
+    n=ib-ia;
     }
-  i=strlen(s);
-  sg_background[ypix]=SG_DBSCALE_COLOR;
-  lir_hline(sg_first_xpixel,ypix,sg_last_xpixel, SG_DBSCALE_COLOR);
-  lir_pixwrite(sg.xleft+2+(6-i)*text_width,ypix-text_height/2,s);
-  ypix+=2*text_height;
-  ydb-=sg.ygain;
+  n2=n/2;
+  ixold=ix;
+  goto zz;
   }
-y=sg_y0;
-x1=sg.xleft+text_width;
-x2=sg_last_xpixel;
-fq_scale(x1, x2, y, sg_first_xpixel, -1., 
-           sg_points_per_pixel*sg_hz_per_pixel/sg_pixels_per_point);
-show_sg_buttons();
-if(sg.mode == 3)
+}
+
+void show_vg_buttons(void)
+{
+char s[80];
+settextcolor(7);
+if(vg.mintau >= 1)
   {
-  i=sg_last_xpixel-18*text_width;
-  lir_hline(sg_first_xpixel,sg_mode3_ymid, i, 12);
-  lir_hline(sg_first_xpixel,sg_mode3_ymid+sg_mode3_ypix, i, 12);
-  lir_hline(sg_first_xpixel,sg_mode3_ymid-sg_mode3_ypix, i, 12);
+  sprintf(s,"Tmin %4.0f",vg.mintau);
   }
+else
+  {  
+  sprintf(s,"Tmin %4.2f",vg.mintau);
+  }
+show_button(&vgbutt[VG_NEW_MINTAU],s);
+if(vg.maxtau >= 1)
+  {
+  sprintf(s,"Tmax %5.0f",vg.maxtau);
+  }
+else
+  {  
+  sprintf(s,"Tmax %5.3f",vg.maxtau);
+  }
+show_button(&vgbutt[VG_NEW_MAXTAU],s);
+sprintf(s,"Pnts %d",vg.points_per_decade);
+show_button(&vgbutt[VG_NEW_POINTS_PER_DECADE],s);
+sprintf(s,"Ymin %d",vg.ymin);
+show_button(&vgbutt[VG_NEW_YMIN],s);
+sprintf(s,"Ymax %d",vg.ymax);
+show_button(&vgbutt[VG_NEW_YMAX],s);
+s[0]=vg_types[vg.type];
+s[1]=0;
+show_button(&vgbutt[VG_NEW_TYPE],s);
+s[0]=vg_modes[vg.mode];
+s[1]=0;
+show_button(&vgbutt[VG_NEW_MODE],s);
+s[0]=vg_clears[vg.clear];
+s[1]=0;
+show_button(&vgbutt[VG_NEW_CLEAR],s);
+
+}
+
+int vg_tau_to_xpix(double tau)
+{
+return (int)(log10(tau/vg.mintau)*vg_xpix_per_decade+0.5F)+vg_first_xpixel;
+}
+
+void fill_vg_graph(void)
+{
+char s [20];
+int i, k, m, iy, jy, yval, x0, jx  ;
+double dt1, dt2;
+// Draw horizontal lines for the vertical scale
+// vg.ymax is the negative power of ten, default 9 for the largest
+// sigma to display, 10 to power -9
+// vg.ymin, default 11 is s the smallest 
+// Place horizontal lines for each power of 10
+// range in pixels is vg_yb-vg_yt which we need to go even
+// in the number of decades we have which is vg.ymin - vg.ymax-1
+vg_ypix_per_decade=(float)(vg_yb-vg_yt)/(vg.ymin - vg.ymax);
+// find out how many pixels below 1.0 to place 0.9, 0.8,0.7,...
+/*
+i=9;
+while(i > 1)
+  {
+  vg_decimal_ypixel[i]=(int)((vg_ypix_per_decade)*(1.F-log10((double)i))+0.5F);
+  i--;
+  }
+// find out how many powers of 10 we want. Fractional number may occur.
+vg_xpix_per_decade=(float)(vg_last_xpixel-vg_first_xpixel)/
+                     log10(vg.maxtau/vg.mintau);
+i=9;
+while(i >= 0)
+  {
+  vg_decimal_xpixel[i]=(int)((float)(vg_xpix_per_decade)*(1.F-log10((double)i))+0.5F);
+  i--;
+  }
+*/
+
+
+iy=vg_yt;
+yval=vg.ymax;
+x0=vg.xleft+text_width/2;
+while(iy <= vg_yb)
+  {
+  sprintf(s,"1E-%d",yval);
+  lir_pixwrite(x0,iy+2-text_height/2,s);
+  lir_hline(vg_first_xpixel,iy,vg_last_xpixel, VG_DBSCALE_COLOR);
+  for(i=1; i<10; i++)
+    {
+    jy=iy+vg_decimal_ypixel[i];
+    if(jy < vg_yb)
+      { 
+      lir_hline(vg_first_xpixel, jy, vg_last_xpixel,
+                                               VG_DBSCALE_COLOR);
+      }
+    }
+  iy+=vg_ypix_per_decade;
+  yval++;
+  }
+// Draw vertical lines for the time scale on the X-axis.
+// We want the scale from vg.mintau to vg.maxtau.
+dt1=0.00001;
+m=0;
+while(dt1 <= vg.maxtau-.000001)
+  {
+  if(dt1 >= vg.mintau-.00001)
+    {  
+    i=vg_tau_to_xpix(dt1);
+    lir_line(i,vg_yb,i, vg_yt, VG_DBSCALE_COLOR);
+    if(dt1 < 0.999)
+      {
+      sprintf(s,"%3.2fs",dt1);
+      }
+    else
+      {
+      sprintf(s,"%3.0fs",dt1);
+      }
+    jx=i-3*text_width+(strlen(s)+1)/2;  
+    lir_pixwrite(jx, vg.ybottom-text_height,s);  
+    for(k=1; k<10; k++)
+      {
+      jx=i+vg_xpix_per_decade-vg_decimal_xpixel[k];
+      if(jx < vg_last_xpixel)
+        { 
+        lir_line(jx, vg_yb, jx,vg_yt, VG_DBSCALE_COLOR);
+        }
+      }
+    if(m == 0)
+      {
+      m=-1;
+      k=9;
+next:;      
+      jx=i-vg_decimal_xpixel[k];
+      if(jx >= vg_first_xpixel-1)
+        { 
+        lir_line(jx, vg_yb, jx,vg_yt, VG_DBSCALE_COLOR);
+        k--;
+        goto next;
+        }
+      if(k==0)k=1;  
+      if(k != 9)
+        {  
+        dt2=(k+1)*dt1/10.; 
+        if(dt2 < 0.999)
+          {
+          sprintf(s,"%3.2fs",dt2);
+          }
+        else
+          {
+          sprintf(s,"%3.0fs",dt2);
+          }
+        jx=i-vg_decimal_xpixel[k+1];
+        jx-=3*text_width+(strlen(s)+1)/2;  
+        lir_pixwrite(jx, vg.ybottom-text_height,s);
+        }
+      }
+    } 
+  dt1*= 10;
+  }  
+}
+
+void redraw_allan_graph(void)
+{
+lir_sched_yield();  
+hide_mouse(vg.xleft,vg.xright,vg.ytop,vg.ybottom);
+lir_fillbox(vg.xleft,vg.ytop,vg.xright-vg.xleft+1,vg.ybottom-vg.ytop+1,0);
+graph_borders((void*)&vg,7);
+fill_vg_graph();
+show_vg_buttons();
+}
+
+void update_allan_graph(void)
+{
+int i, x, y1, y2, yc, xold;
+double centerinv, sum, dy, dy1, dy2;
+unsigned char color;
+char s[32];
+//hide_mouse(vg_first_xpixel, vg_last_xpixel, vg.ytop, vg.ybottom);
+fill_vg_graph();
+centerinv=.000001/(fg.passband_center*sqrt(2.0));
+x=0;
+yc=0;
+if(vg.type == 0)
+  {
+  for(i=0;i<vg_no_of_tau; i++)
+    {
+    if(vg.mode == 0)
+      {
+      if(vg_sumno[i] > 0)
+        {
+        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
+        dy1=vg_asum[2*i  ];
+        dy2=vg_asum[2*i+1];
+        if(dy1 < 1.e-18)dy1=1.e-18;
+        if(dy2 < 1.e-18)dy2=1.e-18;
+        dy1=centerinv*sqrt(dy1/(2*vg_sumno[i]));
+        dy2=centerinv*sqrt(dy2/(2*vg_sumno[i]));
+        y1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
+        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg_acorrsum[i] < 0)
+          {
+          color=3;
+          sum=-vg_acorrsum[i];
+          }
+        else
+          {  
+          color=14;
+          sum=vg_acorrsum[i];
+          }
+        dy=centerinv*sqrt(sum/(2*vg_sumno[i]));
+        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
+        if(yc < vg_yt)yc=vg_yt;
+        if(yc > vg_yb)yc=vg_yb;
+        if(y1 < vg_yt)y1=vg_yt;
+        if(y1 > vg_yb)y1=vg_yb;
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg.clear == 0 && i != 0)
+          {
+          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
+          }
+        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
+        lir_setcross(x,vg_y1pix[i],0);
+        lir_setcross(x,vg_y2pix[i],0);
+        lir_setcross(x,vg_ycpix[2*i],0);
+        vg_y1pix[i]=y1;
+        vg_y2pix[i]=y2;
+        vg_ycpix[2*i+1]=vg_ycpix[2*i];
+        vg_ycpix[2*i]=yc;
+        lir_setcross(x,yc,color);
+        lir_setcross(x,y1,10);
+        lir_setcross(x,y2,55);
+        xold=x;
+        }
+      }
+    else
+      {
+      if(vg_sumno[i] > 0)
+        {
+        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
+        dy1=vg_hsum[2*i  ];
+        dy2=vg_hsum[2*i+1];
+        if(dy1 < 1.e-18)dy1=1.e-18;
+        if(dy2 < 1.e-18)dy2=1.e-18;
+        dy1=centerinv*sqrt(dy1/(2*vg_sumno[i]));
+        dy2=centerinv*sqrt(dy2/(2*vg_sumno[i]));
+        y1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
+        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg_hcorrsum[i] < 0)
+          {
+          color=3;
+          sum=-vg_hcorrsum[i];
+          }
+        else
+          {  
+          color=14;
+          sum=vg_hcorrsum[i];
+          }
+        dy=centerinv*sqrt(sum/(2*vg_sumno[i]));
+        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
+        if(yc < vg_yt)yc=vg_yt;
+        if(yc > vg_yb)yc=vg_yb;
+        if(y1 < vg_yt)y1=vg_yt;
+        if(y1 > vg_yb)y1=vg_yb;
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg.clear == 0 && i != 0)
+          {
+          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
+          }
+        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
+        lir_setcross(x,vg_y1pix[i],0);
+        lir_setcross(x,vg_y2pix[i],0);
+        lir_setcross(x,vg_ycpix[2*i],0);
+        vg_y1pix[i]=y1;
+        vg_y2pix[i]=y2;
+        vg_ycpix[2*i+1]=vg_ycpix[2*i];
+        vg_ycpix[2*i]=yc;
+        lir_setcross(x,yc,color);
+        lir_setcross(x,y1,10);
+        lir_setcross(x,y2,55);
+        xold=x;
+        }
+      }
+    }
+  }
+else
+  {
+  for(i=0;i<vg_no_of_tau; i++)
+    {
+    if(vg.mode == 0)
+      {
+      if(vg_sumno[i] > 0)
+        {
+        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
+        dy1=vg_asum_ampl[2*i  ];
+        dy2=vg_asum_ampl[2*i+1];
+        if(dy1 < 1.e-18)dy1=1.e-18;
+        if(dy2 < 1.e-18)dy2=1.e-18;
+        dy1=sqrt(dy1/vg_sumno[i]);
+        dy2=sqrt(dy2/vg_sumno[i]);
+        y1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
+        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg_acorrsum_ampl[i] < 0)
+          {
+          color=3;
+          sum=-vg_acorrsum_ampl[i];
+          }
+        else
+          {  
+          color=14;
+          sum=vg_acorrsum_ampl[i];
+          }
+        dy=sqrt(sum/vg_sumno[i]);
+        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
+        if(yc < vg_yt)yc=vg_yt;
+        if(yc > vg_yb)yc=vg_yb;
+        if(y1 < vg_yt)y1=vg_yt;
+        if(y1 > vg_yb)y1=vg_yb;
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg.clear == 0 && i != 0)
+          {
+          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
+          }
+        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
+        lir_setcross(x,vg_y1pix[i],0);
+        lir_setcross(x,vg_y2pix[i],0);
+        lir_setcross(x,vg_ycpix[2*i],0);
+        vg_y1pix[i]=y1;
+        vg_y2pix[i]=y2;
+        vg_ycpix[2*i+1]=vg_ycpix[2*i];
+        vg_ycpix[2*i]=yc;
+        lir_setcross(x,yc,color);
+        lir_setcross(x,y1,10);
+        lir_setcross(x,y2,55);
+        xold=x;
+        }
+      }
+    else
+      {
+      if(vg_sumno[i] > 0)
+        {
+        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
+        dy1=vg_hsum_ampl[2*i  ];
+        dy2=vg_hsum_ampl[2*i+1];
+        if(dy1 < 1.e-18)dy1=1.e-18;
+        if(dy2 < 1.e-18)dy2=1.e-18;
+        dy1=sqrt(dy1/vg_sumno[i]);
+        dy2=sqrt(dy2/vg_sumno[i]);
+        y1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
+        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg_hcorrsum_ampl[i] < 0)
+          {
+          color=3;
+          sum=-vg_hcorrsum_ampl[i];
+          }
+        else
+          {  
+          color=14;
+          sum=vg_hcorrsum_ampl[i];
+          }
+        dy=sqrt(sum/(vg_sumno[i]));
+        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
+        if(yc < vg_yt)yc=vg_yt;
+        if(yc > vg_yb)yc=vg_yb;
+        if(y1 < vg_yt)y1=vg_yt;
+        if(y1 > vg_yb)y1=vg_yb;
+        if(y2 < vg_yt)y2=vg_yt;
+        if(y2 > vg_yb)y2=vg_yb;
+        if(vg.clear == 0 && i != 0)
+          {
+          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
+          }
+        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
+        lir_setcross(x,vg_y1pix[i],0);
+        lir_setcross(x,vg_y2pix[i],0);
+        lir_setcross(x,vg_ycpix[2*i],0);
+        vg_y1pix[i]=y1;
+        vg_y2pix[i]=y2;
+        vg_ycpix[2*i+1]=vg_ycpix[2*i];
+        vg_ycpix[2*i]=yc;
+        lir_setcross(x,yc,color);
+        lir_setcross(x,y1,10);
+        lir_setcross(x,y2,55);
+        xold=x;
+        }
+      }
+    }
+  }
+        
+sprintf(s,"               ");
+lir_pixwrite(vg_freq_xpix, vg.ytop+text_height/2, s);
+sprintf(s,"%.7f Hz",vg_basebfreq);
+lir_pixwrite(vg_freq_xpix, vg.ytop+text_height/2, s);
 }
 
 void show_wg_buttons(int all)
@@ -2080,7 +2741,7 @@ if(all)
   else  
     {
 // Buttons that change colour when something is enabled
-    if(fft1_correlation_flag != 2)
+    if(fft1_correlation_flag <= 1)
       {
       if( bg.agc_flag == 0 )
         {
@@ -2259,7 +2920,6 @@ if(iw != 0)
   }
 settextcolor(7);  
 }
-
 
 void redraw_wg_waterfall(void)
 {
@@ -3142,6 +3802,12 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     show_sg_buttons();
     if(kill_all_flag) goto screen_exit;
     }
+  if(sd[SC_VG_BUTTONS]!=sc[SC_VG_BUTTONS])
+    {
+    sd[SC_VG_BUTTONS]=sc[SC_VG_BUTTONS];
+    show_vg_buttons();
+    if(kill_all_flag) goto screen_exit;
+    }
   if(sd[SC_FILL_AFC]!=sc[SC_FILL_AFC])
     {
     sd[SC_FILL_AFC]=sc[SC_FILL_AFC];
@@ -3264,7 +3930,7 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     show_coherent();
     if(kill_all_flag) goto screen_exit;
     }
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(sd[SC_UPDATE_METER_GRAPH]!=sc[SC_UPDATE_METER_GRAPH])
       {
@@ -3306,6 +3972,11 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     sd[SC_SG_REDRAW]=sc[SC_SG_REDRAW];
     redraw_siganal_graph();
     }
+  if(sd[SC_VG_REDRAW]!=sc[SC_VG_REDRAW])
+    {
+    sd[SC_VG_REDRAW]=sc[SC_VG_REDRAW];
+    redraw_allan_graph();
+    }
   if(sd[SC_METER_MOUSE]!=sc[SC_METER_MOUSE])
     {
     sd[SC_METER_MOUSE]=sc[SC_METER_MOUSE];
@@ -3315,6 +3986,11 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     {
     sd[SC_SG_UPDATE]=sc[SC_SG_UPDATE];
     update_siganal_graph();
+    }
+  if(sd[SC_VG_UPDATE]!=sc[SC_VG_UPDATE])
+    {
+    sd[SC_VG_UPDATE]=sc[SC_VG_UPDATE];
+    update_allan_graph();
     }
   if(fft1_correlation_flag == 0)
     {

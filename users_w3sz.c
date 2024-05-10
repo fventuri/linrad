@@ -68,7 +68,7 @@ void userdefined_u(void)
 // across the ethernet to Writelog.  It then mutes Linrad.
 // This routine written by w3sz
 
-char ft2[80]="";
+char ft2[100]="";
 char bb[80]="";
 
 float freqpre;
@@ -76,6 +76,7 @@ char ft[80]="";
 char zro[80]="";
 char zr1[80]="";
 char ffin[11]=""; 
+char zrocpy[80]="";
  
 float freq;
 float lofreq;
@@ -150,26 +151,27 @@ sprintf(ft,"%11f",freq);
  
 if ((freq < 10E10) && (freq >=10E9))
 {
-strcat(zro,zro);
+strcpy(zrocpy,zro);
+strcat(zro,zrocpy);
 strcat(zro,ft);
-strncpy(ft2,zro,12);
+strcpy(ft2,zro);
 }
 else if (freq < 10E9)
 {
-strcat(zro,zro);
+strcpy(zrocpy,zro);
+strcat(zro,zrocpy);
 strcat(zro,zr1);
 strcat(zro,ft);
-strncpy(ft2,zro,12);
+strcpy(ft2,zro);
 }
  
 else
 {
 strcat(zro,ft);
-strncpy(ft2,zro,12);
+strcpy(ft2,zro);
 }
- 
-strncpy(ffin,ft2,10);
- 
+ft2[11]=0; 
+strcpy(ffin,ft2);
 Fp1=fopen(*ft1000file,"w");
 //fprintf(Fp1,ffin);
 fprintf(Fp1,"%s\n%i\n",ffin,l_time);
@@ -212,6 +214,7 @@ char ft[80]="";
 char zro[80]="";
 char zr1[80]="";
 char ffin[11]=""; 
+char zrocpy[80]="";
  
 float freq;
 float lofreq;
@@ -286,25 +289,27 @@ sprintf(ft,"%11f",freq);
  
 if ((freq < 10E10) && (freq >=10E9))
 {
-strcat(zro,zro);
+strcpy(zrocpy,zro);
+strcat(zro,zrocpy);
 strcat(zro,ft);
 strncpy(ft2,zro,12);
 }
 else if (freq < 10E9)
 {
-strcat(zro,zro);
+strcpy(zrocpy,zro);
+strcat(zro,zrocpy);
 strcat(zro,zr1);
 strcat(zro,ft);
-strncpy(ft2,zro,12);
+strcpy(ft2,zro);
 }
  
 else
 {
 strcat(zro,ft);
-strncpy(ft2,zro,12);
+strcpy(ft2,zro);
 }
- 
-strncpy(ffin,ft2,10);
+ft2[11]=0; 
+strcpy(ffin,ft2);
  
 Fp1=fopen(*ft1000file,"w");
 //fprintf(Fp1,ffin);
@@ -355,28 +360,31 @@ case MODE_WCW:
 	break;
   case MODE_HSMS:
    	*w3szfile="aahsmsfile"; 
+        break;
   case MODE_QRSS:
  	*w3szfile="aaqrssfile"; 
-  break;
-  
+        break;
   case MODE_NCW:
  	*w3szfile="aancw_file"; 
+        break;
   case MODE_SSB:
 	*w3szfile="aassb_file";
- break;
-  
+        break;
   case MODE_FM:
  	*w3szfile="aafm__file"; 
+        break;
   case MODE_AM:
  	*w3szfile="aaam__file"; 
+        break;
   case MODE_TXTEST:
  	*w3szfile="aatxtefile"; 
+        break;
   case MODE_RX_ADTEST:
  	*w3szfile="aarxadfile"; 
+        break;
   case MODE_TUNE:
  	*w3szfile="aatunefile";
-
-  break;
+        break;
   }
 Fp=fopen(*w3szfile,"r");
 if(Fp == NULL)
@@ -476,28 +484,31 @@ case MODE_WCW:
 	break;
   case MODE_HSMS:
    	*w3szfile="aahsmsfile"; 
+        break;
   case MODE_QRSS:
  	*w3szfile="aaqrssfile"; 
-  break;
-  
+        break;
   case MODE_NCW:
- 	*w3szfile="aancw_file"; 
+ 	*w3szfile="aancw_file";
+ 	break;
   case MODE_SSB:
 	*w3szfile="aassb_file";
- break;
-  
+        break;  
   case MODE_FM:
  	*w3szfile="aafm__file"; 
+        break;
   case MODE_AM:
  	*w3szfile="aaam__file"; 
+        break;
   case MODE_TXTEST:
  	*w3szfile="aatxtefile"; 
+        break;
   case MODE_RX_ADTEST:
  	*w3szfile="aarxadfile"; 
+        break;
   case MODE_TUNE:
  	*w3szfile="aatunefile";
-
-  break;
+        break;
   }
 
 Fp=fopen(*w3szfile,"w");

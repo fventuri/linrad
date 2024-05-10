@@ -420,10 +420,11 @@ pthread_cond_destroy(&lir_event_cond[i]);
 
 void lir_set_event(int no)
 {
-while(pthread_mutex_lock(&lir_event_mutex[no]) != 0)lir_sleep(10);
+while(pthread_mutex_lock(&lir_event_mutex[no]) != 0)lir_sleep(100);
 lir_event_flag[no]=TRUE;
 pthread_cond_signal(&lir_event_cond[no]);
 pthread_mutex_unlock(&lir_event_mutex[no]);
+lir_event_flag[no]=FALSE;
 }    
 
 void lir_await_event(int no)

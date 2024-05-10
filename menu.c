@@ -623,6 +623,10 @@ if(fft1_correlation_flag==2)
   {
   init_siganal_graph();
   }
+if(fft1_correlation_flag==3)
+  {
+  init_allan_graph();
+  }
 if(use_tx != 0)init_tx_graph();
 if(lir_status != LIR_OK) goto normal_rx_x;
 // Make sure users_init_mode is the last window(s) we open.
@@ -2547,7 +2551,9 @@ if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER &&
     }
   }
 if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
-  {
+  {  
+  lir_text(1, line, "F7=Show colours");
+  line++;
   lir_text(1, line, "F9=Emergency light");
   line++;
   }
@@ -2771,14 +2777,39 @@ switch ( lir_inkey )
     }
   break;
     
+  case F7_KEY:
+  if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
+    {
+    lir_fillbox(0,0,screen_width,screen_height,0);
+
+    int jj=0;
+    int kk=0;
+    unsigned char ii;
+    for(ii=1; ii<MAX_SVGA_PALETTE; ii++)
+      {
+      settextcolor(ii);
+      sprintf(s,"%d MMMM",ii);
+      lir_pixwrite(jj,kk,s);
+      jj+=10*text_width;
+      if(jj > screen_width-10*text_width)
+        {
+        jj=0;
+        kk+=2*text_height;
+        }
+      }
+    settextcolor(7);
+    await_keyboard();
+    }
+  goto menu_loop;
+
   case F9_KEY:
   if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
     {
     lir_fillbox(0,0,screen_width,screen_height,15);
     await_keyboard();
     }
-  break;
-
+  goto menu_loop;
+  
   case '1':
   case '3':
   if((ui.network_flag&NET_RX_INPUT) == 0)

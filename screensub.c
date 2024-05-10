@@ -1766,9 +1766,11 @@ while( xd < x2)
     if(kill_all_flag) return;
     lir_line(fq_x-1,ya,fq_x-1,yb,15);
     if(kill_all_flag) return;
+    m=sg.ytop-1;
+    if(fq_x > sg_last_xpixel-21*text_width)m+=13*text_height-2;    
     if(first_xpixel == sg_first_xpixel)
       {
-      lir_line(fq_x,sg_y0,fq_x,sg.ytop-1,SG_DBSCALE_COLOR);  
+      lir_line(fq_x,sg_y0,fq_x,m,SG_DBSCALE_COLOR);  
       }
     }
   fq_x+=fq_xstep;

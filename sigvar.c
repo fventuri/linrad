@@ -170,8 +170,13 @@ unsigned char morsascii6[64]={
  243,//_____.
 243};//______
 
+char fft3_level[12]="           ";
+char fft3_skip[17]="                 ";
 unsigned char *morsascii[6]={morsascii1, morsascii2, morsascii3, 
                morsascii4, morsascii5, morsascii6};               
+
+int bg_filter_points;
+int bg_carrfilter_points;
 
 float *squelch_info;
 double squelch_turnon_time;
@@ -184,10 +189,9 @@ int basebraw_test_cnt3;
 int baseb_min_block;
 int baseb_output_block;
 int corr_afc_count;
-int sg_inhibit_count;
-int sg_enable_flag;
+int basebcorr_inhibit_count;
+int basebcorr_enable_flag;
 
-int bg_filter_points;
 float keying_spectrum_pos[KEYING_SPECTRUM_MAX];
 float keying_spectrum_ampl[KEYING_SPECTRUM_MAX];
 int keying_spectrum_ptr;
@@ -297,6 +301,38 @@ double d_carrfil_weight;
 double d_bgfil_weight;
 float *baseb_clock;
 
+size_t *allan_handle;
+int vg_siz;
+double *vg_phase;
+int *vg_tau;
+double *vg_asum;
+double *vg_acorrsum;
+double *vg_hsum;
+double *vg_hcorrsum;
+double *vg_amplitude;
+double *vg_asum_ampl;
+double *vg_acorrsum_ampl;
+double *vg_hsum_ampl;
+double *vg_hcorrsum_ampl;
+
+int *vg_start_pointer;
+int *vg_n;
+int *vg_sumno;
+int vg_no_of_tau;
+int vg_first_xpixel;
+int vg_last_xpixel;
+float vg_xpix_per_decade;
+float vg_ypix_per_decade;
+int vg_yt;
+int vg_yb;
+int vg_freq_xpix;
+double vg_basebfreq;
+short int *vg_y1pix;
+short int *vg_y2pix;
+short int *vg_ycpix;
+short int *vg_decimal_xpixel;
+short int *vg_decimal_ypixel;
+
 size_t *siganal_handle;
 int sg_pa;
 int sg_px;
@@ -311,14 +347,22 @@ int sg_mode3_ymid;
 int sg_mode3_ypix;
 int sg_first_xpixel;
 int sg_last_xpixel;
+float sg_first_logfreq;
+float sg_last_logfreq;
+int sg_first_logpoint;
+int sg_last_logpoint;
+float sg_logoffset;
+float sg_log_xfac;
+float sg_log_scale;
+float sg_log_zerfreq;
+float sg_log_intfreq;
+
 int sg_ytop2;
 double sg_reset_time;
-double sg_display_time;
 int sg_valid;
 int corrpow_cnt;
 
 int fftn_tmp_size;
-int siganal_totmem;
 double *sg_fft;
 float *sg_pwr;
 double *sg_pwrsum;
@@ -328,15 +372,19 @@ double *sg_window;
 D_COSIN_TABLE *sg_tab;
 unsigned int *sg_permute;
 double *sg_tmp;
-char *sg_background;
-short int *sg_an1spectrum;
-short int *sg_an2spectrum;
+
 short int *sg_ancspectrum;
-short int *sg_pn1spectrum;
-short int *sg_pn2spectrum;
 short int *sg_pncspectrum;
 short int *sg_anpncorr_ispectrum;
 short int *sg_anpncorr_qspectrum;
+short int *sg_oldancspectrum;
+short int *sg_oldpncspectrum;
+short int *sg_oldanpncorr_ispectrum;
+short int *sg_oldanpncorr_qspectrum;
+short int *sg_an1spectrum;
+short int *sg_an2spectrum;
+short int *sg_pn1spectrum;
+short int *sg_pn2spectrum;
 
 float reg_dot_power[5];
 float reg_dot_re[5];

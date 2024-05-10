@@ -45,7 +45,10 @@
 #define SC_SG_BUTTONS 34
 #define SC_SG_REDRAW 35
 #define SC_SG_UPDATE 36
-#define MAX_SC 37
+#define SC_VG_BUTTONS 37
+#define SC_VG_REDRAW 38
+#define SC_VG_UPDATE 39
+#define MAX_SC 40
 
 extern unsigned int sc[MAX_SC];
 extern unsigned int sd[MAX_SC];
@@ -68,6 +71,8 @@ extern unsigned int sd[MAX_SC];
 #define HG_DBSCALE_COLOR 4
 #define MG_DBSCALE_COLOR 59
 #define SG_DBSCALE_COLOR 59
+#define VG_DBSCALE_COLOR 59
+
 #define WG_DBSCALE_COLOR 1
 #define AG_SRC_RANGE_COLOR 16
 #define AG_STON_RANGE_COLOR 34
@@ -114,11 +119,12 @@ extern unsigned int sd[MAX_SC];
 #define GRAPHTYPE_RG 10
 #define GRAPHTYPE_SG 11
 #define GRAPHTYPE_XG 12
-#define GRAPHTYPE_GPU 13
+#define GRAPHTYPE_VG 13
+#define GRAPHTYPE_GPU 14
 // GRAPHTYPE_NET must be the last one.
 // It is independent of the rx mode 
-#define GRAPHTYPE_NET 14
-#define MAX_GRAPHTYPES 14
+#define GRAPHTYPE_NET 15
+#define MAX_GRAPHTYPES 15
 
 extern char *graphtype_names[MAX_GRAPHTYPES];
 extern char *graphtype_parptr[MAX_GRAPHTYPES];
@@ -187,7 +193,11 @@ extern int bg_waterf_lines;
 extern float bg_waterf_yfac;
 
 extern char sg_modes[NO_SG_MODES];
+extern char *sg_xscales[2];
 extern float sg_hz_per_pixel;
+extern char vg_types[2];
+extern char vg_modes[2];
+extern char vg_clears[2];
 
 extern unsigned char *wg_background;
 extern int wg_first_xpixel;
@@ -290,7 +300,7 @@ extern TG_PARMS tg;
 extern RG_PARMS rg;
 extern SG_PARMS sg;
 extern XG_PARMS xg; 
-
+extern VG_PARMS vg;
 extern GPU_PARMS gpu;
 extern NET_PARMS net;
 
@@ -308,6 +318,7 @@ extern BUTTONS tgbutt[MAX_TGBUTT];
 extern BUTTONS rgbutt[MAX_RGBUTT];
 extern BUTTONS sgbutt[MAX_SGBUTT];
 extern BUTTONS xgbutt[MAX_XGBUTT];
+extern BUTTONS vgbutt[MAX_VGBUTT];
 
 extern int no_of_scro;
 extern unsigned char button_color;
@@ -326,6 +337,8 @@ extern int tg_flag;
 extern int rg_flag;
 extern int sg_flag;
 extern int xg_flag;
+extern int vg_flag;
+
 extern int wg_fft_avg2num;
 
 extern int cg_x0;
@@ -361,6 +374,9 @@ extern size_t afc_totmem;
 extern size_t hires_totmem;
 extern size_t fft3_totmem;
 extern size_t radar_totmem;
+extern size_t siganal_totmem;
+extern size_t allan_totmem;
+
 extern int s_meter_avg_filled_flag;
 extern ROUTINE current_mouse_activity;
 extern int mouse_active_flag;
@@ -382,6 +398,7 @@ void mouse_on_meter_graph(void);
 void mouse_on_tx_graph(void);
 void mouse_on_radar_graph(void);
 void mouse_on_siganal_graph(void);
+void mouse_on_allan_graph(void);
 void mouse_on_elektor_graph(void);
 void mouse_on_fcdproplus_graph(void);
 void help_on_wide_graph(void);
@@ -395,6 +412,8 @@ void help_on_freq_graph(void);
 void help_on_meter_graph(void);
 void help_on_tx_graph(void);
 void help_on_radar_graph(void);
+void help_on_siganal_graph(void);
+void help_on_allan_graph(void);
 void update_wg_spectrum(void);
 void init_wide_graph(void);
 void init_hires_graph(void);
@@ -404,6 +423,7 @@ void init_baseband_graph(void);
 void init_coherent_graph(void);
 void init_radar_graph(void);
 void init_siganal_graph(void);
+void init_allan_graph(void);
 void check_graph_placement(WG_PARMS *a);
 void set_graph_minwidth(WG_PARMS *a);
 void decrease_wg_pixels_per_points(void);
