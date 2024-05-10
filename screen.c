@@ -2344,6 +2344,7 @@ fill_vg_graph();
 centerinv=.000001/(fg.passband_center*sqrt(2.0));
 x=0;
 yc=0;
+xold=x;
 if(vg.type == 0)
   {
   for(i=0;i<vg_no_of_tau; i++)
