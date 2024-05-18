@@ -1042,6 +1042,14 @@ await_netevent:;
             make_allan_graph(TRUE,TRUE);
             break;
 
+            case 2*ALLANFREQ_GRAPH:
+            make_allanfreq_graph(TRUE,FALSE);
+            break;
+
+            case 2*ALLANFREQ_GRAPH+1:
+            make_allanfreq_graph(TRUE,TRUE);
+            break;
+
             case 2*SIGANAL_GRAPH:
             make_siganal_graph(TRUE,FALSE);
             break;
@@ -1049,6 +1057,7 @@ await_netevent:;
             case 2*SIGANAL_GRAPH+1:
             make_siganal_graph(TRUE,TRUE);
             break;
+
             }
           }
         if(mouse_active_flag == 0)
@@ -1584,6 +1593,10 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
           
           case ALLAN_GRAPH:
           if(fft1_correlation_flag == 3)mouse_on_allan_graph();
+          break;
+          
+          case ALLANFREQ_GRAPH:
+          if(fft1_correlation_flag == 3)mouse_on_allanfreq_graph();
           break;
           
           default:

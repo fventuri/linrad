@@ -2221,6 +2221,7 @@ if(tg_flag)avoid_graph_collision(a,(void*)(&tg));
 if(rg_flag)avoid_graph_collision(a,(void*)(&rg));
 if(sg_flag)avoid_graph_collision(a,(void*)(&sg));
 if(vg_flag)avoid_graph_collision(a,(void*)(&vg));
+if(vgf_flag)avoid_graph_collision(a,(void*)(&vg));
 if(xg_flag)avoid_graph_collision(a,(void*)(&xg));
 }
 

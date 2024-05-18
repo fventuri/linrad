@@ -1538,6 +1538,7 @@ tg_flag=0;
 rg_flag=0;
 sg_flag=0;
 vg_flag=0;
+vgf_flag=0;
 xg_flag=0;
 eme_active_flag=0;
 timinfo_flag=0;
@@ -2128,8 +2129,11 @@ wg_waterf=chk_free(wg_waterf);
 fft3_handle=chk_free(fft3_handle);
 hires_handle=chk_free(hires_handle);
 blanker_handle=chk_free(blanker_handle);
+allan_handle=chk_free(allan_handle);
 afc_handle=chk_free(afc_handle);
 baseband_handle=chk_free(baseband_handle);
 dx=chk_free(dx);
+if(vgf_freq != NULL)free(vgf_freq);
+if(vgf_ampl != NULL)free(vgf_ampl);
 }
 

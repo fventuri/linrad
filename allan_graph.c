@@ -42,14 +42,22 @@ int vg_old_y1;
 int vg_old_y2;
 int vg_old_x1;
 int vg_old_x2;
+int vgf_old_y1;
+int vgf_old_y2;
+int vgf_old_x1;
+int vgf_old_x2;
 int allan_graph_scro;
+int allanfreq_graph_scro;
 int reinit_vg;
+float ampfreq_i;
+int fix_allanfreq;
+void fix_ampfreq_time(void);
 
 void do_allan(void)
 {
-int i, ia, iaold, ib, ic, id;
+int i, k, ia, iaold, ib, ic, id;
 double dt1, dt2, dt3, dt4, dt5, dt6;
-double freqinv,totamp1, totamp2;
+double freqinv,totamp1, totamp2, totamp3, totamp4;
 ia=baseb_px;
 iaold=(ia-1+baseband_size)&baseband_mask;
 if(fabs(vg_phase[2*iaold  ]) > 10000. ||
@@ -90,44 +98,71 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
   vg_amplitude[2*ia+1]=dt6;
   for(i=0; i<vg_no_of_tau; i++)
     {
-//if(i==5)fprintf(dmp,"\n%d  %e  %e %f  %f",ia,dt5,dt6,dt1,dt2);
-
     if(vg_n[i] == 3*vg_tau[i])
       {
-// Data now spans three times the desired tau. Get the phase shift
-// Allan
-// for the three regions and compute by how much the phase shifts differ.    
+      freqinv=0.5*(double)baseband_sampling_speed/(double)vg_tau[i];
+// Data now spans at least three times the desired tau. 
       ib=(ia-vg_tau[i]+baseband_size)&baseband_mask;
       ic=(ib-vg_tau[i]+baseband_size)&baseband_mask;
       id=(ic-vg_tau[i]+baseband_size)&baseband_mask;
-      dt3=-2*vg_phase[2*ib]+dt1+vg_phase[2*ic];
-      freqinv=0.5*(double)baseband_sampling_speed/(double)vg_tau[i];
-      if(i == vg_no_of_tau/4)
-        {
-        vg_basebfreq=(vg_phase[2*ib]-dt1)*freqinv;
-        }
-      dt3*=freqinv;
-      vg_asum[2*i  ]+=dt3*dt3;
-      dt4=-2*vg_phase[2*ib+1]+dt2+vg_phase[2*ic+1];
-      dt4*=freqinv;
-      vg_asum[2*i+1]+=dt4*dt4;
-      vg_acorrsum[i]+=dt3*dt4;
-// Hadamard
-      dt3=-3*(vg_phase[2*ib]-vg_phase[2*ic])+dt1-vg_phase[2*id];
-      freqinv/=sqrt(3.0);
-      dt3*=freqinv;
-      vg_hsum[2*i  ]+=dt3*dt3;
-      dt4=-3*(vg_phase[2*ib+1]-vg_phase[2*ic+1])+dt2-vg_phase[2*id+1];
-      dt4*=freqinv;
-      vg_hsum[2*i+1]+=dt4*dt4;
-      vg_hcorrsum[i]+=dt3*dt4;
-// Compute for amplitudes
-      dt3=-2*vg_amplitude[2*ib  ]+dt5+vg_amplitude[2*ic  ];
-      dt4=-2*vg_amplitude[2*ib+1]+dt6+vg_amplitude[2*ic+1];
       totamp1=sqrt((vg_amplitude[2*ib]*vg_amplitude[2*ib]+
                     vg_amplitude[2*ic]*vg_amplitude[2*ic]+dt5*dt5)/2);
       totamp2=sqrt((vg_amplitude[2*ib+1]*vg_amplitude[2*ib+1]+
                     vg_amplitude[2*ic+1]*vg_amplitude[2*ic+1]+dt6*dt6)/2);
+      totamp3=sqrt((vg_amplitude[2*ib]*vg_amplitude[2*ib]+
+                    vg_amplitude[2*ic]*vg_amplitude[2*ic]+
+                    vg_amplitude[2*id]*vg_amplitude[2*id]+dt5*dt5)/6);
+      totamp4=sqrt((vg_amplitude[2*ib+1]*vg_amplitude[2*ib+1]+
+                    vg_amplitude[2*ic+1]*vg_amplitude[2*ic+1]+
+                    vg_amplitude[2*id+1]*vg_amplitude[2*id+1]+
+                    dt6*dt6)/6);
+      if(i == ampfreq_i)
+        {
+        if(vgf_ampfreq_n == vgf_ampfreq_tau)
+          {
+          vg_basebfreq1=(vg_phase[2*ib  ]-dt1)*freqinv;
+          vg_basebfreq2=(vg_phase[2*ib+1]-dt2)*freqinv;
+          vg_interchannel_phase=vg_phase[2*ib  ]-vg_phase[2*ib+1];
+          vg_interchannel_phase-=round(vg_interchannel_phase);
+          if(vg_interchannel_phase > 0.5)vg_interchannel_phase-=1.0;
+          if(vg_interchannel_phase < -0.5)vg_interchannel_phase+=1.0;
+          vg_interchannel_phase*=360;
+          vgf_freq[2*vgf_pa  ]=vg_basebfreq1;
+          vgf_freq[2*vgf_pa+1]=vg_basebfreq2;
+          vgf_ampl[2*vgf_pa  ]=totamp3;
+          vgf_ampl[2*vgf_pa+1]=totamp4;
+          vgf_pa=(vgf_pa+1)&vgf_mask;
+          k=(vgf_pa-vgf_px+vgf_size)&vgf_mask;
+          if(k >= vgf_xpixels)
+            {
+            k=vgf_xpixels-1;
+            vgf_px=(vgf_pa-k+vgf_size)&vgf_mask;
+            }
+          vgf_ampfreq_n=0;
+          }
+        else
+          {  
+          vgf_ampfreq_n++;
+          }
+        }    
+// Allan variance for phase/frequency
+// Get the phase shift for the three latest regions and compute by how 
+// much the phase shifts differ.
+      dt3=2*freqinv*(dt1-2*vg_phase[2*ib  ]+vg_phase[2*ic  ]);
+      dt4=2*freqinv*(dt2-2*vg_phase[2*ib+1]+vg_phase[2*ic+1]);
+      vg_asum[2*i  ]+=dt3*dt3;
+      vg_asum[2*i+1]+=dt4*dt4;
+      vg_acorrsum[i]+=dt3*dt4;
+// Hadamard for phase/frequency
+      freqinv/=sqrt(3.0);
+      dt3=freqinv*(dt1-3*(vg_phase[2*ib  ]-vg_phase[2*ic  ])-vg_phase[2*id  ]);
+      dt4=freqinv*(dt2-3*(vg_phase[2*ib+1]-vg_phase[2*ic+1])-vg_phase[2*id+1]);
+      vg_hsum[2*i  ]+=dt3*dt3;
+      vg_hsum[2*i+1]+=dt4*dt4;
+      vg_hcorrsum[i]+=dt3*dt4;
+// Compute for amplitudes.
+      dt3=-2*vg_amplitude[2*ib  ]+dt5+vg_amplitude[2*ic  ];
+      dt4=-2*vg_amplitude[2*ib+1]+dt6+vg_amplitude[2*ic+1];
       dt3/=totamp1;
       vg_asum_ampl[2*i  ]+=dt3*dt3;
       dt4/=totamp2;
@@ -137,16 +172,9 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
                                                      vg_amplitude[2*id];
       dt4=-3*(vg_amplitude[2*ib+1]-vg_amplitude[2*ic+1])+dt6-
                                                      vg_amplitude[2*id+1];
-      totamp1=sqrt((vg_amplitude[2*ib]*vg_amplitude[2*ib]+
-                    vg_amplitude[2*ic]*vg_amplitude[2*ic]+
-                    vg_amplitude[2*id]*vg_amplitude[2*id]+dt5*dt5)/6);
-      totamp2=sqrt((vg_amplitude[2*ib+1]*vg_amplitude[2*ib+1]+
-                    vg_amplitude[2*ic+1]*vg_amplitude[2*ic+1]+
-                    vg_amplitude[2*id+1]*vg_amplitude[2*id+1]+
-                    dt6*dt6)/6);
-      dt3/=totamp1;
+      dt3/=totamp3;
       vg_hsum_ampl[2*i  ]+=dt3*dt3;
-      dt4/=totamp2;
+      dt4/=totamp4;
       vg_hsum_ampl[2*i+1]+=dt4*dt4;
       vg_hcorrsum_ampl[i]+=dt3*dt4;
       vg_sumno[i]++;
@@ -154,23 +182,6 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
 //  vg_n[i]=vg_tau[i]+1; Gives old, not overlapping Allan variance
 //  vg_n[i] unchanged gives fully overlapped variances
 //  Anything between gives partly overlapped variances 
-
-
-/*
-if(i==0)
-{
-fprintf(dmp,"\n ampl (%e %e %e %e)",dt5,
-     vg_amplitude[2*ib], vg_amplitude[2*ic],vg_amplitude[2*id]);
-fprintf(dmp,"\n ampl (%e %e %e %e)",dt6,
-     vg_amplitude[2*ib+1], vg_amplitude[2*ic+1],vg_amplitude[2*id+1]);
-fprintf(dmp,"\ntotamp %e  %e",totamp1, totamp2);
-fprintf(dmp,"\ndt3 %e  dt4 %e",dt3,dt4);
-
-fprintf(dmp,"\navg %e  %e",
-     sqrt((vg_hsum_ampl[2*i  ])/(1+vg_sumno[i])),
-     sqrt((vg_hsum_ampl[2*i+1])/(1+vg_sumno[i])));
-}
-*/
 
       }
     else
@@ -182,6 +193,14 @@ fprintf(dmp,"\navg %e  %e",
   ia=(ia+1)&baseband_mask;
   }
 baseb_px=ia;
+if(fix_allanfreq != 0)
+  {
+  lir_sched_yield();
+  while(sc[SC_VG_REDRAW] != sd[SC_VG_REDRAW])lir_sleep(100);
+  sc[SC_VGF_REDRAW]++;
+  while(sc[SC_VGF_REDRAW] != sd[SC_VGF_REDRAW])lir_sleep(100);
+  }
+sc[SC_VGF_UPDATE]++;
 sc[SC_VG_UPDATE]++;
 }
 
@@ -197,6 +216,7 @@ if(vg.mintau != t1)
   make_modepar_file(GRAPHTYPE_VG);
   }
 sc[SC_VG_REDRAW]++;
+fix_allanfreq=1;
 }
 
 void new_vg_maxtau(void)
@@ -225,6 +245,7 @@ if(vg.points_per_decade != i)
   make_modepar_file(GRAPHTYPE_VG);
   }
 sc[SC_VG_REDRAW]++;
+fix_allanfreq=1;
 }
 
 void new_vg_ymin(void)
@@ -317,7 +338,6 @@ for(event_no=0; event_no<MAX_VGBUTT; event_no++)
 help_message(msg_no);      
 }
 
-
 void mouse_continue_allan_graph(void)
 {
 reinit_vg=FALSE;
@@ -360,7 +380,6 @@ finish:;
   mouse_active_flag=0;
   make_allan_graph(TRUE,FALSE);
   }
-//clear_graph_flag=2*ALLAN_GRAPH;
 return;
 await_release:;
 if(leftpressed != BUTTON_RELEASED) return;
@@ -407,6 +426,7 @@ switch (mouse_active_flag-1)
   erase_numinput_txt();
   numinput_flag=FIXED_INT_PARM;
   par_from_keyboard_routine=new_vg_ymin;
+  clear_graph_flag=2*ALLAN_GRAPH;
   return;
 
   case VG_NEW_YMAX:
@@ -417,6 +437,7 @@ switch (mouse_active_flag-1)
   erase_numinput_txt();
   numinput_flag=FIXED_INT_PARM;
   par_from_keyboard_routine=new_vg_ymax;
+  clear_graph_flag=2*ALLAN_GRAPH;
   return;
 
   case VG_NEW_CLEAR:
@@ -443,7 +464,11 @@ make_allan_graph(TRUE,TRUE);
 
 void mouse_on_allan_graph(void)
 {
-int event_no;
+char s[32];
+int i, j, x, x1, event_no;
+unsigned char color;
+double centerinv, sum;
+float time;
 // First find out is we are on a button or border line.
 for(event_no=0; event_no<MAX_VGBUTT; event_no++)
   {
@@ -458,16 +483,315 @@ for(event_no=0; event_no<MAX_VGBUTT; event_no++)
     }
   }
 // Not button or border.
+// find the nearest tau value.
+current_mouse_activity=mouse_nothing;
+x=mouse_x;
+if(x<vg_first_xpixel)x=vg_first_xpixel;
+i=1;
+j=vg_tau_to_xpix((double)vg_tau[0]/baseband_sampling_speed);
+while(i < vg_no_of_tau)
+  {
+  if(j > x)break;
+  j=vg_tau_to_xpix((double)vg_tau[i]/baseband_sampling_speed);
+  i++;
+  }
+i--;  
+if(i != 0)
+  { 
+  if(j-x > 
+      x-vg_tau_to_xpix((double)vg_tau[i-1]/baseband_sampling_speed))
+  i--;
+  }
+time=vg_tau[i]/baseband_sampling_speed;
+if(time < 999)
+  { 
+  sprintf(s,"%4.2f",time);
+  }
+else
+  {
+  sprintf(s,"%6.0f",time);  
+  }
+x1=vgbutt[VG_NEW_YMAX].x2+text_width;
+lir_pixwrite(x1,vg.ytop+text_height/2,s);  
+centerinv=.000001/(fg.passband_center*sqrt(2.0));
+x1+=6*text_width;
+if(vg.mode == 0)
+  {
+  sprintf(s,"%.2e",centerinv*sqrt(vg_asum[2*i]/(2*vg_sumno[i])));
+  settextcolor(10);
+  lir_pixwrite(x1,vg.ytop+text_height/2,s);  
+  x1+=9*text_width;
+  sprintf(s,"%.2e",centerinv*sqrt(vg_asum[2*i+1]/(2*vg_sumno[i])));
+  settextcolor(55);
+  lir_pixwrite(x1,vg.ytop+text_height/2,s);
+  if(vg_acorrsum[i] < 0)
+    {
+    color=3;
+    sum=-vg_acorrsum[i];
+    }
+  else
+    {  
+    color=14;
+    sum=vg_acorrsum[i];
+    }
+  }
+else
+  {
+  sprintf(s,"%.2e",centerinv*sqrt(vg_hsum[2*i]/(2*vg_sumno[i])));
+  settextcolor(10);
+  lir_pixwrite(x1,vg.ytop+text_height/2,s);  
+  x1+=9*text_width;
+  sprintf(s,"%.2e",centerinv*sqrt(vg_hsum[2*i+1]/(2*vg_sumno[i])));
+  settextcolor(55);
+  lir_pixwrite(x1,vg.ytop+text_height/2,s);
+  if(vg_hcorrsum[i] < 0)
+    {
+    color=3;
+    sum=-vg_hcorrsum[i];
+    }
+  else
+    {  
+    color=14;
+    sum=vg_hcorrsum[i];
+    }
+  }
+sprintf(s,"%.2e",centerinv*sqrt(sum/(2*vg_sumno[i])));
+settextcolor(color);
+x1+=9*text_width;
+lir_pixwrite(x1,vg.ytop+text_height/2,s);
+settextcolor(7);
+mouse_active_flag=1;
+}
+
+void new_vgf_ampgain(void)
+{
+float t1;
+t1=vgf.amplgain;
+vgf.amplgain=numinput_float_data;
+if(vgf.amplgain != t1)
+  {
+  make_modepar_file(GRAPHTYPE_VGF);
+  sc[SC_VGF_REDRAW]++;
+  }
+}
+
+void new_vgf_freqgain(void)
+{
+float t1;
+t1=vgf.freqgain;
+vgf.freqgain=numinput_float_data;
+if(vgf.freqgain != t1)
+  {
+  make_modepar_file(GRAPHTYPE_VGF);
+  sc[SC_VGF_REDRAW]++;
+  }
+}
+
+void new_vgf_time(void)
+{
+float t1;
+t1=vgf.time;
+vgf.time=numinput_float_data;
+if(vgf.time < 0.01)vgf.time=0.01;
+if(vgf.time > 30)vgf.time=30;
+if(vgf.time != t1)
+  {
+  make_modepar_file(GRAPHTYPE_VGF);
+  fix_ampfreq_time();
+  sc[SC_VGF_REDRAW]++;
+  }
+}
+
+void help_on_allanfreq_graph(void)
+{
+int msg_no;
+int event_no;
+msg_no=366;
+for(event_no=0; event_no<MAX_VGFBUTT; event_no++)
+  {
+  if( vgfbutt[event_no].x1 <= mouse_x && 
+      vgfbutt[event_no].x2 >= mouse_x &&      
+      vgfbutt[event_no].y1 <= mouse_y && 
+      vgfbutt[event_no].y2 >= mouse_y) 
+    {
+    switch (event_no)
+      {
+      case VGF_TOP:
+      case VGF_BOTTOM:
+      case VGF_LEFT:
+      case VGF_RIGHT:
+      msg_no=100;
+      break;
+
+      case VGF_NEW_FREQGAIN:
+      msg_no=370;
+      break;
+      
+      case VGF_NEW_AMPLGAIN:
+      msg_no=371;
+      break;
+      
+      case VGF_NEW_TIME:
+      msg_no=372;
+      break;
+
+      case VGF_NEW_CENTER_TRACES:
+      msg_no=373;
+      break;
+      }
+    }  
+  }
+help_message(msg_no);      
+}
+
+void mouse_continue_allanfreq_graph(void)
+{
+reinit_vg=FALSE;
+switch (mouse_active_flag-1)
+  {
+// Move border lines immediately.
+// for other functions, wait until button is released.
+// Look in freq_control.c how to move a fixed size window.
+  case VGF_TOP:
+  graph_borders((void*)&vgf,0);
+  vgf.ytop=mouse_y;
+  graph_borders((void*)&vgf,15);
+  break;
+
+  case VGF_BOTTOM:
+  graph_borders((void*)&vgf,0);
+  vgf.ybottom=mouse_y;
+  graph_borders((void*)&vgf,15);
+  break;
+  
+  case VGF_LEFT:
+  graph_borders((void*)&vgf,0);
+  vgf.xleft=mouse_x;
+  graph_borders((void*)&vgf,15);
+  break;
+  
+  case VGF_RIGHT:
+  graph_borders((void*)&vgf,0);
+  vgf.xright=mouse_x;
+  graph_borders((void*)&vgf,15);
+  break;
+      
+  default:
+  goto await_release;
+  }
+if(leftpressed == BUTTON_RELEASED)
+  {
+finish:;
+  leftpressed=BUTTON_IDLE;  
+  mouse_active_flag=0;
+  make_allanfreq_graph(TRUE, FALSE);
+  }
+return;
+await_release:;
+if(leftpressed != BUTTON_RELEASED) return;
+switch (mouse_active_flag-1)
+  {
+  case VGF_NEW_TIME: 
+  mouse_active_flag=1;
+  numinput_xpix=vgfbutt[VGF_NEW_TIME].x1+5*text_width/2-1;
+  numinput_ypix=vgfbutt[VGF_NEW_TIME].y1+2;
+  numinput_chars=6;    
+  erase_numinput_txt();
+  numinput_flag=FIXED_FLOAT_PARM;
+  par_from_keyboard_routine=new_vgf_time;
+  clear_graph_flag=2*ALLANFREQ_GRAPH+1;
+  return;
+
+  case VGF_NEW_FREQGAIN:
+  mouse_active_flag=1;
+  numinput_xpix=vgfbutt[VGF_NEW_FREQGAIN].x1+9*text_width/2-1;
+  numinput_ypix=vgfbutt[VGF_NEW_FREQGAIN].y1+2;
+  numinput_chars=6;    
+  erase_numinput_txt();
+  numinput_flag=FIXED_FLOAT_PARM;
+  par_from_keyboard_routine=new_vgf_freqgain;
+  return;
+      
+  case VGF_NEW_AMPLGAIN:
+  mouse_active_flag=1;
+  numinput_xpix=vgfbutt[VGF_NEW_AMPLGAIN].x1+19*text_width/2-1;
+  numinput_ypix=vgfbutt[VGF_NEW_AMPLGAIN].y1+2;
+  numinput_chars=6;    
+  erase_numinput_txt();
+  numinput_flag=FIXED_FLOAT_PARM;
+  par_from_keyboard_routine=new_vgf_ampgain;
+  return;
+
+  case VGF_NEW_CENTER_TRACES:
+  vgf_center_traces=TRUE;
+  goto finish;
+  break;
+  
+  default:
+// This should never happen.    
+  lirerr(211053);
+  break;
+  }  
+leftpressed=BUTTON_IDLE;  
+mouse_active_flag=0;
+make_allanfreq_graph(TRUE,TRUE);
+}
+
+void mouse_on_allanfreq_graph(void)
+{
+int event_no;
+// First find out is we are on a button or border line.
+for(event_no=0; event_no<MAX_VGFBUTT; event_no++)
+  {
+  if( vgfbutt[event_no].x1 <= mouse_x && 
+      vgfbutt[event_no].x2 >= mouse_x &&      
+      vgfbutt[event_no].y1 <= mouse_y && 
+      vgfbutt[event_no].y2 >= mouse_y) 
+    {
+    mouse_active_flag=1+event_no;
+    current_mouse_activity=mouse_continue_allanfreq_graph;
+    return;
+    }
+  }
+// Not button or border.
 current_mouse_activity=mouse_nothing;
 mouse_active_flag=1;
 }
 
+void fix_ampfreq_time(void)
+{
+int i;
+float t1, t2;
+vgf_ampfreq_tau=baseband_sampling_speed*vgf.time;
+t1=(float)(vgf_ampfreq_tau/vg_tau[0]);
+t2=(float)(vgf_ampfreq_tau/vg_tau[1]);
+i=1;
+while(t1 > 1 && i < vg_no_of_tau)
+  {
+  t2=t1;
+  t1=(float)vgf_ampfreq_tau/vg_tau[i];
+  i++; 
+  }
+i--;    
+if(i>0 && i< vg_no_of_tau-1)
+  {
+  if(1.0/t1 > t2)
+    {
+    i--;
+    }
+  vgf_ampfreq_tau=vg_tau[i];  
+  ampfreq_i=i;
+  vgf.time=vgf_ampfreq_tau/baseband_sampling_speed;  
+  }
+vgf_ampfreq_n=0;
+}
+
 void make_pix_per_decade(void)
 {
-
 int i;
 // find out how many pixels below 1.0 to place 0.9, 0.8,0.7,...
-vg_ypix_per_decade=(float)(vg_yb-vg_yt)/(vg.ymin - vg.ymax);i=9;
+vg_ypix_per_decade=(float)(vg_yb-vg_yt)/(vg.ymin - vg.ymax);
+i=9;
 while(i > 1)
   {
   vg_decimal_ypixel[i]=(int)((vg_ypix_per_decade)*(1.F-log10((double)i))+0.5F);
@@ -486,7 +810,7 @@ while(i >= 0)
 
 void make_allan_graph(int clear_old, int restart)
 {
-int i, k, x1,x2,y1,y2;
+int i, k, x1,x2,iy1,y2;
 float t1, t2, t3;
 pause_thread(THREAD_SCREEN);
 if(clear_old)
@@ -501,7 +825,7 @@ vg_old_y2=vg.ybottom;
 vg_old_x1=vg.xleft;
 vg_old_x2=vg.xright;
 current_graph_minh=10*text_height;
-current_graph_minw=75*text_width;
+current_graph_minw=98*text_width;
 check_graph_placement((void*)(&vg));
 vg_yt=vg.ytop+2*text_height;
 vg_yb=vg.ybottom-3*text_height/2;
@@ -529,53 +853,54 @@ vgbutt[VG_BOTTOM].x2=vg.xright;
 vgbutt[VG_BOTTOM].y1=vg.ybottom-2;
 vgbutt[VG_BOTTOM].y2=vg.ybottom;
 settextcolor(7);
-y1=vg.ytop+text_height/4;
-y2=y1+text_height;
+iy1=vg.ytop+text_height/4;
+y2=iy1+text_height;
 x1=vg.xleft+3*text_width;
 x2=x1+19*text_width/2;
 vgbutt[VG_NEW_MINTAU].x1=x1;
 vgbutt[VG_NEW_MINTAU].x2=x2;
-vgbutt[VG_NEW_MINTAU].y1=y1;
+vgbutt[VG_NEW_MINTAU].y1=iy1;
 vgbutt[VG_NEW_MINTAU].y2=y2;
 x1=x2+text_width;
 x2=x1+21*text_width/2;
 vgbutt[VG_NEW_MAXTAU].x1=x1;
 vgbutt[VG_NEW_MAXTAU].x2=x2;
-vgbutt[VG_NEW_MAXTAU].y1=y1;
+vgbutt[VG_NEW_MAXTAU].y1=iy1;
 vgbutt[VG_NEW_MAXTAU].y2=y2;
 x1=x2+text_width;
 x2=x1+15*text_width/2;
 vgbutt[VG_NEW_POINTS_PER_DECADE].x1=x1;
 vgbutt[VG_NEW_POINTS_PER_DECADE].x2=x2;
-vgbutt[VG_NEW_POINTS_PER_DECADE].y1=y1;
+vgbutt[VG_NEW_POINTS_PER_DECADE].y1=iy1;
 vgbutt[VG_NEW_POINTS_PER_DECADE].y2=y2;
 x1=x2+text_width;
 x2=x1+15*text_width/2;
 vgbutt[VG_NEW_YMIN].x1=x1;
 vgbutt[VG_NEW_YMIN].x2=x2;
-vgbutt[VG_NEW_YMIN].y1=y1;
+vgbutt[VG_NEW_YMIN].y1=iy1;
 vgbutt[VG_NEW_YMIN].y2=y2;
 x1=x2+text_width;
 x2=x1+15*text_width/2;
 vgbutt[VG_NEW_YMAX].x1=x1;
 vgbutt[VG_NEW_YMAX].x2=x2;
-vgbutt[VG_NEW_YMAX].y1=y1;
+vgbutt[VG_NEW_YMAX].y1=iy1;
 vgbutt[VG_NEW_YMAX].y2=y2;
-vg_freq_xpix=x2+2*text_width;
 x2=vg.xright-text_width/2;
 x1=x2-text_width/2;
-y1=vg.ytop+text_height-2;
-make_button(x1,y1,vgbutt, VG_NEW_TYPE,vg_types[vg.type]);
+iy1=vg.ytop+text_height-2;
+make_button(x1,iy1,vgbutt, VG_NEW_TYPE,vg_types[vg.type]);
 x2=x1-text_height/2;
 x1=x2-3*text_width/2;
-make_button(x1,y1,vgbutt, VG_NEW_MODE,vg_modes[vg.mode]);
+make_button(x1,iy1,vgbutt, VG_NEW_MODE,vg_modes[vg.mode]);
 x2=x1-text_height/2;
 x1=x2-3*text_width/2;
-make_button(x1,y1,vgbutt, VG_NEW_CLEAR,vg_clears[vg.clear]);
+make_button(x1,iy1,vgbutt, VG_NEW_CLEAR,vg_clears[vg.clear]);
 if(!restart && vg.type != 2)
   {
   make_pix_per_decade();
+  fix_ampfreq_time();
   make_modepar_file(GRAPHTYPE_VG);
+  make_modepar_file(GRAPHTYPE_VGF);
   sc[SC_VG_REDRAW]++;
   resume_thread(THREAD_SCREEN);
   return;
@@ -621,7 +946,8 @@ while(t2 < t3 && k < i)
   k++;
   }
 vg_no_of_tau=k;
-vg_basebfreq=0;
+vg_basebfreq1=0;
+vg_basebfreq2=0;
 make_pix_per_decade();
 for(i=0; i<2*baseband_size; i++)vg_phase[i]=BIGDOUBLE;
 for(i=0; i<2*baseband_size; i++)vg_amplitude[i]=0;
@@ -637,11 +963,11 @@ for(i=0; i<vg_no_of_tau; i++)vg_sumno[i]=0;
 for(i=0; i<vg_no_of_tau; i++)vg_y1pix[i]=vg_yb;
 for(i=0; i<vg_no_of_tau; i++)vg_y2pix[i]=vg_yb;
 for(i=0; i<2*vg_no_of_tau; i++)vg_ycpix[i]=vg_yb;
-
+sc[SC_VG_REDRAW]++;
 resume_thread(THREAD_SCREEN);
 make_modepar_file(GRAPHTYPE_VG);
-sc[SC_VG_REDRAW]++;
-vg_siz=baseband_sampling_speed*2;
+vg_siz=baseband_sampling_speed/2;
+vg_reset_time=current_time();
 baseb_reset_counter++;
 }
 
@@ -688,6 +1014,141 @@ allan_graph_scro=no_of_scro;
 make_allan_graph(FALSE,TRUE);
 no_of_scro++;
 vg_flag=1;
-
 if(no_of_scro >= MAX_SCRO)lirerr(89);
 }
+
+void make_allanfreq_graph(int clear_old, int reset)
+{
+int x1,x2,iy1,y2;
+if(clear_old)
+  {
+  hide_mouse(vgf_old_x1,vgf_old_x2,vgf_old_y1,vgf_old_y2);
+  lir_fillbox(vgf_old_x1,vgf_old_y1,vgf_old_x2-vgf_old_x1+1,
+                                                    vgf_old_y2-vgf_old_y1+1,0);
+  }
+pause_thread(THREAD_SCREEN);
+vgf_old_y1=vgf.ytop;
+vgf_old_y2=vgf.ybottom;
+vgf_old_x1=vgf.xleft;
+vgf_old_x2=vgf.xright;
+current_graph_minh=10*text_height;
+current_graph_minw=75*text_width;
+check_graph_placement((void*)(&vgf));
+vgf_yt=vgf.ytop+2*text_height;
+vgf_yb=vgf.ybottom-3*text_height/2;
+vgf_first_xpixel=vgf.xleft+6*text_width;
+vgf_last_xpixel=vgf.xright-2-6*text_width;
+vgf_xpixels=1+vgf_last_xpixel-vgf_first_xpixel;
+scro[allanfreq_graph_scro].no=ALLANFREQ_GRAPH;
+scro[allanfreq_graph_scro].x1=vgf.xleft;
+scro[allanfreq_graph_scro].x2=vgf.xright;
+scro[allanfreq_graph_scro].y1=vgf.ytop;
+scro[allanfreq_graph_scro].y2=vgf.ybottom;
+vgfbutt[VGF_LEFT].x1=vgf.xleft;
+vgfbutt[VGF_LEFT].x2=vgf.xleft+2;
+vgfbutt[VGF_LEFT].y1=vgf.ytop;
+vgfbutt[VGF_LEFT].y2=vgf.ybottom;
+vgfbutt[VGF_RIGHT].x1=vgf.xright-2;
+vgfbutt[VGF_RIGHT].x2=vgf.xright;
+vgfbutt[VGF_RIGHT].y1=vgf.ytop;
+vgfbutt[VGF_RIGHT].y2=vgf.ybottom;
+vgfbutt[VGF_TOP].x1=vgf.xleft;
+vgfbutt[VGF_TOP].x2=vgf.xright;
+vgfbutt[VGF_TOP].y1=vgf.ytop;
+vgfbutt[VGF_TOP].y2=vgf.ytop+2;
+vgfbutt[VGF_BOTTOM].x1=vgf.xleft;
+vgfbutt[VGF_BOTTOM].x2=vgf.xright;
+vgfbutt[VGF_BOTTOM].y1=vgf.ybottom-2;
+vgfbutt[VGF_BOTTOM].y2=vgf.ybottom;
+settextcolor(7);
+iy1=vgf.ytop+text_height/4;
+y2=iy1+text_height;
+x1=vgf.xleft+3*text_width;
+x2=x1+15*text_width/2;
+vgfbutt[VGF_NEW_TIME].x1=x1;
+vgfbutt[VGF_NEW_TIME].x2=x2;
+vgfbutt[VGF_NEW_TIME].y1=iy1;
+vgfbutt[VGF_NEW_TIME].y2=y2;
+x1=x2+text_width;
+x2=x1+23*text_width/2;
+vgfbutt[VGF_NEW_FREQGAIN].x1=x1;
+vgfbutt[VGF_NEW_FREQGAIN].x2=x2;
+vgfbutt[VGF_NEW_FREQGAIN].y1=iy1;
+vgfbutt[VGF_NEW_FREQGAIN].y2=y2;
+x1=x2+text_width;
+x2=x1+31*text_width/2;
+vgfbutt[VGF_NEW_AMPLGAIN].x1=x1;
+vgfbutt[VGF_NEW_AMPLGAIN].x2=x2;
+vgfbutt[VGF_NEW_AMPLGAIN].y1=iy1;
+vgfbutt[VGF_NEW_AMPLGAIN].y2=y2;
+x1=vgf.xright-3*text_width/2;
+iy1=vgf.ytop+text_height-2;
+make_button(x1,iy1,vgfbutt,VGF_NEW_CENTER_TRACES,42);
+vgf_freq_xpix=x1-33*text_width;
+
+fix_ampfreq_time();
+make_modepar_file(GRAPHTYPE_VGF);
+if(!reset)
+  {
+  sc[SC_VGF_REDRAW]++;
+  resume_thread(THREAD_SCREEN);
+  return;
+  }
+vgf_pa=0;
+vgf_px=0;
+vgf_average_freq1=0;
+vgf_average_freq2=0;
+vgf_average_ampl1=0;
+vgf_average_ampl2=0;
+vgf_mid_ampl=-1;
+fix_allanfreq=0;
+vgf_center_traces=FALSE;
+vgf_ampfreq_n=0;
+sc[SC_VGF_REDRAW]++;
+resume_thread(THREAD_SCREEN);
+}
+
+void init_allanfreq_graph(void)
+{
+int k;
+// Set initial values in code or by reading
+// a file of your own.
+if (read_modepar_file(GRAPHTYPE_VGF) == 0)
+  {
+/*
+fprintf(stderr,"read_modepar_file(GRAPHTYPE_VGF) failed");
+lirerr(99);
+return;
+*/
+//vgf_default:
+  vgf.xleft=screen_width/2;
+  vgf.xright=vgf.xleft+50*text_width;
+  vgf.ytop=3*screen_height/4;
+  vgf.ybottom=vgf.ytop+8.5*text_height;
+  vgf.freqgain=0.01;
+  vgf.amplgain=1.0;
+  vgf.time=1.0;
+  vgf.check=VGF_VERNR;
+  }
+/*  
+if(vgf.time < 0.01)vgf.time=0.01;
+if(vgf.time > 30)vgf.time=30;
+
+if(vg.mintau < .0099F ||
+   vg.type > 2 ||
+   vgf.check != VGF_VERNR)goto vg_default;
+*/
+allanfreq_graph_scro=no_of_scro;
+vgf_size=screen_width;
+make_power_of_two(&vgf_size);
+vgf_mask=vgf_size-1;
+if(vgf_freq == NULL)vgf_freq=malloc(2*vgf_size*sizeof(float));
+if(vgf_ampl == NULL)vgf_ampl=malloc(2*vgf_size*sizeof(float));
+for(k=0; k<2*vgf_size; k++)vgf_freq[k]=0;
+for(k=0; k<2*vgf_size; k++)vgf_ampl[k]=0;
+make_allanfreq_graph(FALSE,TRUE);
+no_of_scro++;
+vgf_flag=1;
+if(no_of_scro >= MAX_SCRO)lirerr(89);
+}
+

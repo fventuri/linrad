@@ -364,13 +364,42 @@ extern float vg_xpix_per_decade;
 extern float vg_ypix_per_decade;
 extern int vg_yt;
 extern int vg_yb;
-extern int vg_freq_xpix;
-extern double vg_basebfreq;
+extern double vg_basebfreq1;
+extern double vg_basebfreq2;
+extern double vg_interchannel_phase;
+extern double vg_reset_time;
+extern int vg_tau_to_xpix(double tau);
+
+
+extern int vgf_freq_xpix;
+extern int vgf_pa;
+extern int vgf_px;
+extern int vgf_size;
+extern int vgf_mask;
+extern double vgf_average_freq1;
+extern double vgf_average_freq2;
+extern double vgf_average_ampl1;
+extern double vgf_average_ampl2;
+extern int vgf_ampfreq_tau;
+extern int vgf_ampfreq_n;
+extern int vgf_xpixels;
+extern int vgf_yt;
+extern int vgf_yb;
+extern int vgf_first_xpixel;
+extern int vgf_last_xpixel;
+extern float *vgf_freq;
+extern float *vgf_ampl;
+extern double vgf_mid_ampl;
+extern double vgf_mid_freq;
+extern int vgf_center_traces;
+
+
 extern short int *vg_y1pix;
 extern short int *vg_y2pix;
 extern short int *vg_ycpix;
 extern short int *vg_decimal_xpixel;
 extern short int *vg_decimal_ypixel;
+
 
 extern size_t *siganal_handle;
 extern int sg_pa;
@@ -561,5 +590,6 @@ void make_bg_filter(void);
 void clear_baseb_arrays(int nn,int k);
 void clear_baseb(void);
 void make_allan_graph(int flag1, int flag2);
+void make_allanfreq_graph(int flag1, int flag2);
 void make_siganal_graph(int flag1, int flag2);
 

@@ -642,6 +642,16 @@ char *vg_intpar_text[MAX_VG_INTPAR]={"ytop",               //1
 char *vg_floatpar_text[MAX_VG_FLOATPAR]={"Min tau",         //1
                                          "Max tau"};        //2
 
+char *vgf_intpar_text[MAX_VGF_INTPAR]={"ytop",               //1
+                                       "ybottom",            //2
+                                       "xleft",              //3
+                                       "xright",             //4
+                                       "Check"};              //5
+
+char *vgf_floatpar_text[MAX_VGF_FLOATPAR]={"Freq gain",      //1
+                                           "Ampl gain",      //2
+                                           "Time step"};     //3  
+
 char *hg_intpar_text[MAX_HG_INTPAR]={"ytop",                //1
                                      "ybottom",             //2
                                      "xleft",               //3

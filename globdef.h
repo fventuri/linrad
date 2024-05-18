@@ -557,6 +557,7 @@ extern char *uiparm_text[MAX_UIPARM];
 #define PHASING_GRAPH 19
 #define SIGANAL_GRAPH 20
 #define ALLAN_GRAPH 21
+#define ALLANFREQ_GRAPH 22
 #define GRAPH_RIGHTPRESSED 128
 #define GRAPH_MASK 0x8000007f
 
@@ -756,6 +757,17 @@ extern char *uiparm_text[MAX_UIPARM];
 #define VG_NEW_TYPE 11
 #define MAX_VGBUTT 12
 
+// Definitions for type allanfreq_graph
+#define VGF_TOP 0
+#define VGF_BOTTOM 1
+#define VGF_LEFT 2
+#define VGF_RIGHT 3
+#define VGF_NEW_FREQGAIN 4
+#define VGF_NEW_AMPLGAIN 5
+#define VGF_NEW_TIME 6
+#define VGF_NEW_CENTER_TRACES 7
+#define MAX_VGFBUTT 8
+
 // Definitions for type COH_GRAPH
 #define CG_TOP 0
 #define CG_BOTTOM 1
@@ -936,6 +948,22 @@ float maxtau;
 extern char *vg_intpar_text[MAX_VG_INTPAR];
 #define MAX_VG_FLOATPAR 2
 extern char *vg_floatpar_text[MAX_VG_FLOATPAR];
+
+// Structure for the allanfreq graph.
+typedef struct {
+int ytop;
+int ybottom;
+int xleft;
+int xright;
+int check;
+float freqgain;
+float amplgain;
+float time;
+} VGF_PARMS;
+#define MAX_VGF_INTPAR 5
+extern char *vgf_intpar_text[MAX_VGF_INTPAR];
+#define MAX_VGF_FLOATPAR 3
+extern char *vgf_floatpar_text[MAX_VGF_FLOATPAR];
 
 
 // Structure for the high resolution and blanker control graph.

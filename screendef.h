@@ -45,10 +45,11 @@
 #define SC_SG_BUTTONS 34
 #define SC_SG_REDRAW 35
 #define SC_SG_UPDATE 36
-#define SC_VG_BUTTONS 37
-#define SC_VG_REDRAW 38
-#define SC_VG_UPDATE 39
-#define MAX_SC 40
+#define SC_VG_REDRAW 37
+#define SC_VG_UPDATE 38
+#define SC_VGF_REDRAW 39
+#define SC_VGF_UPDATE 40
+#define MAX_SC 41
 
 extern unsigned int sc[MAX_SC];
 extern unsigned int sd[MAX_SC];
@@ -120,11 +121,13 @@ extern unsigned int sd[MAX_SC];
 #define GRAPHTYPE_SG 11
 #define GRAPHTYPE_XG 12
 #define GRAPHTYPE_VG 13
-#define GRAPHTYPE_GPU 14
+#define GRAPHTYPE_VGF 14
+
+#define GRAPHTYPE_GPU 15
 // GRAPHTYPE_NET must be the last one.
-// It is independent of the rx mode 
-#define GRAPHTYPE_NET 15
-#define MAX_GRAPHTYPES 15
+// It is independent of the rx mode and has to be the same as MAX_GRAPHTYPES 
+#define GRAPHTYPE_NET 16
+#define MAX_GRAPHTYPES 16
 
 extern char *graphtype_names[MAX_GRAPHTYPES];
 extern char *graphtype_parptr[MAX_GRAPHTYPES];
@@ -287,20 +290,21 @@ extern double update_meter_time;
 
 
 extern AG_PARMS ag;
-extern WG_PARMS wg;
-extern HG_PARMS hg;
 extern BG_PARMS bg;
-extern PG_PARMS pg;
-extern PG_PARMS dpg;
 extern CG_PARMS cg;
-extern MG_PARMS mg;
 extern EG_PARMS eg;
 extern FG_PARMS fg;
-extern TG_PARMS tg;
+extern HG_PARMS hg;
+extern MG_PARMS mg;
+extern PG_PARMS pg;
+extern PG_PARMS dpg;
 extern RG_PARMS rg;
 extern SG_PARMS sg;
-extern XG_PARMS xg; 
+extern TG_PARMS tg;
 extern VG_PARMS vg;
+extern VGF_PARMS vgf;
+extern WG_PARMS wg;
+extern XG_PARMS xg; 
 extern GPU_PARMS gpu;
 extern NET_PARMS net;
 
@@ -319,6 +323,7 @@ extern BUTTONS rgbutt[MAX_RGBUTT];
 extern BUTTONS sgbutt[MAX_SGBUTT];
 extern BUTTONS xgbutt[MAX_XGBUTT];
 extern BUTTONS vgbutt[MAX_VGBUTT];
+extern BUTTONS vgfbutt[MAX_VGFBUTT];
 
 extern int no_of_scro;
 extern unsigned char button_color;
@@ -338,6 +343,7 @@ extern int rg_flag;
 extern int sg_flag;
 extern int xg_flag;
 extern int vg_flag;
+extern int vgf_flag;
 
 extern int wg_fft_avg2num;
 
@@ -399,6 +405,7 @@ void mouse_on_tx_graph(void);
 void mouse_on_radar_graph(void);
 void mouse_on_siganal_graph(void);
 void mouse_on_allan_graph(void);
+void mouse_on_allanfreq_graph(void);
 void mouse_on_elektor_graph(void);
 void mouse_on_fcdproplus_graph(void);
 void help_on_wide_graph(void);
@@ -414,6 +421,7 @@ void help_on_tx_graph(void);
 void help_on_radar_graph(void);
 void help_on_siganal_graph(void);
 void help_on_allan_graph(void);
+void help_on_allanfreq_graph(void);
 void update_wg_spectrum(void);
 void init_wide_graph(void);
 void init_hires_graph(void);
@@ -424,6 +432,7 @@ void init_coherent_graph(void);
 void init_radar_graph(void);
 void init_siganal_graph(void);
 void init_allan_graph(void);
+void init_allanfreq_graph(void);
 void check_graph_placement(WG_PARMS *a);
 void set_graph_minwidth(WG_PARMS *a);
 void decrease_wg_pixels_per_points(void);

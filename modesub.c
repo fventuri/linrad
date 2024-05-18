@@ -236,6 +236,8 @@ fg_truncation_error=0;
 mg_meter_file=NULL;
 corr_afc_count=MAX_CORR_AFC_COUNT;
 fft1_skip_flag=1;
+vgf_freq=NULL;
+vgf_ampl=NULL;
 }
  
 int skip_calibration(void)
@@ -801,66 +803,72 @@ max_intpar = graphtype_max_intpar[type];
 max_floatpar = graphtype_max_floatpar[type];
 for(i=0; i<max_intpar; i++)
   {
-  while( (parinfo[k]==' ' || parinfo[k]== '\n' ) && k<4095)k++;
+  while( (parinfo[k]==' ' || parinfo[k]== '\n' ) && k<4094)k++;
+  if(k>=4094)goto txt_err;
   j=0;
-  while(parinfo[k]== graphtype_partexts_int[type][i][j] && k<4095)
+  while(parinfo[k]== graphtype_partexts_int[type][i][j] && k<4094)
     {
+    if(k>=4094)goto txt_err;
     k++;
     j++;
     } 
-  if(graphtype_partexts_int[type][i][j] != 0)
-    {
-txt_err:;    
-    free(parinfo);
-    return 0;
-    }
-  while(parinfo[k]!='[' && k<4095)k++;
-  if(k>=4095)goto txt_err;
+  if(graphtype_partexts_int[type][i][j] != 0)goto txt_err;
+  while(parinfo[k]!='[' && k<4094)k++;
+  if(k>=4094)goto txt_err;
   sscanf(&parinfo[k],"[%d]",&wgi[i]);
-  while(parinfo[k]!='\n' && k<4095)k++;
-  if(k>=4095)goto txt_err;
+  while(parinfo[k]!='\n' && k<4094)k++;
+  if(k>=4094)goto txt_err;
   }
 if(max_floatpar < 0)
   {
   wgd=(double*)(&wgi[max_intpar]);
   for(i=0; i<-max_floatpar; i++)
     {
-    while(parinfo[k]==' ' ||
-          parinfo[k]== '\n' )k++;
+    while((parinfo[k]==' ' || parinfo[k]== '\n') && k<4094 )k++;
+    if(k>=4094)goto txt_err;
     j=0;
-    while(parinfo[k]== graphtype_partexts_float[type][i][j]&&k<4095)
+    while(parinfo[k]== graphtype_partexts_float[type][i][j]&&k<4094)
       {
+      if(k>=4094)goto txt_err;
       k++;
       j++;
       } 
     if(graphtype_partexts_float[type][i][j] != 0)goto txt_err;
-    while(parinfo[k]!='[' && k<4095)k++;
-    if(k>=4095)goto txt_err;
+    while(parinfo[k]!='[' && k<4094)k++;
+    if(k>=4094)goto txt_err;
     sscanf(&parinfo[k],"[%lf]",&wgd[i]);
-    if(k>=4095)goto txt_err;
-    while(parinfo[k]!='\n' && k<4095)k++;
+    while(parinfo[k]!='\n' && k<4094)k++;
+    if(k>=4094)goto txt_err;
     }
   }
 else
-  {  
+  {
   wgf=(float*)(&wgi[max_intpar]);
   for(i=0; i<max_floatpar; i++)
     {
-    while(parinfo[k]==' ' || parinfo[k]== '\n' )k++;
+    while((parinfo[k]==' ' || parinfo[k]== '\n') && k<4094)k++;
+    if(k>=4094)goto txt_err;
     j=0;
-    while(parinfo[k]== graphtype_partexts_float[type][i][j])
+    while(parinfo[k]== graphtype_partexts_float[type][i][j] &&k<4094)
       {
+      if(graphtype_partexts_float[type][i][j] == 0)goto txt_err;
+      if(k>=4094)goto txt_err;
       k++;
       j++;
       } 
     if(graphtype_partexts_float[type][i][j] != 0)goto txt_err;
-    while(parinfo[k]!='[')k++;
+    while(parinfo[k]!='[' && k<4094)k++;
+    if(k>=4094)goto txt_err;
     sscanf(&parinfo[k],"[%f]",&wgf[i]);
-    while(parinfo[k]!='\n')k++;
+    while(parinfo[k]!='\n' && k<4094)k++;
+    if(k>=4094)goto txt_err;
     }
   }
 free(parinfo);
 return 1;
+txt_err:;
+free(parinfo);
+return 0;
 }
 
 

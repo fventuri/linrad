@@ -46,22 +46,24 @@ BUTTONS rgbutt[MAX_RGBUTT];
 BUTTONS sgbutt[MAX_SGBUTT];
 BUTTONS xgbutt[MAX_XGBUTT];
 BUTTONS vgbutt[MAX_VGBUTT];
+BUTTONS vgfbutt[MAX_VGFBUTT];
 
-WG_PARMS wg;
-HG_PARMS hg;
+AG_PARMS ag;
 BG_PARMS bg;
 CG_PARMS cg;
-MG_PARMS mg;
 EG_PARMS eg;
-PG_PARMS pg;
 FG_PARMS fg;
+HG_PARMS hg;
+MG_PARMS mg;
+PG_PARMS pg;
 PG_PARMS dpg;
-AG_PARMS ag;
-TG_PARMS tg;
 RG_PARMS rg;
 SG_PARMS sg;
-XG_PARMS xg;
+TG_PARMS tg;
 VG_PARMS vg;
+VGF_PARMS vgf;
+WG_PARMS wg;
+XG_PARMS xg; 
 GPU_PARMS gpu;
 NET_PARMS net;
 
@@ -91,6 +93,7 @@ int rg_flag;
 int sg_flag;
 int xg_flag;
 int vg_flag;
+int vgf_flag;
 
 int wg_fft_avg2num;
 int wg_first_xpixel;
@@ -285,6 +288,7 @@ char *graphtype_names[MAX_GRAPHTYPES]={"ag",
                                        "sg",
                                        "xg",
                                        "vg",
+                                       "vgf",
                                        "gpu"};
                                        
 char *graphtype_parptr[MAX_GRAPHTYPES]={(void*)(&ag),
@@ -302,6 +306,7 @@ char *graphtype_parptr[MAX_GRAPHTYPES]={(void*)(&ag),
                                        (void*)(&sg),
                                        (void*)(&xg),
                                        (void*)(&vg),
+                                       (void*)(&vgf),
                                        (void*)(&gpu)};
                                        
 int graphtype_max_intpar[MAX_GRAPHTYPES]={MAX_AG_INTPAR,
@@ -318,6 +323,7 @@ int graphtype_max_intpar[MAX_GRAPHTYPES]={MAX_AG_INTPAR,
                                           MAX_SG_INTPAR,
                                           MAX_XG_INTPAR,
                                           MAX_VG_INTPAR,
+                                          MAX_VGF_INTPAR,
                                           MAX_GPU_INTPAR};
 
 char **graphtype_partexts_int[MAX_GRAPHTYPES]={ag_intpar_text,
@@ -334,6 +340,7 @@ char **graphtype_partexts_int[MAX_GRAPHTYPES]={ag_intpar_text,
                                                sg_intpar_text,
                                                xg_intpar_text,
                                                vg_intpar_text,
+                                               vgf_intpar_text,
                                                ocl_intpar_text};
 
 // Store number of float with reversed sign if the
@@ -352,6 +359,7 @@ int graphtype_max_floatpar[MAX_GRAPHTYPES]={MAX_AG_FLOATPAR,
                                           MAX_SG_FLOATPAR,
                                           MAX_XG_FLOATPAR,
                                           MAX_VG_FLOATPAR,
+                                          MAX_VGF_FLOATPAR,
                                           MAX_GPU_FLOATPAR};
 
 char **graphtype_partexts_float[MAX_GRAPHTYPES]={ag_floatpar_text,
@@ -368,4 +376,5 @@ char **graphtype_partexts_float[MAX_GRAPHTYPES]={ag_floatpar_text,
                                                sg_floatpar_text,
                                                xg_floatpar_text,
                                                vg_floatpar_text,
+                                               vgf_floatpar_text,
                                                ocl_floatpar_text};

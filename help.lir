@@ -1914,7 +1914,18 @@ in the time scale.
 [363]Enter a positive number for the top of the sigma scale. 9 gives 1.E-9.
 [364]Enter a positive number for the bottom of the sigma scale 12 gives 1.E-12. 
 [365]Press ALT Z to clear the sideband noise graph
-[366]Press ALT Z to clear the sigma vs tau graph, Allan or Hadamard  deviation.
+[366]Press ALT Z to clear the Allan deviation graph alternatively the 
+Hadamard deviation graph. 
+The frequency and amplitude vs time graph will also be cleared.
+
+Click the left mouse button on the graph to display Allan or Hadamard
+deviation numerically at the top of the graph. The displayed numbers
+are:
+In white: Frequency
+In green: Channel 1
+In red: Channel 2
+in yellow: Correlation
+in blue: correlation in case it is negative
 [367]Click this button to toggle between:
 C = Clear old traces whenever a new trace is displayed
 S = Save old correlation traces. This helps to see how statistics improve.
@@ -1924,4 +1935,8 @@ H = Hadamard variance
 [369]Click this button to toggle between:
 P = Phase noise
 A = Amplitude noise
+[370]Enter milliHZ for the range of the Y-scale..
+[371]Enter parts per million for the range of the amplitude scale here.
+[372]Enter the time between points for frequencies and amplitudes.
+[373]Click this box to center the 20 latest points of the traces vertically.
 [0]

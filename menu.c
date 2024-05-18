@@ -626,6 +626,7 @@ if(fft1_correlation_flag==2)
 if(fft1_correlation_flag==3)
   {
   init_allan_graph();
+  init_allanfreq_graph();
   }
 if(use_tx != 0)init_tx_graph();
 if(lir_status != LIR_OK) goto normal_rx_x;

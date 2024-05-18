@@ -1984,6 +1984,7 @@ else
       if(correlation_reset_flag != fft1corr_reset_flag)
         {
         make_allan_graph(TRUE,TRUE);
+        make_allanfreq_graph(TRUE,TRUE);
         correlation_reset_flag=fft1corr_reset_flag; 
         break;
         }
