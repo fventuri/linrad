@@ -1179,6 +1179,14 @@ static void sdrplay3_select_device(int *line)
     goto release_sdrplay3_device;
   }
 
+  err = sdrplay_api_DebugEnable(device.dev, SDRPLAY3_DEBUG);
+  if (err != sdrplay_api_Success) {
+    lir_text(3, 2, "sdrplay3: sdrplay_api_DebugEnable() failed.");
+    lir_text(5, 7, press_any_key);
+    await_keyboard();
+    goto release_sdrplay3_device;
+  }
+
   err = sdrplay_api_GetDeviceParams(device.dev, &device_params);
   if (err != sdrplay_api_Success) {
     lir_text(3, 2, "sdrplay3: sdrplay_api_GetDeviceParams() failed.");
@@ -3410,6 +3418,11 @@ static int sdrplay3_set_device(double dt1)
     goto release_sdrplay3_device;
 
   errcod = 2625;
+  err = sdrplay_api_DebugEnable(device.dev, SDRPLAY3_DEBUG);
+  if (err != sdrplay_api_Success)
+    goto release_sdrplay3_device;
+
+  errcod = 2626;
   err = sdrplay_api_GetDeviceParams(device.dev, &device_params);
   if (err != sdrplay_api_Success)
     goto release_sdrplay3_device;

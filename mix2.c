@@ -534,17 +534,17 @@ good_poldata:;
       {
       for(i=0; i<sizhalf; i++)
         {
-        d_carr[4*i  ]=d_fft3[p0+4*i  ]*bg_carrfilter[k+i];    
-        d_carr[4*i+1]=d_fft3[p0+4*i+1]*bg_carrfilter[k+i];   
-        d_carr[4*i+2]=d_fft3[p0+4*i+2]*bg_carrfilter[k+i];    
-        d_carr[4*i+3]=d_fft3[p0+4*i+3]*bg_carrfilter[k+i];   
+        d_carr[4*i  ]=d_fft3[p0+4*i  ]*d_basebcarr_fir[k+i];    
+        d_carr[4*i+1]=d_fft3[p0+4*i+1]*d_basebcarr_fir[k+i];   
+        d_carr[4*i+2]=d_fft3[p0+4*i+2]*d_basebcarr_fir[k+i];    
+        d_carr[4*i+3]=d_fft3[p0+4*i+3]*d_basebcarr_fir[k+i];   
         }
       for(i=0; i<sizhalf; i++)
         {
-        d_carr[2*nn-4*i  ]=d_fft3[p0-4*i-4]*bg_carrfilter[k-i-1];    
-        d_carr[2*nn-4*i+1]=d_fft3[p0-4*i-3]*bg_carrfilter[k-i-1];    
-        d_carr[2*nn-4*i+2]=d_fft3[p0-4*i-2]*bg_carrfilter[k-i-1];    
-        d_carr[2*nn-4*i+3]=d_fft3[p0-4*i-1]*bg_carrfilter[k-i-1];    
+        d_carr[2*nn-4*i  ]=d_fft3[p0-4*i-4]*d_basebcarr_fir[k-i-1];    
+        d_carr[2*nn-4*i+1]=d_fft3[p0-4*i-3]*d_basebcarr_fir[k-i-1];    
+        d_carr[2*nn-4*i+2]=d_fft3[p0-4*i-2]*d_basebcarr_fir[k-i-1];    
+        d_carr[2*nn-4*i+3]=d_fft3[p0-4*i-1]*d_basebcarr_fir[k-i-1];    
         }
       }
     else
@@ -916,7 +916,7 @@ if(fm_pilot_size == 0)
         {  
         for(k=1; k<=(int)mix2.new_points; k++)
           {
-          pa=(timf3_py+4*(1-d_basebcarr_fir_pts+fft3_size-fft3_new_points+k*resamp)+timf3_size)&timf3_mask;
+          pa=(timf3_py+4*(1-basebcarr_fir_pts+fft3_size-fft3_new_points+k*resamp)+timf3_size)&timf3_mask;
           mm=pa;
           t1=timf3_float[pa  ]*basebcarr_fir[basebcarr_fir_pts/2];
           t2=timf3_float[pa+1]*basebcarr_fir[basebcarr_fir_pts/2];

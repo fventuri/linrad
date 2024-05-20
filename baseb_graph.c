@@ -1425,7 +1425,7 @@ j=bg_first_xpoint;
 bg_carrfilter_points=0;
 for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   {
-  if(bg_ytmp[j] > 0.000000001)
+  if(bg_ytmp[j] > 1.e-7)
     {
     bg_carrfilter_points++;
     iy=2*bg.yfac_log*log10(1./bg_ytmp[j]);  
@@ -1692,7 +1692,6 @@ while(k <= fft3_size-j+1)
   k++;
   basebraw_fir_pts++;
   }
-basebraw_fir_pts-=2;  
 k=basebraw_fir_pts;
 memset(&basebraw_fir[k],0,(fft3_size-k)*sizeof(float));
 t1=1.e-7*basebcarr_fir[fft3_size/2];
@@ -1706,7 +1705,6 @@ while(k<fft3_size-j+1)
   k++;
   basebcarr_fir_pts++;
   }
-basebcarr_fir_pts-=2;  
 k=basebcarr_fir_pts;
 memset(&basebcarr_fir[k],0,(fft3_size-k)*sizeof(float));
 // Normalize the FIR filter so it gives the same amplitude as we have
@@ -1733,6 +1731,7 @@ for(i=0; i<basebcarr_fir_pts; i++)
   }
 if(fft1_correlation_flag != 0)
   {
+  
   for(i=0; i<fft3_size/2; i++)
     {
     d_basebcarr_fir[i]*=d_fft3_window[2*i];  
@@ -1761,13 +1760,12 @@ if(fft1_correlation_flag != 0)
     k++;
     d_basebcarr_fir_pts++;
     }
-  d_basebcarr_fir_pts-=2;  
   k=d_basebcarr_fir_pts;
   memset(&d_basebcarr_fir[k],0,(fft3_size-k)*sizeof(double));
 // Normalize the FIR filter so it gives the same amplitude as we have
 // with the back transformation of fft3 in mix2.
   dt1=0;
-  for(i=0; i<basebcarr_fir_pts; i++)
+  for(i=0; i<d_basebcarr_fir_pts; i++)
     {
     dt1+=d_basebcarr_fir[i];
     }
@@ -3485,9 +3483,9 @@ for(i=3*fft3_size/4; i<fft3_size; i++)
   {
   t1+=bg_binshape[i];
   }
-t1/=fft3_size/8;  
-t2=0.5*t1;
-// t1 is now twice the average error.
+t1/=fft3_size/4;  
+t2=0.1*t1;
+// t1 is now the average error.
 // Subtract it from our bg_binshape values.
 for(i=0; i<=fft3_size/2; i++)
   {
@@ -3507,16 +3505,20 @@ t2=sqrt(t2/bg_binshape[fft3_size/2]);
 bg_binshape[fft3_size/2]=1;  
 binshape_points=0;
 i=fft3_size/2-1;
-// Get the -110 dB point
-while(i>1 && bg_binshape[i-1] > 0.0000031)
+// Get the -140 dB point
+while(i>1 && bg_binshape[i-1] > 1.e-7)
   {
   i--;
   binshape_points++;
   }
+if(i > 10)i-=4;  
+k=fft3_size-i;
 while(i>0)
   {
   bg_binshape[i]=0;
+  bg_binshape[k]=0;
   i--;
+  k++;
   }  
 binshape_total=binshape_points;  
 while(i>0 && bg_binshape[i] > 1.5*t2)
