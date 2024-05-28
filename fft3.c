@@ -343,7 +343,10 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
                 t1*=(float)timf3_sampling_speed/fft3_size;
                 mix1_selfreq[0]+=t1;
                 add_mix1_cursor(0);
-                baseb_reset_counter++;
+                if(fft1_correlation_flag > 1)
+                  {
+                  baseb_reset_counter++;
+                  }
                 timf3_pd=timf3_pc;
                 corr_afc_count=0;
                 sc[SC_SHOW_CENTER_FQ]++;  

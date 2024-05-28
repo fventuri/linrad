@@ -2782,7 +2782,10 @@ switch (bfo_flag)
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
-    baseb_reset_counter++;
+    if(fft1_correlation_flag > 1)
+      {
+      baseb_reset_counter++;
+      }
     }
   break;
   
@@ -2797,7 +2800,10 @@ switch (bfo_flag)
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
-    baseb_reset_counter++;
+    if(fft1_correlation_flag > 1)
+      {
+      baseb_reset_counter++;
+      }
     }
   break;
     
