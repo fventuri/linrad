@@ -1,0 +1,24 @@
+Some useful information about SDRplay RSPs
+
+
+Hght Dynamic Range (HDR) mode
+
+The SDRplay RSPdx and RSPdx-R2 have a High Dynamic Range (HDR) mode when operating below 2 MHz. More details are in this document: https://www.sdrplay.com/docs/RSPdxHDRMode.pdf
+
+There are strict requirements in terms of sample rate, IF selection, and passband center frequency to be able to operate the RSPdx/RSPDX-R2 in HDR mode:
+- the sampole rate must be 6Msps
+- the IF frequency must be 1620kHz
+- the passband center frequency must be one of the values in this list:
+    135kHz
+    175kHz
+    220kHz
+    250kHz
+    340kHz
+    475kHz
+    516kHz
+    875kHz
+   1125kHz
+   1900kHz
+
+For passband center frequencies below 500kHz an internal hardware 500kHz LPF will be applied.
+For passband center frequencies between 500kHz and 2MHz an internal hardware 2MHz LPF will be applied.
