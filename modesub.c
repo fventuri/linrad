@@ -175,6 +175,7 @@ afc_handle=NULL;
 calmem_handle=NULL;
 txmem_handle=NULL;
 siganal_handle=NULL;
+allan_handle=NULL;
 vga_font=NULL;
 dx=NULL;
 // and that analog io is closed

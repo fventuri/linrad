@@ -2130,10 +2130,11 @@ fft3_handle=chk_free(fft3_handle);
 hires_handle=chk_free(hires_handle);
 blanker_handle=chk_free(blanker_handle);
 allan_handle=chk_free(allan_handle);
+siganal_handle=chk_free(siganal_handle);
 afc_handle=chk_free(afc_handle);
 baseband_handle=chk_free(baseband_handle);
 dx=chk_free(dx);
-if(vgf_freq != NULL)free(vgf_freq);
-if(vgf_ampl != NULL)free(vgf_ampl);
+vgf_freq=chk_free(vgf_freq);
+vgf_ampl=chk_free(vgf_ampl);
 }
 

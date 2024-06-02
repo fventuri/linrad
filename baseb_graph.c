@@ -59,7 +59,6 @@
 #endif
 
 int binshape_points;
-int binshape_total;
 int reinit_baseb;
 int baseband_graph_scro;
 int bg_old_x1;
@@ -1395,14 +1394,14 @@ for(i=0; i<fft3_size; i++)
     m=-ja;
     ja=0;
     }
-  j=(fft3_size/2-binshape_total)-m;
+  j=(fft3_size/2-binshape_points)-m;
   if(j>0)
     {
     ja+=j;
     m+=j;
     }
   if(jb > fft3_size)jb=fft3_size;    
-  if(jb-ja > 2*binshape_total+1)jb=ja+2*binshape_total+1;
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
   t1=0;
   for(j=ja; j<jb; j++)
     {
@@ -1484,14 +1483,14 @@ for(i=0; i<fft3_size; i++)
     m=-ja;
     ja=0;
     }
-  j=(fft3_size/2-binshape_total)-m;
+  j=(fft3_size/2-binshape_points)-m;
   if(j>0)
     {
     ja+=j;
     m+=j;
     }
   if(jb > fft3_size)jb=fft3_size;    
-  if(jb-ja > 2*binshape_total+1)jb=ja+2*binshape_total+1;
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
   t1=0;
   for(j=ja; j<jb; j++)
     {
@@ -3499,39 +3498,42 @@ for(i=0; i<=fft3_size/2; i++)
   if(bg_binshape[i]<t2)bg_binshape[i]=t2;
   }
 i=fft3_size/2-1;
-k=fft3_size/2+1;
 while(i > 0)
   {
   bg_binshape[i]=sqrt(bg_binshape[i]/bg_binshape[fft3_size/2]);
-  bg_binshape[k]=bg_binshape[i];
   i--;
   k++;
   }
 t2=sqrt(t2/bg_binshape[fft3_size/2]);
 bg_binshape[fft3_size/2]=1;  
-binshape_points=0;
+// The binshape function should be steeper the farther out we go.
+// At some point rounding errors will flatten it out.
 i=fft3_size/2-1;
-// Get the -140 dB point
-while(i>1 && bg_binshape[i-1] > 1.e-7)
+t1=bg_binshape[i+1]/bg_binshape[i];
+i--;
+get_shape:;
+if(bg_binshape[i+1]/bg_binshape[i] > t1)
   {
+  t1=bg_binshape[i+1]/bg_binshape[i];
   i--;
-  binshape_points++;
+  goto get_shape;
   }
-if(i > 10)i-=4;  
-k=fft3_size-i;
+bg_binshape[i]=bg_binshape[i+1]/t1;
+binshape_points=fft3_size/2-i;
 while(i>0)
   {
+  i--;
   bg_binshape[i]=0;
-  bg_binshape[k]=0;
+  }
+i=fft3_size/2-1;
+k=fft3_size/2+1;
+while(i > 0)
+  {
+  bg_binshape[k]=bg_binshape[i];
   i--;
   k++;
-  }  
-binshape_total=binshape_points;  
-while(i>0 && bg_binshape[i] > 1.5*t2)
-  {
-  i--;
-  binshape_total++;
   }
+i=fft3_size/2-1;
 // Now we have the spectral shape of a single FFT bin in
 // bg_binshape with the maximum at position fft3_size/2.
 // **************************************************************

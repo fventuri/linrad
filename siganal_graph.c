@@ -680,10 +680,7 @@ if(!restart)
   resume_thread(THREAD_SCREEN);
   return;
   }
-if(siganal_handle != NULL)
-  {
-  siganal_handle=chk_free(siganal_handle);
-  }
+siganal_handle=chk_free(siganal_handle);
 init_memalloc(siganalmem, MAX_SIGANAL_ARRAYS);
 mem( 1,&sg_fft,sg_siz*4*sizeof(double),0);
 mem( 2,&sg_pwr,baseband_size*4*sizeof(float),0);
