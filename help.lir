@@ -1,4 +1,4 @@
-000059
+000061
 [1]KEYBOARD COMMANDS (available in most modes) 
 A = Numerical display, amplitudes
 E = Eliminate spur (If AFC present)
@@ -973,6 +973,13 @@ Value=2
 Use coherent detection in the baseband to detect AM and FM modulation
 with respect to the carrier selected by the user.
 Compute the correlation between the de-modulated signals.
+
+Value=3
+Compute Allan or Hadamard variance.
+Set a suitable filter in the baseband window. Linrad can only compute
+modified variations because a filter is always in use. The filter should
+be selected to allow the sidebands needed to pass the modulation frequencies
+associated with Tmin
 [209]The second fft is the high resolution fft that is intended for
 use at large bandwidths (20kHz analog bandwidth and more).
 If your analog hardware is a conventional radio with a few kHz bandwidth
@@ -1886,4 +1893,50 @@ of the noise blankers by changing the rules for which signals
 to consider strong and route outside the blanker.
 Check the main spectrum for red points and how they are affected
 by the blanker controls (vertical red and blue bars.)
+[353]Set the number of averages for the uncorrelated spectra, 
+chan1 and chan2 respectively. The parameter baseband storage time
+determines the maximum size for this parameter.
+[354]Click this box to toggle between modes for sideband noise:
+P=Phase noise.
+A=Amplitude noise.
+C=AM and Phase noise plus the correlation between them.
+B=AM and Phase noise. Total power regardless of phase.
+[355]Click this box to toggle between linear and logarithmic 
+frequency scale.
+[356]Enter the size in powers of two for the modulation fft.
+[357]Enter the Y scale, dB per division.
+[358]Enter the top of the dB scale in this box.
+[359]Enter a scale factor for the linear frequency display.
+[360]Enter the number of sigma values to compute for eact decade
+in the time scale.
+[361]Enter the shortest time for which to compute sigma.
+[362]Enter the longest time for which to compute sigma.
+[363]Enter a positive number for the top of the sigma scale. 9 gives 1.E-9.
+[364]Enter a positive number for the bottom of the sigma scale 12 gives 1.E-12. 
+[365]Press ALT Z to clear the sideband noise graph
+[366]Press ALT Z to clear the Allan deviation graph alternatively the 
+Hadamard deviation graph. 
+The frequency and amplitude vs time graph will also be cleared.
+
+Click the left mouse button on the graph to display Allan or Hadamard
+deviation numerically at the top of the graph. The displayed numbers
+are:
+In white: Frequency
+In green: Channel 1
+In red: Channel 2
+in yellow: Correlation
+in blue: correlation in case it is negative
+[367]Click this button to toggle between:
+C = Clear old traces whenever a new trace is displayed
+S = Save old correlation traces. This helps to see how statistics improve.
+[368]Click this button to toggle between:
+A = Allan variance
+H = Hadamard variance
+[369]Click this button to toggle between:
+P = Phase noise
+A = Amplitude noise
+[370]Enter milliHZ for the range of the Y-scale..
+[371]Enter parts per million for the range of the amplitude scale here.
+[372]Enter the time between points for frequencies and amplitudes.
+[373]Click this box to center the 20 latest points of the traces vertically.
 [0]

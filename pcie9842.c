@@ -11,6 +11,11 @@
 #include "fft1def.h"
 #include "options.h"
 
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#endif
+
+
 int halfbuf;
 int callback_blocksize;
 short int card;
@@ -143,43 +148,43 @@ pcie_libhandle=dlopen(PCI_LIBNAME, RTLD_LAZY);
 if(pcie_libhandle == NULL)goto load_error; 
 info=1;
 WD_Register_Card=(pRegister_Card)dlsym(pcie_libhandle, "WD_Register_Card");
-if(dlerror() != 0)goto sym_error;
+if(WD_Register_Card == NULL)goto sym_error;
 WD_AI_Config=(pAI_Config)dlsym(pcie_libhandle, "WD_AI_Config");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_Config == NULL)goto sym_error;
 WD_Release_Card=(pRelease_Card)dlsym(pcie_libhandle, "WD_Release_Card");
-if(dlerror() != 0)goto sym_error;
+if(WD_Release_Card == NULL)goto sym_error;
 WD_AI_ContBufferSetup=(pAI_ContBufferSetup)
                         dlsym(pcie_libhandle, "WD_AI_ContBufferSetup");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_ContBufferSetup == NULL)goto sym_error;
 WD_AI_EventCallBack=(pAI_EventCallBack)
                           dlsym(pcie_libhandle, "WD_AI_EventCallBack");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_EventCallBack == NULL)goto sym_error;
 WD_AI_ContReadChannel=(pAI_ContReadChannel)
                            dlsym(pcie_libhandle, "WD_AI_ContReadChannel");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_ContReadChannel == NULL)goto sym_error;
 WD_AI_ContReadMultiChannels=(pAI_ContReadMultiChannels)
                            dlsym(pcie_libhandle, "WD_AI_ContReadMultiChannels");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_ContReadMultiChannels == NULL)goto sym_error;
 WD_AI_AsyncClear=(pAI_AsyncClear)
                                  dlsym(pcie_libhandle, "WD_AI_AsyncClear");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_AsyncClear == NULL)goto sym_error;
 WD_AI_ContBufferReset=(pAI_ContBufferReset)
                                dlsym(pcie_libhandle, "WD_AI_ContBufferReset");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_ContBufferReset == NULL)goto sym_error;
 WD_AI_Set_Mode=(pAI_Set_Mode)dlsym(pcie_libhandle, "WD_AI_Set_Mode");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_Set_Mode == NULL)goto sym_error;
 WD_AI_AsyncDblBufferMode=(pAI_AsyncDblBufferMode)
                           dlsym(pcie_libhandle, "WD_AI_AsyncDblBufferMode");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_AsyncDblBufferMode == NULL)goto sym_error;
 WD_AI_AsyncDblBufferHandled=(pAI_AsyncDblBufferHandled)
                          dlsym(pcie_libhandle, "WD_AI_AsyncDblBufferHandled");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_AsyncDblBufferHandled == NULL)goto sym_error;
 WD_AI_InitialMemoryAllocated=(pAI_InitialMemoryAllocated)
                         dlsym(pcie_libhandle, "WD_AI_InitialMemoryAllocated");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_InitialMemoryAllocated == NULL)goto sym_error;
 WD_AI_AsyncDblBufferHalfReady=(pAI_AsyncDblBufferHalfReady)
                        dlsym(pcie_libhandle, "WD_AI_AsyncDblBufferHalfReady");
-if(dlerror() != 0)goto sym_error;
+if(WD_AI_AsyncDblBufferHalfReady == NULL)goto sym_error;
 return 0;
 sym_error:;
 dlclose(pcie_libhandle);

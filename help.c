@@ -427,6 +427,14 @@ for(i=0; i<no_of_scro; i++)
       case RADAR_GRAPH:
       help_on_radar_graph();
       break;
+      
+      case SIGANAL_GRAPH:
+      help_on_siganal_graph();
+      break;
+
+      case ALLAN_GRAPH:
+      help_on_allan_graph();
+      break;
       }
     }
   }

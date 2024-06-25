@@ -183,6 +183,7 @@ int open_flag;
 #define MAX_BLANKER_ARRAYS 15
 #define MAX_RADAR_ARRAYS 15
 #define MAX_SIGANAL_ARRAYS 40
+#define MAX_ALLAN_ARRAYS 15
 #define USR_NORMAL_RX 0
 #define USR_TXTEST 1
 #define USR_POWTIM 2
@@ -555,6 +556,8 @@ extern char *uiparm_text[MAX_UIPARM];
 #define FCDPROPLUS_GRAPH 18
 #define PHASING_GRAPH 19
 #define SIGANAL_GRAPH 20
+#define ALLAN_GRAPH 21
+#define ALLANFREQ_GRAPH 22
 #define GRAPH_RIGHTPRESSED 128
 #define GRAPH_MASK 0x8000007f
 
@@ -736,7 +739,34 @@ extern char *uiparm_text[MAX_UIPARM];
 #define SG_NEW_XGAIN 7
 #define SG_NEW_AVGNUM 8
 #define SG_NEW_MODE 9
-#define MAX_SGBUTT 10
+#define SG_NEW_XSCALE 10
+#define MAX_SGBUTT 11
+
+// Definitions for type allan_graph
+#define VG_TOP 0
+#define VG_BOTTOM 1
+#define VG_LEFT 2
+#define VG_RIGHT 3
+#define VG_NEW_POINTS_PER_DECADE 4
+#define VG_NEW_MINTAU 5
+#define VG_NEW_MAXTAU 6
+#define VG_NEW_YMIN 7
+#define VG_NEW_YMAX 8
+#define VG_NEW_CLEAR 9
+#define VG_NEW_MODE 10
+#define VG_NEW_TYPE 11
+#define MAX_VGBUTT 12
+
+// Definitions for type allanfreq_graph
+#define VGF_TOP 0
+#define VGF_BOTTOM 1
+#define VGF_LEFT 2
+#define VGF_RIGHT 3
+#define VGF_NEW_FREQGAIN 4
+#define VGF_NEW_AMPLGAIN 5
+#define VGF_NEW_TIME 6
+#define VGF_NEW_CENTER_TRACES 7
+#define MAX_VGFBUTT 8
 
 // Definitions for type COH_GRAPH
 #define CG_TOP 0
@@ -898,6 +928,44 @@ extern char *wg_intpar_text[MAX_WG_INTPAR];
 #define MAX_WG_FLOATPAR 4
 extern char *wg_floatpar_text[MAX_WG_FLOATPAR];
 
+// Structure for the allan variation graph.
+typedef struct {
+int ytop;
+int ybottom;
+int xleft;
+int xright;
+int points_per_decade;
+int ymin;
+int ymax;
+int clear;
+int mode;
+int type;
+int check;
+float mintau;
+float maxtau;
+} VG_PARMS;
+#define MAX_VG_INTPAR 11
+extern char *vg_intpar_text[MAX_VG_INTPAR];
+#define MAX_VG_FLOATPAR 2
+extern char *vg_floatpar_text[MAX_VG_FLOATPAR];
+
+// Structure for the allanfreq graph.
+typedef struct {
+int ytop;
+int ybottom;
+int xleft;
+int xright;
+int check;
+float freqgain;
+float amplgain;
+float time;
+} VGF_PARMS;
+#define MAX_VGF_INTPAR 5
+extern char *vgf_intpar_text[MAX_VGF_INTPAR];
+#define MAX_VGF_FLOATPAR 3
+extern char *vgf_floatpar_text[MAX_VGF_FLOATPAR];
+
+
 // Structure for the high resolution and blanker control graph.
 // Waterfall and full dynamic range spectrum
 typedef struct {
@@ -1016,6 +1084,7 @@ int ytop;
 int ybottom;
 int xleft;
 int xright;
+int xscale;
 int mode;
 int avg;
 int fft_n;
@@ -1024,7 +1093,7 @@ int check;
 float xgain;
 float ygain;
 } SG_PARMS;
-#define MAX_SG_INTPAR 9
+#define MAX_SG_INTPAR 10
 extern char *sg_intpar_text[MAX_SG_INTPAR];
 #define MAX_SG_FLOATPAR 2
 extern char *sg_floatpar_text[MAX_SG_FLOATPAR];
@@ -1292,8 +1361,8 @@ char *text;
 
 typedef struct {
 void *pointer;
-int size;
-int scratch_size;
+size_t size;
+size_t scratch_size;
 int num;
 } MEM_INF;
 

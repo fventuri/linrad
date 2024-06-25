@@ -105,6 +105,7 @@ float *reg_min;
 float *reg_ston;
 int *reg_first_point;
 int *reg_length;
+int fft1_skip_flag;
 
 COSIN_TABLE *fft1tab;
 D_COSIN_TABLE *d_fft1tab;
@@ -311,7 +312,6 @@ int save_rw_bytes;
 
 float timf1_sampling_speed;
 int timf1_bytes;
-int timf1_neg;
 int timf1_bytemask;
 int timf1_blockbytes;
 int timf1_usebytes;

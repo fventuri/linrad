@@ -34,7 +34,9 @@
 #include <sys/cdefs.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#ifndef __NetBSD__
 #include <machine/cpufunc.h>
+#endif
 #include <machine/sysarch.h>
 #else
 #define TRUE_BSD FALSE
@@ -196,7 +198,9 @@ getchar();
 
 int investigate_cpu(void)
 {
+#ifndef __NetBSD__
 int i;
+#endif
 #if TRUE_BSD == FALSE
 int k, maxproc, maxproc_flag;
 FILE *file;
@@ -420,10 +424,11 @@ pthread_cond_destroy(&lir_event_cond[i]);
 
 void lir_set_event(int no)
 {
-while(pthread_mutex_lock(&lir_event_mutex[no]) != 0)lir_sleep(10);
+while(pthread_mutex_lock(&lir_event_mutex[no]) != 0)lir_sleep(100);
 lir_event_flag[no]=TRUE;
 pthread_cond_signal(&lir_event_cond[no]);
 pthread_mutex_unlock(&lir_event_mutex[no]);
+//öö lir_event_flag[no]=FALSE;
 }    
 
 void lir_await_event(int no)
@@ -853,11 +858,13 @@ i=0;
 #endif  
   if(i!=0)lirerr(764921);
 #if TRUE_BSD == TRUE
+#ifndef __NetBSD__
     {
     int k;
     k=byte;
     outb(k,port);
     }
+#endif
 #else
 #if HAVE_PARPORT == 1
   outb(byte,port);

@@ -194,6 +194,10 @@ if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
     mix1_selfreq[0]=t1;
     add_mix1_cursor(0);
     sc[SC_SHOW_CENTER_FQ]++;
+    if(fft1_correlation_flag > 1)
+      {
+      baseb_reset_counter++;
+      }
     break;
     
     case 1:
@@ -217,9 +221,18 @@ if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
 void step_rx_frequency(int direction)
 {
 int m;
+float t1;
 m=1<<bg.wheel_stepn;
-move_rx_frequency((float)direction*
-                     ((float)m/fftx_points_per_hz)/256,bg.horiz_arrow_mode);
+if(fft1_correlation_flag > 1)
+  {
+  t1=1.0/1024.;
+  }
+else
+  {
+  t1=1.0/256.;
+  }  
+t1*=(float)m;
+move_rx_frequency((float)direction*t1/fftx_points_per_hz,bg.horiz_arrow_mode);
 }
 
 

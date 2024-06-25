@@ -15,6 +15,7 @@
 // different pointers defined, one for each type.
 #define MAX_FFT1_BATCH_N 4
 
+extern int fft1_skip_flag;
 extern int fft1_use_gpu;
 extern int timf1_mute;
 extern int timf1_mute_counter;
@@ -244,7 +245,6 @@ extern FFT_SETUP_INFO fft_cntrl[MAX_FFT_VERSIONS];
 
 extern int timf1_bytes;
 extern int timf1_bytemask;
-extern int timf1_neg;
 extern int timf1_blockbytes;
 extern int timf1_usebytes;
 extern char *timf1_char;

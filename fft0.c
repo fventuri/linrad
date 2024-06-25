@@ -705,6 +705,7 @@ j2=size;
 m2=2*size;
 for(m1=0; m1<n; m1++)
   {
+  if( (m1 & 0x111) == 0x111)lir_sched_yield();
   for(ja=0; ja<=2*size-m2; ja+=m2)
     {
     it=0;

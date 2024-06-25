@@ -502,59 +502,52 @@ if(ui.use_extio==0)return 1;
 extio_handle=dlopen(s, RTLD_LAZY);
 if( extio_handle==NULL) return 2;
 OpenHW = (pOpenHW)dlsym(extio_handle, "OpenHW");
-if(dlerror() != 0)
+if(OpenHW == NULL)
   {
   errcod=3;
   OpenHW=NULL;
   goto errexit;
   }
 SetHWLO = (pSetHWLO) dlsym(extio_handle,"SetHWLO");
-if(dlerror() != NULL)
+if(SetHWLO == NULL)
   {
   errcod=4;
   goto errexit;
   }
 CloseHW = (pCloseHW) dlsym(extio_handle,"CloseHW");
-if(dlerror() != NULL)
+if(CloseHW == NULL)
   {
   errcod=5;
   goto errexit;
   }
 SetCallback = (pSetCallback) dlsym(extio_handle, "SetCallback");
-if(dlerror() != NULL)
+if(SetCallback == NULL)
   {
   errcod=6;
   goto errexit;
   }
 InitHW = (pInitHW) dlsym(extio_handle, "InitHW");
-if(dlerror() != NULL)
+if(InitHW == NULL)
   {
   errcod=7;
   goto errexit;
   }
 StopHW = (pStopHW) dlsym(extio_handle, "StopHW");
-if(dlerror() != NULL)
+if(StopHW == NULL)
   {
   errcod=8;
   goto errexit;
   }
 ShowGUI = (pShowGUI) dlsym(extio_handle, "ShowGUI");
-if(dlerror() != NULL)ShowGUI=NULL;
+if(ShowGUI == NULL)ShowGUI=NULL;
 HideGUI = (pHideGUI) dlsym(extio_handle, "HideGUI");
-if(dlerror() != NULL)HideGUI=NULL;
 StartHW = (pStartHW) dlsym(extio_handle, "StartHW");
-if(dlerror() != NULL)StartHW=NULL;
 TuneChanged = (pTuneChanged) dlsym(extio_handle, "TuneChanged");
-if(dlerror() != NULL)TuneChanged=NULL;
 GetHWLO = (pGetHWLO) dlsym(extio_handle, "GetHWLO");
-if(dlerror() != NULL)GetHWLO=NULL;
 GetHWSR = (pGetHWSR) dlsym(extio_handle, "GetHWSR");
-if(dlerror() != NULL)GetHWSR=NULL;
 SetHWSR = (pSetHWSR) dlsym(extio_handle, "SetHWSR");
 SetRFGain = (pSetRFGain) dlsym(extio_handle, "SetRFGain");
-if(dlerror() != NULL)SetRFGain=NULL;
 GetRFGain = (pGetRFGain) dlsym(extio_handle, "GetRFGain");
-if(dlerror() != NULL)GetRFGain=NULL;
 errcod=InitHW(extio_name, extio_model, &ui.extio_type);
 if(ui.extio_type == 2)ui.extio_type=4;
 if(!errcod)

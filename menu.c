@@ -623,6 +623,11 @@ if(fft1_correlation_flag==2)
   {
   init_siganal_graph();
   }
+if(fft1_correlation_flag==3)
+  {
+  init_allan_graph();
+  init_allanfreq_graph();
+  }
 if(use_tx != 0)init_tx_graph();
 if(lir_status != LIR_OK) goto normal_rx_x;
 // Make sure users_init_mode is the last window(s) we open.
@@ -2364,7 +2369,7 @@ if(diskread_flag != 0)
 void main_menu(void)
 {
 int rx_rf_channels;
-int i, j, k;
+int i, j, k, n1, n2;
 int uiupd, line;
 char s[256], ss[80];
 int message_line;
@@ -2385,11 +2390,21 @@ if(kill_all_flag) goto menu_x;
 // with his hardware but some routines, e.g. txtest may change
 // the A/D parameters and/or other parameters.
 // We will always start here with the initial ui parameters.
-if (ui.max_dma_rate < MIN_DMA_RATE || ui.max_dma_rate > MAX_DMA_RATE) 
+    if(ui.operator_skil == OPERATOR_SKIL_EXPERT)
+      {
+      n1=MIN_DMA_RATE_EXP;
+      n2=MAX_DMA_RATE_EXP;
+      }
+    else
+      {
+      n1=MIN_DMA_RATE;
+      n2=MAX_DMA_RATE;
+      }
+if (ui.max_dma_rate < n1 || ui.max_dma_rate > n2) 
   {
   ui.max_dma_rate=DEFAULT_MAX_DMA_RATE;
   }
-if (ui.min_dma_rate < MIN_DMA_RATE || ui.min_dma_rate > ui.max_dma_rate) 
+if (ui.min_dma_rate < n1 || ui.min_dma_rate > n2) 
   {
   ui.min_dma_rate=DEFAULT_MIN_DMA_RATE;
   }
@@ -2537,7 +2552,9 @@ if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER &&
     }
   }
 if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
-  {
+  {  
+  lir_text(1, line, "F7=Show colours");
+  line++;
   lir_text(1, line, "F9=Emergency light");
   line++;
   }
@@ -2761,14 +2778,39 @@ switch ( lir_inkey )
     }
   break;
     
+  case F7_KEY:
+  if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
+    {
+    lir_fillbox(0,0,screen_width,screen_height,0);
+
+    int jj=0;
+    int kk=0;
+    unsigned char ii;
+    for(ii=1; ii<MAX_SVGA_PALETTE; ii++)
+      {
+      settextcolor(ii);
+      sprintf(s,"%d MMMM",ii);
+      lir_pixwrite(jj,kk,s);
+      jj+=10*text_width;
+      if(jj > screen_width-10*text_width)
+        {
+        jj=0;
+        kk+=2*text_height;
+        }
+      }
+    settextcolor(7);
+    await_keyboard();
+    }
+  goto menu_loop;
+
   case F9_KEY:
   if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
     {
     lir_fillbox(0,0,screen_width,screen_height,15);
     await_keyboard();
     }
-  break;
-
+  goto menu_loop;
+  
   case '1':
   case '3':
   if((ui.network_flag&NET_RX_INPUT) == 0)

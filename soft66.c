@@ -153,7 +153,7 @@ soft66_libhandle=dlopen(SOFT66_LIBNAME, RTLD_LAZY);
 if(!soft66_libhandle)goto soft66_load_error;
 info=1;
 soft66_new=(p_soft66_new)dlsym(soft66_libhandle, "soft66_new");
-if(dlerror() != 0)goto soft66_sym_error;
+if(soft66_new == NULL)goto soft66_sym_error;
 soft66_set_frequency=(p_soft66_set_frequency)
                         dlsym(soft66_libhandle, "soft66_set_frequency");
 soft66_open_device=(p_soft66_open_device)

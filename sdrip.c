@@ -33,12 +33,6 @@
 #define RECV_FLAG 0
 #define INVSOCK INVALID_SOCKET
 #define CLOSE_FD closesocket
-#if !defined __MINGW64_VERSION_MAJOR || __MINGW64_VERSION_MAJOR < 11
-typedef struct{
-struct in_addr imr_multiaddr;   /* IP multicast address of group */
-struct in_addr imr_interface;   /* local IP address of interface */
-}IP_MREQ;
-#endif
 extern WSADATA wsadata;
 
 #endif

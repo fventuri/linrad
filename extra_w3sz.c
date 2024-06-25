@@ -53,13 +53,6 @@ double users_extra_fast_time;
 extern float users_extra_update_interval;
 int set_freq_flag;
 
-#ifndef W3SZ_VARIABLES
-#define W3SZ_VARIABLES
-int w3sz_offset_hz;  //w3sz offset equal to ug.par2 to be used elsewhere in program
-int w3sz_offset_hz_old;  //w3sz 
-int w3sz_users_flag;//w3sz
-#endif
-
 int w3szfreq; //w3sz
 int w3szfreqold=0; //w3sz
 int w3sz_map65_flag=0; //w3sz
@@ -69,12 +62,13 @@ FILE *Fp; //w3sz
 FILE *Fp1;//w3sz
 char w3sz_buffer[80];//w3sz
 char w3sz_buffer2[80];//w3sz
+char w3sz_buffer3[80];//w3sz
 char w3sz_trash[80];//w3sz
 char azel_loc[80];//w3sz
 
 void init_users_extra(void)
 {
-char s[80];
+char s[120];
 // This routine is called just before a receive mode is entered.
 // Use it to set your own things from the keyboard.
 // Remove the comment statements below for testing purposes 
@@ -178,12 +172,12 @@ else //w3sz
 	
 	if  (strstr(w3sz_buffer,"fQSO")!=NULL && strstr(w3sz_buffer,"fQSO2")==NULL)//w3sz
 	{
-	strncpy(w3sz_buffer,w3sz_buffer,3);//w3sz
-	w3szfreq=atoi(w3sz_buffer);//w3sz
+	strcpy(w3sz_buffer3,w3sz_buffer);//w3sz
+	w3sz_buffer3[4]=0;
+	w3szfreq=atoi(w3sz_buffer3);//w3sz
 	}
 	fclose(Fp1);//w3sz
   set_freq_flag=TRUE;
-
   }
 
 }

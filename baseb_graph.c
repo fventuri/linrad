@@ -59,7 +59,6 @@
 #endif
 
 int binshape_points;
-int binshape_total;
 int reinit_baseb;
 int baseband_graph_scro;
 int bg_old_x1;
@@ -222,10 +221,13 @@ if(fft1_correlation_flag != 0)
   memset(&d_baseb[2*nn],0,2*k*sizeof(double));
   memset(&d_baseb_carrier[2*nn],0,2*k*sizeof(double));
   }
+else
+  {
+  memset(&baseb_carrier[2*nn],0,2*k*sizeof(float));
+  memset(&baseb_carrier_ampl[nn],0,k*sizeof(float));
+  }
 memset(&baseb[2*nn],0,2*k*sizeof(float));
-memset(&baseb_carrier[2*nn],0,2*k*sizeof(float));
 memset(&baseb_totpwr[nn],0,k*sizeof(float));
-memset(&baseb_carrier_ampl[nn],0,k*sizeof(float));
 if(bg.agc_flag != 0)
   {
   memset(&baseb_agc_level[nn],0,k*sizeof(float));
@@ -249,7 +251,6 @@ if(genparm[CW_DECODE_ENABLE] != 0)
   memset(&baseb_sho2[2*nn],0,2*k*sizeof(float));
   memset(&baseb_envelope[2*nn],0,2*k*sizeof(float));
   }
-sg_inhibit_count=5;
 baseb_pa=0;
 baseb_pb=0;
 baseb_pc=0;
@@ -411,18 +412,21 @@ if(use_bfo == 0)
   }
 if(bfo_xpixel > 0)
   {
-  if(bg_filterfunc_y[bfo_xpixel] > 0)
+  if(fft1_correlation_flag <= 1)  
+    {
+    if(bg_filterfunc_y[bfo_xpixel] > 0)
                      lir_setpixel(bfo_xpixel,bg_filterfunc_y[bfo_xpixel],14);
-  if(bg_filterfunc_y[bfo10_xpixel] > 0)
+    if(bg_filterfunc_y[bfo10_xpixel] > 0)
                  lir_setpixel(bfo10_xpixel,bg_filterfunc_y[bfo10_xpixel],14);
-  if(bg_filterfunc_y[bfo100_xpixel] > 0)
+    if(bg_filterfunc_y[bfo100_xpixel] > 0)
                lir_setpixel(bfo100_xpixel,bg_filterfunc_y[bfo100_xpixel],14);
+    }
   if(bg_carrfilter_y[bfo_xpixel] > 0)
-                     lir_setpixel(bfo_xpixel,bg_carrfilter_y[bfo_xpixel],14);
+                     lir_setpixel(bfo_xpixel,bg_carrfilter_y[bfo_xpixel],58);
   if(bg_carrfilter_y[bfo10_xpixel] > 0)
-                 lir_setpixel(bfo10_xpixel,bg_carrfilter_y[bfo10_xpixel],14);
+                 lir_setpixel(bfo10_xpixel,bg_carrfilter_y[bfo10_xpixel],58);
   if(bg_carrfilter_y[bfo100_xpixel] > 0)
-               lir_setpixel(bfo100_xpixel,bg_carrfilter_y[bfo100_xpixel],14);
+               lir_setpixel(bfo100_xpixel,bg_carrfilter_y[bfo100_xpixel],58);
   }
 // When we arrive here only bg.bfo_freq is defined.
 // Set up the other variables we need that depend on it. 
@@ -481,7 +485,7 @@ if(bg_agc_hang_pts > baseband_size/2)bg_agc_hang_pts=baseband_size/2;
 /*void construct_fir(int win, int siz, int n, int *points, int ct, 
                                               float *fir, float small)
 */
-void construct_fir(int win, int siz, int n, int *points, int ct, 
+int construct_fir(int win, int siz, int n, int *points, int ct, 
                                               float *fir, float zsmall)
 
 {
@@ -492,6 +496,7 @@ float *fir_window;
 unsigned short int *fir_permute;
 COSIN_TABLE *fir_tab;
 cutoff=ct;
+if(siz < 16)return FALSE;
 if(cutoff < 1)cutoff=1;
 if(cutoff>=siz/2)cutoff=siz/2-1;
 // Construct a FIR filter of size siz with a cut-off frequency cutoff.
@@ -502,7 +507,7 @@ firbuf=malloc(siz*(3*sizeof(float)+sizeof(short int)+sizeof(COSIN_TABLE)/2));
 if(firbuf == NULL)
   {
   lirerr(493367);
-  return;
+  return FALSE;
   }
 fir_window=&firbuf[siz*2];
 fir_permute=(void*)(&fir_window[siz]);
@@ -591,6 +596,7 @@ for(i=0; i<points[0]; i++)
   {
   fir[i]*=t1;
   }
+return(TRUE);
 }
 
 
@@ -634,7 +640,9 @@ if(t1<genparm[BASEBAND_STORAGE_TIME])t1=genparm[BASEBAND_STORAGE_TIME];
 // Allocate memory for transformation from fft3 to the baseband.
 // We are already in the baseband but the filter in use may allow 
 // a reduction of the sampling speed.
-baseband_size=t1*baseband_sampling_speed;
+t1*=baseband_sampling_speed;
+if(t1 > 0x0FFFFFFF)t1=0x0FFFFFFF;
+baseband_size=t1;
 make_power_of_two(&baseband_size);
 daout_bufmask=daout_size-1;
 cg_size=2+(COH_SIDE*text_width)/3;
@@ -760,7 +768,6 @@ if(fft1_correlation_flag != 0)
   {
   mem(202,&d_baseb_carrier,baseband_size*4*sizeof(double),0);
   mem(205,&d_baseb,baseband_size*4*sizeof(double),0);
-  mem(302,&baseb_carrier,baseband_size*4*sizeof(float),0);
   mem(305,&baseb,baseband_size*4*sizeof(float),0);
   mem(309,&d_mix2_table,mix2.size*sizeof(D_COSIN_TABLE)/2,0);
   }
@@ -768,9 +775,9 @@ else
   {  
   mem(2,&baseb_carrier,baseband_size*2*sizeof(float),0);
   mem(5,&baseb,baseband_size*2*sizeof(float),0);
+  mem(7,&baseb_carrier_ampl,baseband_size*sizeof(float),0);
   }
 mem(6,&baseb_totpwr,baseband_size*sizeof(float),0);
-mem(7,&baseb_carrier_ampl,baseband_size*sizeof(float),0);
 mem(3,&baseb_raw,baseband_size*2*sizeof(float),0);
 mem(4,&baseb_raw_orthog,baseband_size*2*sizeof(float),0);
 mem(8,&mix2.permute,mix2.size*sizeof(short int),0);
@@ -845,7 +852,7 @@ if(rx_mode == MODE_FM)
     mem(333,&fmfil70_fir,fmfil70_size*sizeof(float),0);
     mem(334,&fm1_all,fm1_size*sizeof(float),0);
     }
-  }  
+  }
 if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
   {
 #if NET_BASEBRAW_MODE == WFM_FM_FIRST_LOWPASS || \
@@ -899,10 +906,6 @@ if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
   basebraw_mode=DWORD_INPUT;
   basebraw_passband_direction=1;
 #endif
-
-
-
-
   basebrawnet_block_bytes=(basebraw_ad_channels*basebraw_rf_channels*
                                     basebraw_sampling_speed)/ui.max_dma_rate;
   make_power_of_two(&basebrawnet_block_bytes);
@@ -916,6 +919,7 @@ if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
   mem(7578,&basebraw_netsend_buffer,basebrawnet_size,0);
   }
 baseband_totmem=memalloc(&baseband_handle,"baseband");
+if(kill_all_flag)return;
 if(baseband_totmem == 0)
   {
   lir_status=LIR_OK;
@@ -1009,12 +1013,22 @@ if(fm_pilot_size > 0)
 
 
 #endif
-  construct_fir(7,fmfil70_size, fmfil70_n, 
-                                 &fmfil70_points, i, fmfil70_fir, 0.00001);
+  k=construct_fir(7,fmfil70_size, fmfil70_n, 
+                           &fmfil70_points, i, fmfil70_fir, 0.00001);
+  if(!k)
+    {
+    lirerr(1473);
+    return;
+    }                           
 // *********************** fmfil55 *********************************          
   i=fmfil55_size*53000/baseband_sampling_speed;
-  construct_fir(7,fmfil55_size, fmfil55_n, 
-                                 &fmfil55_points, i, fmfil55_fir, 0.00001);
+  k=construct_fir(7,fmfil55_size, fmfil55_n, 
+                            &fmfil55_points, i, fmfil55_fir, 0.00001);
+  if(!k)
+    {
+    lirerr(1474);
+    return;
+    }
 // *********************** fmfil *********************************          
   t1=15000;
   if(genparm[DA_OUTPUT_SPEED] < 40000)
@@ -1022,12 +1036,22 @@ if(fm_pilot_size > 0)
     t1*=genparm[DA_OUTPUT_SPEED]/40000.;
     }
   i=fmfil_size*t1/baseband_sampling_speed;
-  construct_fir(7,fmfil_size, fmfil_n, 
+  k=construct_fir(7,fmfil_size, fmfil_n, 
                                  &fmfil_points, i, fmfil_fir, 0.00001);
+  if(!k)
+    {
+    lirerr(1475);
+    return;
+    }
 // *********************** fmfil_rds ********************************
   i=fmfil_rds_size*4000/baseband_sampling_speed;
-  construct_fir(7,fmfil_rds_size, fmfil_rds_n, 
-                               &fmfil_rds_points, i, fmfil_rds_fir, 0.0001);
+  k=construct_fir(7,fmfil_rds_size, fmfil_rds_n, 
+                           &fmfil_rds_points, i, fmfil_rds_fir, 0.0001);
+  if(!k)
+    {
+    lirerr(1476);
+    return;
+    }
 // *****************************************************************
 // collect the RDS phase in a leaky integrator of about 0.01 second.
   rds_f1=pow(0.5,100/baseband_sampling_speed);
@@ -1241,6 +1265,7 @@ if(k > 2)
     {
     mix2.size=2*fft3_size/k;
     init_basebmem();
+    if(kill_all_flag)return;
     baseb_reset_counter++;
     }
   }
@@ -1252,6 +1277,7 @@ else
     {
     mix2.size=fft3_size;
     init_basebmem();
+    if(kill_all_flag)return;
     baseb_reset_counter++;
     }  
   }
@@ -1368,14 +1394,14 @@ for(i=0; i<fft3_size; i++)
     m=-ja;
     ja=0;
     }
-  j=(fft3_size/2-binshape_total)-m;
+  j=(fft3_size/2-binshape_points)-m;
   if(j>0)
     {
     ja+=j;
     m+=j;
     }
   if(jb > fft3_size)jb=fft3_size;    
-  if(jb-ja > 2*binshape_total+1)jb=ja+2*binshape_total+1;
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
   t1=0;
   for(j=ja; j<jb; j++)
     {
@@ -1395,10 +1421,12 @@ for(i=0; i<fft3_size; i++)
   bg_ytmp[i]/=t1;
   }
 j=bg_first_xpoint;
+bg_carrfilter_points=0;
 for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   {
-  if(bg_ytmp[j] > 0.000000001)
+  if(bg_ytmp[j] > 1.e-7)
     {
+    bg_carrfilter_points++;
     iy=2*bg.yfac_log*log10(1./bg_ytmp[j]);  
     iy=bg_ymax-1+iy;
     if(iy>bg_y0)
@@ -1416,6 +1444,16 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
     }
   bg_carrfilter_y[i]=iy;
   j++;
+  }
+if(fft1_correlation_flag == 2)
+  {
+  lir_sched_yield();
+  sc[SC_SG_REDRAW]++;
+  }
+if(fft1_correlation_flag == 3)
+  {
+  lir_sched_yield();
+  sc[SC_VG_REDRAW]++;
   }
 if(bg.mixer_mode == 1)
   {
@@ -1445,14 +1483,14 @@ for(i=0; i<fft3_size; i++)
     m=-ja;
     ja=0;
     }
-  j=(fft3_size/2-binshape_total)-m;
+  j=(fft3_size/2-binshape_points)-m;
   if(j>0)
     {
     ja+=j;
     m+=j;
     }
   if(jb > fft3_size)jb=fft3_size;    
-  if(jb-ja > 2*binshape_total+1)jb=ja+2*binshape_total+1;
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
   t1=0;
   for(j=ja; j<jb; j++)
     {
@@ -1512,7 +1550,7 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
       }
     else
       {    
-      lir_setpixel(i,iy,14);
+      if(fft1_correlation_flag <= 1)lir_setpixel(i,iy,14);
       }
     }
   else
@@ -1653,7 +1691,6 @@ while(k <= fft3_size-j+1)
   k++;
   basebraw_fir_pts++;
   }
-basebraw_fir_pts-=2;  
 k=basebraw_fir_pts;
 memset(&basebraw_fir[k],0,(fft3_size-k)*sizeof(float));
 t1=1.e-7*basebcarr_fir[fft3_size/2];
@@ -1667,7 +1704,6 @@ while(k<fft3_size-j+1)
   k++;
   basebcarr_fir_pts++;
   }
-basebcarr_fir_pts-=2;  
 k=basebcarr_fir_pts;
 memset(&basebcarr_fir[k],0,(fft3_size-k)*sizeof(float));
 // Normalize the FIR filter so it gives the same amplitude as we have
@@ -1694,6 +1730,7 @@ for(i=0; i<basebcarr_fir_pts; i++)
   }
 if(fft1_correlation_flag != 0)
   {
+  
   for(i=0; i<fft3_size/2; i++)
     {
     d_basebcarr_fir[i]*=d_fft3_window[2*i];  
@@ -1722,13 +1759,12 @@ if(fft1_correlation_flag != 0)
     k++;
     d_basebcarr_fir_pts++;
     }
-  d_basebcarr_fir_pts-=2;  
   k=d_basebcarr_fir_pts;
   memset(&d_basebcarr_fir[k],0,(fft3_size-k)*sizeof(double));
 // Normalize the FIR filter so it gives the same amplitude as we have
 // with the back transformation of fft3 in mix2.
   dt1=0;
-  for(i=0; i<basebcarr_fir_pts; i++)
+  for(i=0; i<d_basebcarr_fir_pts; i++)
     {
     dt1+=d_basebcarr_fir[i];
     }
@@ -2400,7 +2436,7 @@ switch (mouse_active_flag-1)
   break;
 
   case  BG_TOGGLE_COHERENT:
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(bg_twopol == 0 && bg_delay == 0)
       {
@@ -2410,7 +2446,7 @@ switch (mouse_active_flag-1)
   break;
 
   case  BG_TOGGLE_PHASING:
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(bg_coherent == 0)
       {
@@ -2422,7 +2458,7 @@ switch (mouse_active_flag-1)
   break;
 
   case BG_TOGGLE_TWOPOL:
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     if(bg_coherent == 0)
       {
@@ -2559,8 +2595,11 @@ switch (mouse_active_flag-1)
   break;
 
   case BG_MIXER_MODE:
-  bg.mixer_mode++;
-  if(bg.mixer_mode > 2)bg.mixer_mode=1;
+  if(fft1_correlation_flag == 0)
+    { 
+    bg.mixer_mode++;
+    if(bg.mixer_mode > 2)bg.mixer_mode=1;
+    }
   break;
 
   case BG_FILTER_SHIFT:
@@ -2742,6 +2781,10 @@ switch (bfo_flag)
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
+    if(fft1_correlation_flag > 1)
+      {
+      baseb_reset_counter++;
+      }
     }
   break;
   
@@ -2756,6 +2799,10 @@ switch (bfo_flag)
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
+    if(fft1_correlation_flag > 1)
+      {
+      baseb_reset_counter++;
+      }
     }
   break;
     
@@ -3221,8 +3268,9 @@ if(fft1_correlation_flag == 0)
 else
   {
   k=sizeof(double);
+  if(fft1_correlation_flag >= 2)k*=4;
   }
-if(t1*k > (float)(0x40000000))
+if(t1*k > (float)(0x4FFFFFFF))
   {
   fft3_size/=2;
   fft3_size_error("RAM memory");
@@ -3274,7 +3322,7 @@ if(fft1_correlation_flag != 0)
   mem( 106,&d_fft3_fqwin_inv,fft3_size*sizeof(double),0);
   mem( 107,&d_basebcarr_fir,fft3_size*sizeof(double),0);
   mem( 108,&d_fftn_tmp,4*fftn_tmp_size*sizeof(double),0);
-  if(fft1_correlation_flag == 2)
+  if(fft1_correlation_flag >= 2)
     {
     mem( 109,&fft3_cleansum,4*bg_xpoints*sizeof(float),0);
     }
@@ -3367,7 +3415,7 @@ if(fft1_correlation_flag != 0)
     k--;
     }
   make_d_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], d_fft3_window);
-  if(fft1_correlation_flag == 2)
+  if(fft1_correlation_flag >= 2)
     {
     memset(fft3_cleansum,0,bg_xpoints*ui.rx_rf_channels*sizeof(float));
     }
@@ -3440,9 +3488,9 @@ for(i=3*fft3_size/4; i<fft3_size; i++)
   {
   t1+=bg_binshape[i];
   }
-t1/=fft3_size/8;  
-t2=0.5*t1;
-// t1 is now twice the average error.
+t1/=fft3_size/4;  
+t2=0.1*t1;
+// t1 is now the average error.
 // Subtract it from our bg_binshape values.
 for(i=0; i<=fft3_size/2; i++)
   {
@@ -3450,35 +3498,42 @@ for(i=0; i<=fft3_size/2; i++)
   if(bg_binshape[i]<t2)bg_binshape[i]=t2;
   }
 i=fft3_size/2-1;
-k=fft3_size/2+1;
 while(i > 0)
   {
   bg_binshape[i]=sqrt(bg_binshape[i]/bg_binshape[fft3_size/2]);
-  bg_binshape[k]=bg_binshape[i];
   i--;
   k++;
   }
 t2=sqrt(t2/bg_binshape[fft3_size/2]);
 bg_binshape[fft3_size/2]=1;  
-binshape_points=0;
+// The binshape function should be steeper the farther out we go.
+// At some point rounding errors will flatten it out.
 i=fft3_size/2-1;
-// Get the -110 dB point
-while(i>1 && bg_binshape[i-1] > 0.0000031)
+t1=bg_binshape[i+1]/bg_binshape[i];
+i--;
+get_shape:;
+if(bg_binshape[i+1]/bg_binshape[i] > t1)
   {
+  t1=bg_binshape[i+1]/bg_binshape[i];
   i--;
-  binshape_points++;
+  goto get_shape;
   }
+bg_binshape[i]=bg_binshape[i+1]/t1;
+binshape_points=fft3_size/2-i;
 while(i>0)
   {
+  i--;
   bg_binshape[i]=0;
-  i--;
-  }  
-binshape_total=binshape_points;  
-while(i>0 && bg_binshape[i] > 1.5*t2)
-  {
-  i--;
-  binshape_total++;
   }
+i=fft3_size/2-1;
+k=fft3_size/2+1;
+while(i > 0)
+  {
+  bg_binshape[k]=bg_binshape[i];
+  i--;
+  k++;
+  }
+i=fft3_size/2-1;
 // Now we have the spectral shape of a single FFT bin in
 // bg_binshape with the maximum at position fft3_size/2.
 // **************************************************************
@@ -3607,7 +3662,7 @@ if(rx_mode == MODE_FM)
 else   
   {
   freq_readout_x1=ix2;
-  if(fft1_correlation_flag != 2)
+  if(fft1_correlation_flag <= 1)
     {
     bgbutt[BG_TOGGLE_AGC].x1=ix1;
     bgbutt[BG_TOGGLE_AGC].x2=ix2;
@@ -3636,7 +3691,7 @@ else
       freq_readout_x1=ix2;
       }
     }
-  }  
+  } 
 freq_readout_x1+=text_width;  
 freq_readout_y1=iy1;
 ix2=bg.xright-2;
@@ -3656,7 +3711,7 @@ if(rx_mode == MODE_AM && bg.mixer_mode == 1)
   bgbutt[BG_FILTER_SHIFT].y2=iy2;
   }
 // Make the squelch buttons. They will be placed on screen by make_bg_filter.
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   ix2=ix1-2;
   ix1=ix2-3*text_width/2;
@@ -3754,7 +3809,7 @@ bgbutt[BG_TOGGLE_BYTES].x2=ix2;
 bgbutt[BG_TOGGLE_BYTES].y1=iy1;
 bgbutt[BG_TOGGLE_BYTES].y2=iy2;
 // **************   Make the button for the amplitude expander
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   if(use_bfo != 0)
     {
@@ -3781,7 +3836,7 @@ bgbutt[BG_SEL_COHFAC].x2=ix2;
 bgbutt[BG_SEL_COHFAC].y1=iy1;
 bgbutt[BG_SEL_COHFAC].y2=iy2;
 // ****************************************************************
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   if(use_bfo != 0)
     {
@@ -3841,8 +3896,13 @@ if(rx_mode == MODE_FM)
   {
 // *********************** fm_audiofil *********************************          
   i=1000*fm_audiofil_size*bg.fm_audio_bw/baseband_sampling_speed;
-  construct_fir(7,fm_audiofil_size, fm_audiofil_n, 
+  k=construct_fir(7,fm_audiofil_size, fm_audiofil_n, 
                    &fm_audiofil_points, i, fm_audiofil_fir, 0.00001);
+if(!k)
+    {
+    lirerr(1477);
+    return;
+    }
   fm0_ph1=0;
   fm0_ph2=0;
   fm1_ph1=0;
@@ -4019,13 +4079,14 @@ if(errcnt < 2)
      bg.agc_hang > 9
      )goto bg_default;
   }
+if(fft1_correlation_flag > 0)bg.mixer_mode=2;     
 bg_no_of_notches=0;
 bg_current_notch=0;
 new_bg_agc_flag=bg.agc_flag;
 if(bg.wheel_stepn<-30 || bg.wheel_stepn >30)bg.wheel_stepn=0;
 bfo_flag=0;  
 mix2.size=-1;
-if(fft1_correlation_flag == 2)genparm[OUTPUT_MODE]=51;
+if(fft1_correlation_flag >= 2)genparm[OUTPUT_MODE]=51;
 new_daout_bytes=1+(genparm[OUTPUT_MODE]&1);           //bit 0
 new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);   //bit 1
 bg_expand=(genparm[OUTPUT_MODE]>>2)&3;                //bit 2 and 3
@@ -4045,7 +4106,7 @@ bfo_xpixel=-1;
 if(ui.operator_skil != OPERATOR_SKIL_EXPERT)
   {
   bg.oscill_on=0;
-  }  
+  }
 init_baseband_sizes();
 make_baseband_graph(FALSE);
 if(kill_all_flag)return;

@@ -492,44 +492,45 @@ airspy_libhandle=dlopen(AIRSPY_LIBNAME, RTLD_LAZY);
 if(!airspy_libhandle)goto airspy_load_error;
 info=1;
 airspy_open=(p_airspy_open)dlsym(airspy_libhandle, "airspy_open");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_open == NULL)goto airspy_sym_error;
 airspy_error_name=(p_airspy_error_name)dlsym(
                                    airspy_libhandle, "airspy_error_name");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_error_name == NULL)goto airspy_sym_error;
 airspy_board_partid_serialno_read=(p_airspy_board_partid_serialno_read) 
                dlsym(airspy_libhandle, "airspy_board_partid_serialno_read");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_board_partid_serialno_read == NULL)goto airspy_sym_error;
 airspy_close=(p_airspy_close)dlsym(airspy_libhandle, "airspy_close");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_close == NULL)goto airspy_sym_error;
 airspy_get_samplerates=(p_airspy_get_samplerates)dlsym(airspy_libhandle, 
                                                    "airspy_get_samplerates");
+if(airspy_get_samplerates == NULL)goto airspy_sym_error;
 airspy_set_samplerate=(p_airspy_set_samplerate)dlsym(airspy_libhandle, 
                                                    "airspy_set_samplerate");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_samplerate == NULL)goto airspy_sym_error;
 airspy_set_sample_type=(p_airspy_set_sample_type)dlsym(airspy_libhandle, 
                                                    "airspy_set_sample_type");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_sample_type == NULL)goto airspy_sym_error;
 airspy_set_rf_bias=(p_airspy_set_rf_bias)dlsym(airspy_libhandle, 
                                                      "airspy_set_rf_bias");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_rf_bias == NULL)goto airspy_sym_error;
 airspy_start_rx=(p_airspy_start_rx)dlsym(airspy_libhandle, 
                                                        "airspy_start_rx");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_start_rx == NULL)goto airspy_sym_error;
 airspy_set_freq=(p_airspy_set_freq)dlsym(airspy_libhandle, 
                                                        "airspy_set_freq");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_freq == NULL)goto airspy_sym_error;
 airspy_set_lna_gain=(p_airspy_set_lna_gain)dlsym(airspy_libhandle, 
                                                    "airspy_set_lna_gain");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_lna_gain == NULL)goto airspy_sym_error;
 airspy_set_mixer_gain=(p_airspy_set_mixer_gain)dlsym(airspy_libhandle, 
                                                  "airspy_set_mixer_gain");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_mixer_gain == NULL)goto airspy_sym_error;
 airspy_set_vga_gain=(p_airspy_set_vga_gain)dlsym(airspy_libhandle, 
                                                   "airspy_set_vga_gain");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_set_vga_gain == NULL)goto airspy_sym_error;
 airspy_r820t_write=(p_airspy_r820t_write)dlsym(airspy_libhandle, 
                                                     "airspy_r820t_write");
-if(dlerror() != 0)goto airspy_sym_error;
+if(airspy_r820t_write == NULL)goto airspy_sym_error;
 airspy_library_flag=TRUE;
 return;
 airspy_sym_error:;

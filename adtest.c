@@ -154,11 +154,13 @@ int ad_maxval1,ad_minval1,ad_maxval2,ad_minval2;
 float ya,yb;
 int pixmode;
 char s[80];
+char* andor[2]={"AND","OR"};
+char* iq[2]={"I","Q"};
 clear_screen();
 ch1_y=fftw_tmp;
 ch2_y=&fftw_tmp[screen_width];
 ch1_yold=(int*)&fftw_tmp[2*screen_width];
-ch2_yold=(int*)&fftw_tmp[3*screen_width];;
+ch2_yold=(int*)&fftw_tmp[3*screen_width];
 local_workload_reset=workload_reset_flag;
 local_adtest_new=adtest_new;
 ad_maxval1=0;
@@ -177,6 +179,7 @@ adtest_scale=1;
 powtim_pause_flag=0;
 adtest_new=0;
 adtest_channel=0;
+adtest_iq_mode=0;
 powtim_displaymode=0;
 // Use lines 1 to LAST_LINE+2 for text messages.
 i=(LAST_LINE+2)*text_height;
@@ -202,8 +205,20 @@ lir_fillbox(0,adtest_yzer-adtest_ymax, screen_width-1,screen_height
                           -adtest_yzer+adtest_ymax-1, ADTEST_BACKGROUND_COLOR);
 if(ui.rx_rf_channels == 2)
   {
-  sprintf(s,"Channel = %d   'C' to toggle channel.",adtest_channel);
-  lir_text(3,3,s);
+  sprintf(s,"Mode is I %s Q 'M' to toggle mode.  ",andor[adtest_iq_mode]);
+  lir_text(3,2,s);
+  clear_lines(3,3);
+  if(adtest_iq_mode == 0)
+    {
+    sprintf(s,"Channel = %d   'C' to toggle channel.",adtest_channel);
+    lir_text(3,3,s);
+    }
+  else
+    {
+    sprintf(s,"Showing %s from both channels 'C' to toggle between I and Q.",
+                                iq[adtest_channel]);
+    lir_text(3,3,s);
+    }
   }
 if(powtim_pause_flag == 0)
   {
@@ -225,10 +240,12 @@ pixmode*=2;
 if( (ui.rx_input_mode&IQ_DATA) != 0)pixmode++;
 pixmode*=2;
 if( (ui.rx_input_mode&DWORD_INPUT) == 0)pixmode++;
+if(adtest_iq_mode == 1)pixmode +=16;
 //pixmode bit0  0=>32bit        1=>16bit.
 //pixmode bit1  0=>normal       1=>IQ data
 //pixmode bit2  0=>one          1=>two rx channels
 //pixmode bit3  channel 0 or 1 (if two channels)
+//pixmode bit4  (if two channels) 0=>show I and Q  1=>show I or Q for both channels
 settextcolor(15);
 sprintf(s,"pixmode=%d      scale=%3.3fdB (%f) ",
                              pixmode,20*log10(adtest_scale),adtest_scale);
@@ -309,7 +326,6 @@ while(thread_command_flag[THREAD_RX_ADTEST] == THRFLAG_ACTIVE)
         if(ad_maxval1<timf1_int[p0])ad_maxval1=timf1_int[p0];
         if(ad_minval1>timf1_int[p0])ad_minval1=timf1_int[p0];
         ya=(float)(timf1_int[p0])/65536;
-
         break;
 
         case 1:   // One channel 16 bit. Oscilloscope raw data 
@@ -368,6 +384,27 @@ while(thread_command_flag[THREAD_RX_ADTEST] == THRFLAG_ACTIVE)
         ya=timf1_short_int[p0+2];
         yb=timf1_short_int[p0+3];
         break;
+
+        case 22:   // Two channels IQ 32 bit. Oscilloscope raw data I.
+        if(ad_maxval1<timf1_int[p0  ])ad_maxval1=timf1_int[p0  ];
+        if(ad_minval1>timf1_int[p0  ])ad_minval1=timf1_int[p0  ];
+        if(ad_maxval2<timf1_int[p0+2])ad_maxval2=timf1_int[p0+2];
+        if(ad_minval2>timf1_int[p0+2])ad_minval2=timf1_int[p0+2];
+        ya=(float)(timf1_int[p0  ])/65536;
+        yb=(float)(timf1_int[p0+2])/65536;
+        break;
+
+
+        case 30:   // Two channels IQ 32 bit. Oscilloscope raw data Q
+        if(ad_maxval1<timf1_int[p0+1])ad_maxval1=timf1_int[p0+1];
+        if(ad_minval1>timf1_int[p0+1])ad_minval1=timf1_int[p0+1];
+        if(ad_maxval2<timf1_int[p0+3])ad_maxval2=timf1_int[p0+3];
+        if(ad_minval2>timf1_int[p0+3])ad_minval2=timf1_int[p0+3];
+        ya=(float)(timf1_int[p0+1])/65536;
+        yb=(float)(timf1_int[p0+3])/65536;
+        break;
+
+
 
         default:
         ya=0;

@@ -1,4 +1,4 @@
-// Copyright (c) <2012> <Leif Asbrink>
+
 //
 // Permission is hereby granted, free of charge, to any person 
 // obtaining a copy of this software and associated documentation 
@@ -76,22 +76,6 @@ cuFloatComplex *cuda_out[MAX_FFT1_THREADS];
 #endif
 
 extern void fix_prio(int n);
-
-
-void ttest(char c)
-{
-int i, j;
-float *z;
-float t1;
-fprintf( dmp,"\n%c",c);
-for(j=0; j<=fft1n_mask; j++)
-  {
-  z=&fft1_float[j*fft1_block];
-  t1=0;
-  for(i=fft1_size-500; i<fft1_size; i++)t1+=z[2*i]*z[2*i]+z[2*i+1]*z[2*i+1];
-  fprintf( dmp," %.1f",sqrt(t1)/20000000.);
-  }
-}
 
 void compute_timf2_powersum(void)
 {
@@ -291,7 +275,12 @@ else
   i=fft1_nx;
   if(n > max_fft1n-3)n=max_fft1n-3;
   if(n>fft1_nm)n=fft1_nm;
-  fft1_nx=(fft1_na-n+max_fft1n)&fft1n_mask;
+  fft1_nx=(fft1_na-n+max_fft1n+1)&fft1n_mask;
+  if(fft1_skip_flag !=0 && fft1_nx > max_fft1n/2)
+    {
+    fft1_nx=fft1_na;
+    }
+  if(fft1_nx > 25)fft1_skip_flag=0;  
   fft1_nc=fft1_nx;
   fft1_px=fft1_nx*fft1_block;
   }
@@ -300,13 +289,29 @@ timf3_px=0;
 timf3_py=0;
 timf3_ps=0;
 timf3_pn=0;
-if(fft1_correlation_flag == 2)
+timf3_pc=0;
+timf3_pd=0;
+if(fft1_correlation_flag >= 2)
   {
-  timf3_pc=(timf3_pc-mix2.new_points*ui.rx_rf_channels+timf3_size)&timf3_mask;
-  timf3_pd=timf3_pc;
+//  timf3_pc=(timf3_pc-mix2.new_points*ui.rx_rf_channels+timf3_size)&timf3_mask;
+//  timf3_pd=timf3_pc;
   baseb_pa=0;
+  baseb_pb=0;
+  baseb_pc=0;
+  baseb_pd=0;
+  baseb_pe=0;
+  baseb_pf=0;
+  baseb_ps=0;
+  baseb_pm=0;
+  baseb_pn=0;
+  baseb_py=0;
   baseb_px=0;
-  sg_inhibit_count=MAX_SG_INHIBIT_COUNT;
+// We want to discard all old data in buffers.
+// Une unit of inhibit_count discards one block of size mix2.new_points
+// in the fft3 buffer. The associated time is 
+// 2*mix2.new_points*ui.rx_rf_channels/timf3_sampling_speed
+  basebcorr_inhibit_count=1+rint(0.5+da_wait_time/(
+          (float)(2*mix2.new_points*ui.rx_rf_channels)/timf3_sampling_speed));
   }
 for(i=0;i<timf3_block;i++)timf3_float[i]=0;
 basebnet_pa=0;
@@ -814,7 +819,9 @@ if( (ui.network_flag & NET_RXIN_FFT1) == 0)
   while(!kill_all_flag && timf1p_px==timf1p_pb &&
              thread_command_flag[THREAD_WIDEBAND_DSP] == THRFLAG_ACTIVE)
     {
+    thread_status_flag[THREAD_WIDEBAND_DSP]=THRFLAG_SEM_WAIT;
     lir_await_event(EVENT_TIMF1);
+    if(kill_all_flag)goto wide_error_exit;;
     }
   k++;
   if(k<3)goto restart_2;
@@ -1025,6 +1032,33 @@ await_netevent:;
           numinput_flag=0;
           leftpressed=BUTTON_IDLE;
           rightpressed=BUTTON_IDLE;
+          switch(clear_graph_flag)
+            {
+            case 2*ALLAN_GRAPH:
+            make_allan_graph(TRUE,FALSE);
+            break;
+
+            case 2*ALLAN_GRAPH+1:
+            make_allan_graph(TRUE,TRUE);
+            break;
+
+            case 2*ALLANFREQ_GRAPH:
+            make_allanfreq_graph(TRUE,FALSE);
+            break;
+
+            case 2*ALLANFREQ_GRAPH+1:
+            make_allanfreq_graph(TRUE,TRUE);
+            break;
+
+            case 2*SIGANAL_GRAPH:
+            make_siganal_graph(TRUE,FALSE);
+            break;
+
+            case 2*SIGANAL_GRAPH+1:
+            make_siganal_graph(TRUE,TRUE);
+            break;
+
+            }
           }
         if(mouse_active_flag == 0)
           {
@@ -1152,7 +1186,6 @@ fft1_b_results:
         }
       fft1_na=fft1_pa/fft1_block;
       if(fft1_nm != fft1n_mask)fft1_nm++;
-//ttest('A');
       }
     }
   else
@@ -1503,6 +1536,7 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
       make_modepar_file(GRAPHTYPE_BG);
       mg_clear_flag=TRUE;
       }        
+    lir_sched_yield();
     k=mouse_task&GRAPH_MASK;
     if( k > MAX_WIDEBAND_GRAPHS)
       {
@@ -1557,6 +1591,14 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
           if(fft1_correlation_flag == 2)mouse_on_siganal_graph();
           break;
           
+          case ALLAN_GRAPH:
+          if(fft1_correlation_flag == 3)mouse_on_allan_graph();
+          break;
+          
+          case ALLANFREQ_GRAPH:
+          if(fft1_correlation_flag == 3)mouse_on_allanfreq_graph();
+          break;
+          
           default:
           mouse_on_users_graph();
           break;
@@ -1576,7 +1618,26 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
         mouse_active_flag=0;
         numinput_flag=0;
         leftpressed=BUTTON_IDLE;
+        switch(clear_graph_flag)
+          {
+          case 2*ALLAN_GRAPH:
+          make_allan_graph(TRUE,FALSE);
+          break;
+
+          case 2*ALLAN_GRAPH+1:
+          make_allan_graph(TRUE,TRUE);
+          break;
+
+          case 2*SIGANAL_GRAPH:
+          make_siganal_graph(TRUE,FALSE);
+          break;
+
+          case 2*SIGANAL_GRAPH+1:
+          make_siganal_graph(TRUE,TRUE);
+          break;
+          }
         }
+        
       if(mouse_active_flag == 0)
         {
         mouse_task=-1;
@@ -1746,7 +1807,7 @@ more_fft3:;
 #endif
   k=(fft3_pa-fft3_px+fft3_totsiz)&fft3_mask;
   k/=fft3_block;
-  if(audio_dump_flag == 0 && k >= 2)
+  if(audio_dump_flag == 0 && k >= 3)
     {
     fft3_overload_ticks++;
     if(fft3_overload_ticks > 5)

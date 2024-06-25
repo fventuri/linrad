@@ -21,9 +21,24 @@
 
 #ifdef __FreeBSD__
 #include <sys/types.h>
+#include <sys/ioccom.h>
+#define _IOC_READ IOC_OUT
+#define _IOC_WRITE IOC_IN
 typedef uint8_t u8;   
 typedef uint16_t u16; 
 typedef uint32_t u32; 
+typedef u_int32_t uint32_t;
+typedef int16_t __s16;
+#endif
+#ifdef __NetBSD__
+#include <sys/types.h>
+#include <sys/ioccom.h>
+#define _IOC_READ IOC_OUT
+#define _IOC_WRITE IOC_IN
+typedef uint8_t u8;   
+typedef uint16_t u16; 
+typedef uint32_t u32; 
+typedef u_int32_t uint32_t;
 typedef int16_t __s16;
 #endif
 
@@ -869,6 +884,10 @@ int hid_pidff_init(struct hid_device *hid);
 #include <sys/types.h>
 typedef uint8_t __u8; 
 typedef uint32_t __u32;
+#elif defined(__NetBSD__)
+#include <sys/types.h>
+typedef uint8_t __u8; 
+typedef uint32_t __u32;
 #else
 #include <linux/types.h>
 #endif
@@ -952,7 +971,7 @@ static inline void hidraw_disconnect(struct hid_device *hid) { }
 #define HIDIOCGFEATURE(len)    _IOC(_IOC_WRITE|_IOC_READ, 'H', 0x07, len)
 #endif
 
-#ifndef __FreeBSD__
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
 #include <linux/version.h>
 #endif
  
@@ -1031,57 +1050,57 @@ udev_libhandle=dlopen(UDEV_LIBNAME, RTLD_LAZY);
 if(!udev_libhandle)goto udev_load_error;
 info=1;
 udev_new=(p_udev_new)dlsym(udev_libhandle, "udev_new");
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_new == NULL)goto udev_sym_error;
 udev_ref=(p_udev_ref)dlsym(udev_libhandle, "udev_ref"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_ref == NULL)goto udev_sym_error;
 udev_unref=(p_udev_unref)dlsym(udev_libhandle, "udev_unref"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_unref == NULL)goto udev_sym_error;
 udev_list_entry_get_next=(p_udev_list_entry_get_next)
                           dlsym(udev_libhandle, "udev_list_entry_get_next");  
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_list_entry_get_next == NULL)goto udev_sym_error;
 udev_list_entry_get_by_name=(p_udev_list_entry_get_by_name)
                        dlsym(udev_libhandle, "udev_list_entry_get_by_name"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_list_entry_get_by_name == NULL)goto udev_sym_error;
 udev_list_entry_get_name=(p_udev_list_entry_get_name)
                           dlsym(udev_libhandle, "udev_list_entry_get_name"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_list_entry_get_name == NULL)goto udev_sym_error;
 udev_list_entry_get_value=(p_udev_list_entry_get_value)
                          dlsym(udev_libhandle, "udev_list_entry_get_value"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_list_entry_get_value == NULL)goto udev_sym_error;
 udev_device_unref=(p_udev_device_unref)
                                  dlsym(udev_libhandle, "udev_device_unref"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_device_unref == NULL)goto udev_sym_error;
 udev_device_new_from_syspath=(p_udev_device_new_from_syspath)
                       dlsym(udev_libhandle, "udev_device_new_from_syspath"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_device_new_from_syspath == NULL)goto udev_sym_error;
 udev_device_new_from_devnum=(p_udev_device_new_from_devnum)
                        dlsym(udev_libhandle, "udev_device_new_from_devnum"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_device_new_from_devnum == NULL)goto udev_sym_error;
 udev_device_get_parent_with_subsystem_devtype=
      (p_udev_device_get_parent_with_subsystem_devtype)
        dlsym(udev_libhandle, "udev_device_get_parent_with_subsystem_devtype"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_device_get_parent_with_subsystem_devtype == NULL)goto udev_sym_error;
 udev_device_get_devnode=(p_udev_device_get_devnode)
                            dlsym(udev_libhandle, "udev_device_get_devnode"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_device_get_devnode == NULL)goto udev_sym_error;
 udev_enumerate_unref=(p_udev_enumerate_unref)
                               dlsym(udev_libhandle, "udev_enumerate_unref"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_enumerate_unref == NULL)goto udev_sym_error;
 udev_device_get_sysattr_value=(p_udev_device_get_sysattr_value)
                      dlsym(udev_libhandle, "udev_device_get_sysattr_value"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_device_get_sysattr_value == NULL)goto udev_sym_error;
 udev_enumerate_new=(p_udev_enumerate_new)
                                 dlsym(udev_libhandle, "udev_enumerate_new"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_enumerate_new == NULL)goto udev_sym_error;
 udev_enumerate_add_match_subsystem=(p_udev_enumerate_add_match_subsystem)
                dlsym(udev_libhandle, "udev_enumerate_add_match_subsystem"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_enumerate_add_match_subsystem == NULL)goto udev_sym_error;
 udev_enumerate_scan_devices=(p_udev_enumerate_scan_devices)
                       dlsym(udev_libhandle, "udev_enumerate_scan_devices"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_enumerate_scan_devices == NULL)goto udev_sym_error;
 udev_enumerate_get_list_entry=(p_udev_enumerate_get_list_entry)
                     dlsym(udev_libhandle, "udev_enumerate_get_list_entry"); 
-if(dlerror() != 0)goto udev_sym_error;
+if(udev_enumerate_get_list_entry == NULL)goto udev_sym_error;
 udev_library_flag=TRUE;
 return;
 udev_sym_error:;
@@ -1337,7 +1356,7 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 			if (str) {
 				len = strlen(str);
 				cur_dev->path = calloc(len+1, sizeof(char));
-				strncpy(cur_dev->path, str, len+1);
+				strcpy(cur_dev->path, str);
 				cur_dev->path[len] = '\0';
 			}
 			else
@@ -1543,7 +1562,7 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 	bytes_read = read(dev->device_handle, data, length);
 	if (bytes_read < 0 && errno == EAGAIN)
 		bytes_read = 0;
-	
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
 	if (bytes_read >= 0 &&
 	    kernel_version < KERNEL_VERSION(2,6,34) &&
 	    dev->uses_numbered_reports) {
@@ -1551,7 +1570,7 @@ int HID_API_EXPORT hid_read_timeout(hid_device *dev, unsigned char *data, size_t
 		memmove(data, data+1, bytes_read);
 		bytes_read--;
 	}
-
+#endif
 	return bytes_read;
 }
 

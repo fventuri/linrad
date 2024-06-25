@@ -139,7 +139,7 @@ int soundcard_test_block_count[MAX_IOTEST];
 int soundcard_test_cmd_flag[MAX_IOTEST];
 
 
-
+int clear_graph_flag;
 int lir_errcod;
 
 
@@ -275,6 +275,7 @@ MEM_INF txmem[MAX_TXMEM_ARRAYS];
 MEM_INF blankermem[MAX_BLANKER_ARRAYS];
 MEM_INF radarmem[MAX_RADAR_ARRAYS];
 MEM_INF siganalmem[MAX_SIGANAL_ARRAYS];
+MEM_INF allanmem[MAX_ALLAN_ARRAYS];
 double flowcnt[MAX_FLOWCNT];
 double flowtime;
 double old_flowtime;
@@ -356,7 +357,7 @@ int genparm[MAX_GENPARM+2];
 int genparm_min[MAX_GENPARM]=
  {  0,0,0,0, 0,1, 0,0,0,0,H, 2, 0,0,0, 2, 0,0,  0, 0,0,0,1, 0,1,1, 2,  0,B5, 0,0, 0,0};
 int genparm_max[MAX_GENPARM]=
- {  E,9,B,Q, D,E,99,2,1,C,E,99,10,4,G,16, D,2,800,B5,1,E,H,12,A,9, D,  N, E, H,9,99,9};
+ {  E,9,B,Q, D,E,99,3,1,C,E,99,10,4,G,16, D,2,800,B5,1,E,H,12,A,9, P,  N, E, H,9,99,9};
 int genparm_default[MAX_RX_MODE][MAX_GENPARM]={
 // Weak signal CW
  { 2500,2,0,0, 4,D, 0,0,0,0,K, 6, 2,2,0, 8,20,1,150,A1,0,0,5, 6,1,2,20,200, P, 1,3, 0,0},
@@ -626,6 +627,31 @@ char *wg_floatpar_text[MAX_WG_FLOATPAR]={"yzero",          //1
                                          "wat. db zero",   //3
                                          "wat. db gain"};  //4
 
+char *vg_intpar_text[MAX_VG_INTPAR]={"ytop",               //1
+                                     "ybottom",            //2
+                                     "xleft",              //3
+                                     "xright",             //4
+                                     "points per decade",  //5
+                                     "Ymin neg pow10",     //6
+                                     "Ymax neg pow10",     //7
+                                     "Clear traces",       //8
+                                     "Mode",               //9 
+                                     "Type",               //10                    
+                                     "Check"};             //11
+                                      
+char *vg_floatpar_text[MAX_VG_FLOATPAR]={"Min tau",         //1
+                                         "Max tau"};        //2
+
+char *vgf_intpar_text[MAX_VGF_INTPAR]={"ytop",               //1
+                                       "ybottom",            //2
+                                       "xleft",              //3
+                                       "xright",             //4
+                                       "Check"};              //5
+
+char *vgf_floatpar_text[MAX_VGF_FLOATPAR]={"Freq gain",      //1
+                                           "Ampl gain",      //2
+                                           "Time step"};     //3  
+
 char *hg_intpar_text[MAX_HG_INTPAR]={"ytop",                //1
                                      "ybottom",             //2
                                      "xleft",               //3
@@ -723,11 +749,12 @@ char *sg_intpar_text[MAX_SG_INTPAR]={"ytop",            //1
                                      "ybottom",         //2
                                      "xleft",           //3
                                      "xright",          //4
-                                     "mode",            //5
-                                     "avg",             //6
-                                     "fft_n",           //7
-                                     "ymax",            //8
-                                     "check"};          //9
+                                     "xscale",          //5
+                                     "mode",            //6
+                                     "avg",             //7
+                                     "fft_n",           //8
+                                     "ymax",            //9
+                                     "check"};          //10
                                      
 char *sg_floatpar_text[MAX_SG_FLOATPAR]={"xgain",        //1
                                          "ygain"};       //2

@@ -1,3 +1,8 @@
+
+#ifdef __FreeBSD__
+#include <sys/types.h>
+#endif
+
   #ifndef u_int8_t
     #ifdef uint8_t
       #define u_int8_t uint8_t

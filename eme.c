@@ -923,10 +923,17 @@ void locator_to_latlong(void)
 {
 int flg;
 float lat, lon;
+#ifdef __NetBSD__
+tmp_locator[0]=toupper((int)(unsigned char)tmp_locator[0]);
+tmp_locator[1]=toupper((int)(unsigned char)tmp_locator[1]);
+tmp_locator[4]=tolower((int)(unsigned char)tmp_locator[4]);
+tmp_locator[5]=tolower((int)(unsigned char)tmp_locator[5]);
+#else
 tmp_locator[0]=toupper(tmp_locator[0]);
 tmp_locator[1]=toupper(tmp_locator[1]);
 tmp_locator[4]=tolower(tmp_locator[4]);
 tmp_locator[5]=tolower(tmp_locator[5]);
+#endif  
 flg=0;
 if(tmp_locator[0]<'A')
   {
@@ -1256,7 +1263,11 @@ emedta_a:;
   for(i=j; i<CALLSIGN_CHARS; i++)dx[dx_no].call[i]=' ';  
   sscanf(&s[166],"%f",&dx[dx_no].lat);
   i=167;
+#ifdef __NetBSD__
+  while(i<175 && toupper((int)(unsigned char)s[i]) != 'S' && toupper((int)(unsigned char)s[i]) != 'N')i++;
+#else
   while(i<175 && toupper(s[i]) != 'S' && toupper(s[i]) != 'N')i++;
+#endif  
   if(i==175)
     {
     dx[dx_no].lat=1000;
@@ -1264,13 +1275,23 @@ emedta_a:;
     }
   else
     {
+
+#ifdef __NetBSD__
+    if(toupper((int)(unsigned char)s[i]) == 'S')
+#else
     if(toupper(s[i]) == 'S')
+#endif  
       {
       dx[dx_no].lat=-dx[dx_no].lat;
       }
     i++;  
     sscanf(&s[i],"%f",&dx[dx_no].lon);
+
+#ifdef __NetBSD__
+    while(i<181 && toupper((int)(unsigned char)s[i]) != 'E' && toupper((int)(unsigned char)s[i]) != 'W')i++;
+#else
     while(i<181 && toupper(s[i]) != 'E' && toupper(s[i]) != 'W')i++;
+#endif  
     if(i==181)
       {
       dx[dx_no].lat=1000;
@@ -1278,7 +1299,11 @@ emedta_a:;
       }
     else
       {
+#ifdef __NetBSD__
+      if(toupper((int)(unsigned char)s[i]) == 'E')
+#else
       if(toupper(s[i]) == 'E')
+#endif  
         {
         dx[dx_no].lon=-dx[dx_no].lon;
         }
@@ -1327,8 +1352,13 @@ dirskd_a:;
       }
     }
   sscanf(s,"%f",&dx[dx_no].lat);
+#ifdef __NetBSD__
+  while(j > 0 && toupper((int)(unsigned char)s[j])!='S' && toupper((int)(unsigned char)s[j])!='N')j--;
+  if(toupper((int)(unsigned char)s[j]) == 'S')
+#else
   while(j > 0 && toupper(s[j])!='S' && toupper(s[j])!='N')j--;
   if(toupper(s[j]) == 'S')
+#endif  
     {
     dx[dx_no].lat=-dx[dx_no].lat;
     }
@@ -1346,8 +1376,13 @@ dirskd_a:;
     }
   if(k == 0)goto dirskd_x;
   sscanf(s,"%f",&dx[dx_no].lon);
+#ifdef __NetBSD__
+  while(j > 0 && toupper((int)(unsigned char)s[j])!='E' && toupper((int)(unsigned char)s[j])!='W')j--;
+  if(toupper((int)(unsigned char)s[j]) == 'E')
+#else
   while(j > 0 && toupper(s[j])!='E' && toupper(s[j])!='W')j--;
   if(toupper(s[j]) == 'E')
+#endif  
     {
     dx[dx_no].lon=-dx[dx_no].lon;
     }

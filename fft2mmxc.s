@@ -31,6 +31,7 @@ extern mailbox
 global fft2_mmx_c2
 global fft2_mmx_c1
 
+section .note.GNU-stack
 
 %define TMP1 ebp-4
 %define TMP2 ebp-8

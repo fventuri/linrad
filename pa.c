@@ -450,34 +450,34 @@ pa_libhandle=dlopen(PA_LIBNAME, RTLD_NOW);
 if(pa_libhandle == NULL)goto load_error; 
 info=1;
 Pa_GetErrorText=(p_Pa_GetErrorText)dlsym(pa_libhandle,"Pa_GetErrorText");
-if(dlerror() != 0)goto sym_error;
+if(Pa_GetErrorText == NULL)goto sym_error;
 Pa_Initialize=(p_Pa_Initialize)dlsym(pa_libhandle,"Pa_Initialize");
-if(dlerror() != 0)goto sym_error;
+if(Pa_Initialize == NULL)goto sym_error;
 Pa_Terminate=(p_Pa_Terminate)dlsym(pa_libhandle,"Pa_Terminate");
-if(dlerror() != 0)goto sym_error;
+if(Pa_Terminate == NULL)goto sym_error;
 Pa_GetHostApiInfo=(p_Pa_GetHostApiInfo)dlsym(pa_libhandle,"Pa_GetHostApiInfo");
-if(dlerror() != 0)goto sym_error;
+if(Pa_GetHostApiInfo == NULL)goto sym_error;
 Pa_GetDeviceCount=(p_Pa_GetDeviceCount)dlsym(pa_libhandle,"Pa_GetDeviceCount");
-if(dlerror() != 0)goto sym_error;
+if(Pa_GetDeviceCount == NULL)goto sym_error;
 Pa_GetDeviceInfo=(p_Pa_GetDeviceInfo)dlsym(pa_libhandle,"Pa_GetDeviceInfo");
-if(dlerror() != 0)goto sym_error;
+if(Pa_GetDeviceInfo == NULL)goto sym_error;
 Pa_IsFormatSupported=(p_Pa_IsFormatSupported)dlsym(pa_libhandle,"Pa_IsFormatSupported");
-if(dlerror() != 0)goto sym_error;
+if(Pa_IsFormatSupported == NULL)goto sym_error;
 Pa_OpenStream=(p_Pa_OpenStream)dlsym(pa_libhandle,"Pa_OpenStream");
-if(dlerror() != 0)goto sym_error;
+if(Pa_OpenStream == NULL)goto sym_error;
 Pa_CloseStream=(p_Pa_CloseStream)dlsym(pa_libhandle,"Pa_CloseStream");
-if(dlerror() != 0)goto sym_error;
+if(Pa_CloseStream == NULL)goto sym_error;
 Pa_IsStreamStopped=(p_Pa_IsStreamStopped)dlsym(pa_libhandle,"Pa_IsStreamStopped");
-if(dlerror() != 0)goto sym_error;
+if(Pa_IsStreamStopped == NULL)goto sym_error;
 Pa_AbortStream=(p_Pa_AbortStream)dlsym(pa_libhandle,"Pa_AbortStream");
-if(dlerror() != 0)goto sym_error;
+if(Pa_AbortStream == NULL)goto sym_error;
 Pa_StartStream=(p_Pa_StartStream)dlsym(pa_libhandle,"Pa_StartStream");
-if(dlerror() != 0)goto sym_error;
+if(Pa_StartStream == NULL)goto sym_error;
 Pa_GetStreamInfo=(p_Pa_GetStreamInfo)dlsym(pa_libhandle,"Pa_GetStreamInfo");
-if(dlerror() != 0)goto sym_error;
+if(Pa_GetStreamInfo == NULL)goto sym_error;
 PaAlsa_EnableRealtimeScheduling=(p_PaAlsa_EnableRealtimeScheduling)
                       dlsym(pa_libhandle, "PaAlsa_EnableRealtimeScheduling");
-if(dlerror() == 0)
+if(PaAlsa_EnableRealtimeScheduling != NULL)
   {
   pa_linux_realtime=1;
   }
@@ -487,7 +487,7 @@ else
   }
 PaJack_SetClientName=(p_PaJack_SetClientName)dlsym(pa_libhandle,
                                                     "PaJack_SetClientName");
-if(dlerror() == 0)
+if(PaJack_SetClientName != NULL)
   {
   pa_linux_jack=1;
   }
@@ -497,9 +497,9 @@ else
   }
 pa_version=1;
 Pa_GetVersionText=(p_Pa_GetVersionText)dlsym(pa_libhandle,"Pa_GetVersionText");
-if(dlerror() != 0)pa_version=0;
+if(Pa_GetVersionText == NULL)pa_version=0;
 Pa_GetVersion=(p_Pa_GetVersion)dlsym(pa_libhandle, "Pa_GetVersion");
-if(dlerror() != 0)pa_version=0;
+if(Pa_GetVersion == NULL)pa_version=0;
 return 0;
 sym_error:;
 dlclose(pa_libhandle);

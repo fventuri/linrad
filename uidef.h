@@ -59,6 +59,7 @@ extern int usb2lpt_flag;
 extern int si570_open_switch;
 extern int wavfile_squelch_flag;
 
+extern int clear_graph_flag;
 extern char rotor[4];
 extern int soundcard_test_block_count[MAX_IOTEST];
 extern int soundcard_test_cmd_flag[MAX_IOTEST];
@@ -282,6 +283,7 @@ extern MEM_INF txmem[MAX_TXMEM_ARRAYS];
 extern MEM_INF blankermem[MAX_BLANKER_ARRAYS];
 extern MEM_INF radarmem[MAX_RADAR_ARRAYS];
 extern MEM_INF siganalmem[MAX_SIGANAL_ARRAYS];
+extern MEM_INF allanmem[MAX_ALLAN_ARRAYS];
 
 extern int current_graph_minh;
 extern int current_graph_minw;
@@ -426,7 +428,7 @@ void tt0(void);
 void tt(char *s);
 float tt1(void);
 
-
+void lir_setcross(int x, int y, unsigned char color);
 void disksave_start(void);
 void disksave_stop(void);
 void wavsave_start_stop(int line);
@@ -497,7 +499,7 @@ void coherent_cw_detect(void);
 void clear_coherent(void);
 void clear_cg_traces(void);
 void init_memalloc(MEM_INF *mem, size_t max);
-void mem(int num, void *pointer, unsigned int size, int scratch_size);
+void mem(int num, void *pointer, size_t size, int scratch_size);
 size_t memalloc( size_t **handle, char *s);
 void memcheck(int n, MEM_INF *mm, size_t **handle);
 void ncw_rx(void);

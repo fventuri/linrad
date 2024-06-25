@@ -530,21 +530,21 @@ good_poldata:;
     nn=2*(mix2.size-1);
     k=fft3_size/2;
     p0=fft3_px+2*fft3_size;
-    if(fft1_correlation_flag == 2)
+    if(fft1_correlation_flag >= 2)
       {
       for(i=0; i<sizhalf; i++)
         {
-        d_carr[4*i  ]=d_fft3[p0+4*i  ]*bg_carrfilter[k+i];    
-        d_carr[4*i+1]=d_fft3[p0+4*i+1]*bg_carrfilter[k+i];   
-        d_carr[4*i+2]=d_fft3[p0+4*i+2]*bg_carrfilter[k+i];    
-        d_carr[4*i+3]=d_fft3[p0+4*i+3]*bg_carrfilter[k+i];   
+        d_carr[4*i  ]=d_fft3[p0+4*i  ]*d_basebcarr_fir[k+i];    
+        d_carr[4*i+1]=d_fft3[p0+4*i+1]*d_basebcarr_fir[k+i];   
+        d_carr[4*i+2]=d_fft3[p0+4*i+2]*d_basebcarr_fir[k+i];    
+        d_carr[4*i+3]=d_fft3[p0+4*i+3]*d_basebcarr_fir[k+i];   
         }
       for(i=0; i<sizhalf; i++)
         {
-        d_carr[2*nn-4*i  ]=d_fft3[p0-4*i-4]*bg_carrfilter[k-i-1];    
-        d_carr[2*nn-4*i+1]=d_fft3[p0-4*i-3]*bg_carrfilter[k-i-1];    
-        d_carr[2*nn-4*i+2]=d_fft3[p0-4*i-2]*bg_carrfilter[k-i-1];    
-        d_carr[2*nn-4*i+3]=d_fft3[p0-4*i-1]*bg_carrfilter[k-i-1];    
+        d_carr[2*nn-4*i  ]=d_fft3[p0-4*i-4]*d_basebcarr_fir[k-i-1];    
+        d_carr[2*nn-4*i+1]=d_fft3[p0-4*i-3]*d_basebcarr_fir[k-i-1];    
+        d_carr[2*nn-4*i+2]=d_fft3[p0-4*i-2]*d_basebcarr_fir[k-i-1];    
+        d_carr[2*nn-4*i+3]=d_fft3[p0-4*i-1]*d_basebcarr_fir[k-i-1];    
         }
       }
     else
@@ -718,7 +718,7 @@ if(fm_pilot_size == 0)
 // We already stored the selected part of the spectrum in carr.
 // take the back transform and construct the time function
 // of baseb_carrier
-    if(fft1_correlation_flag == 2)
+    if(fft1_correlation_flag >= 2)
       {
       d_dual_fftback(mix2.size, mix2.n, d_carr,d_mix2_table,mix2.permute,
                                                   yieldflag_ndsp_mix2);
@@ -888,13 +888,14 @@ if(fm_pilot_size == 0)
         {
         for(k=1; k<=(int)mix2.new_points; k++)
           {
-          pa=(timf3_py+4*(1-d_basebcarr_fir_pts+fft3_size-fft3_new_points+k*resamp)+timf3_size)&timf3_mask;
+          pa=(timf3_py+4*(1-d_basebcarr_fir_pts+fft3_size-
+                            fft3_new_points+k*resamp)+timf3_size)&timf3_mask;
           mm=pa;
           dt1=d_timf3_float[pa  ]*d_basebcarr_fir[d_basebcarr_fir_pts/2];
           dt2=d_timf3_float[pa+1]*d_basebcarr_fir[d_basebcarr_fir_pts/2];
           dt3=d_timf3_float[pa+2]*d_basebcarr_fir[d_basebcarr_fir_pts/2];
           dt4=d_timf3_float[pa+3]*d_basebcarr_fir[d_basebcarr_fir_pts/2];
-          if( (k&127) == 127)lir_sched_yield();
+          if( (k&1023) == 1023)lir_sched_yield();
           for(i=d_basebcarr_fir_pts/2-1; i>=0; i--)
             {
             pa=(pa+4)&timf3_mask;
@@ -908,10 +909,6 @@ if(fm_pilot_size == 0)
           d_baseb_carrier[4*p0+1]=dt2;
           d_baseb_carrier[4*p0+2]=dt3;
           d_baseb_carrier[4*p0+3]=dt4;
-          baseb_carrier[4*p0  ]=dt1;
-          baseb_carrier[4*p0+1]=dt2;
-          baseb_carrier[4*p0+2]=dt3;
-          baseb_carrier[4*p0+3]=dt4;
           p0=(p0+1)&baseband_mask;
           }
         }
@@ -919,7 +916,7 @@ if(fm_pilot_size == 0)
         {  
         for(k=1; k<=(int)mix2.new_points; k++)
           {
-          pa=(timf3_py+4*(1-d_basebcarr_fir_pts+fft3_size-fft3_new_points+k*resamp)+timf3_size)&timf3_mask;
+          pa=(timf3_py+4*(1-basebcarr_fir_pts+fft3_size-fft3_new_points+k*resamp)+timf3_size)&timf3_mask;
           mm=pa;
           t1=timf3_float[pa  ]*basebcarr_fir[basebcarr_fir_pts/2];
           t2=timf3_float[pa+1]*basebcarr_fir[basebcarr_fir_pts/2];
@@ -1047,74 +1044,16 @@ if(genparm[CW_DECODE_ENABLE] != 0)
 last_point=(baseb_pa+mix2.new_points)&baseband_mask;
 ampfac=cg_size*daout_gain/bg_amplimit;
 // *******************************************************************
+switch (fft1_correlation_flag)
+  {
+  case 0:
+  case 1:
 // Calculate the amplitude of the signal and the amplitude of the carrier.
 // Store sines and cosines of the carrier phase.
 // Make an I/Q demodulator using the carrier phase.
 // Use this "zero level" coherent detect data to make the upper coherent
 // graph that will help the user select coherence ratio for unstable
 // signals.
-
-
-if(fft1_correlation_flag == 2)
-  {
-  ia=baseb_pa;
-  while(ia != last_point)
-    {
-    baseb_carrier[4*ia  ]=d_baseb_carrier[4*ia  ]; 
-    baseb_carrier[4*ia+1]=d_baseb_carrier[4*ia+1]; 
-    baseb_carrier[4*ia+2]=d_baseb_carrier[4*ia+2]; 
-    baseb_carrier[4*ia+3]=d_baseb_carrier[4*ia+3]; 
-    ia=(ia+1)&baseband_mask;
-    }
-  ia=baseb_pa;
-  p0=timf3_pc;
-  while(ia != last_point)
-    {
-    dt1=sqrt(d_baseb_carrier[4*ia  ]*d_baseb_carrier[4*ia  ]+
-             d_baseb_carrier[4*ia+1]*d_baseb_carrier[4*ia+1])/P2SCALE;
-    dt2=sqrt(d_baseb_carrier[4*ia+2]*d_baseb_carrier[4*ia+2]+
-             d_baseb_carrier[4*ia+3]*d_baseb_carrier[4*ia+3])/P2SCALE;
-    if(dt1 < 1.E-20)
-      {
-      dt1=1.E-20;
-      }
-    if(dt2 < 1.E-20)
-      {
-      dt2=1.E-20;
-      }
-    d_baseb[4*ia  ]=(d_baseb_carrier[4*ia  ]*d_timf3_float[p0  ]+
-                     d_baseb_carrier[4*ia+1]*d_timf3_float[p0+1])/dt1;
-    d_baseb[4*ia+1]=(d_baseb_carrier[4*ia  ]*d_timf3_float[p0+1]-
-                     d_baseb_carrier[4*ia+1]*d_timf3_float[p0  ])/dt1;
-    d_baseb[4*ia+2]=(d_baseb_carrier[4*ia+2]*d_timf3_float[p0+2]+
-                     d_baseb_carrier[4*ia+3]*d_timf3_float[p0+3])/dt2;
-    d_baseb[4*ia+3]=(d_baseb_carrier[4*ia+2]*d_timf3_float[p0+3]-
-                     d_baseb_carrier[4*ia+3]*d_timf3_float[p0+2])/dt2;
-    p0=(p0+4)&timf3_mask;
-    ia=(ia+1)&baseband_mask;
-    }
-  if(sg_inhibit_count > 0)sg_inhibit_count--;
-  if(sg_inhibit_count == 0)
-    {
-    if(sg_enable_flag==FALSE)
-      {
-      k=4*timf3_block;
-      if(k>timf3_size/2)k=timf3_size/2;
-      if( ((timf3_pc-timf3_pd+timf3_size)&timf3_mask)>k)
-        {
-        sg_enable_flag=TRUE;
-        baseb_px=baseb_pa;
-        }
-      }  
-    }
-  else
-    {
-    sg_enable_flag=FALSE;
-    }
-  timf3_pc=(timf3_pc+2*mix2.new_points*ui.rx_rf_channels)&timf3_mask;
-  }
-else
-  {
   if(fm_pilot_size == 0)
     {    
     t2=0;
@@ -1274,6 +1213,76 @@ else
   basblock_maxpower[basblock_pa]=t3;
   basblock_avgpower[basblock_pa]=t4/sizhalf;
   basblock_pa=(basblock_pa+1)&basblock_mask;
+  break;  
+  
+  case 2:
+  ia=baseb_pa;
+  p0=timf3_pc;
+  while(ia != last_point)
+    {
+    dt1=sqrt(d_baseb_carrier[4*ia  ]*d_baseb_carrier[4*ia  ]+
+             d_baseb_carrier[4*ia+1]*d_baseb_carrier[4*ia+1])/P2SCALE;
+    dt2=sqrt(d_baseb_carrier[4*ia+2]*d_baseb_carrier[4*ia+2]+
+             d_baseb_carrier[4*ia+3]*d_baseb_carrier[4*ia+3])/P2SCALE;
+    if(dt1 < 1.E-20)
+      {
+      dt1=1.E-20;
+      }
+    if(dt2 < 1.E-20)
+      {
+      dt2=1.E-20;
+      }
+    d_baseb[4*ia  ]=(d_baseb_carrier[4*ia  ]*d_timf3_float[p0  ]+
+                     d_baseb_carrier[4*ia+1]*d_timf3_float[p0+1])/dt1;
+    d_baseb[4*ia+1]=(d_baseb_carrier[4*ia  ]*d_timf3_float[p0+1]-
+                     d_baseb_carrier[4*ia+1]*d_timf3_float[p0  ])/dt1;
+    d_baseb[4*ia+2]=(d_baseb_carrier[4*ia+2]*d_timf3_float[p0+2]+
+                     d_baseb_carrier[4*ia+3]*d_timf3_float[p0+3])/dt2;
+    d_baseb[4*ia+3]=(d_baseb_carrier[4*ia+2]*d_timf3_float[p0+3]-
+                     d_baseb_carrier[4*ia+3]*d_timf3_float[p0+2])/dt2;
+    p0=(p0+4)&timf3_mask;
+    ia=(ia+1)&baseband_mask;
+    }
+  if(basebcorr_inhibit_count > 0)basebcorr_inhibit_count--;
+  if(basebcorr_inhibit_count == 0)
+    {
+    if(basebcorr_enable_flag==FALSE)
+      {
+      k=4*timf3_block;
+      if(k>timf3_size/2)k=timf3_size/2;
+      if( ((timf3_pc-timf3_pd+timf3_size)&timf3_mask)>0)
+        {
+        basebcorr_enable_flag=TRUE;
+        baseb_px=baseb_pa;
+        }
+      }  
+    }
+  else
+    {
+    basebcorr_enable_flag=FALSE;
+    }
+  timf3_pc=(timf3_pc+2*mix2.new_points*ui.rx_rf_channels)&timf3_mask;
+  break;
+  
+  case 3:
+  if(basebcorr_inhibit_count > 0)basebcorr_inhibit_count--;
+  if(basebcorr_inhibit_count == 0)
+    {
+    if(basebcorr_enable_flag==FALSE)
+      {
+      basebcorr_enable_flag=TRUE;
+      }  
+    }
+  else
+    {
+    basebcorr_enable_flag=FALSE;
+    baseb_px=baseb_pa;
+    baseb_pb=baseb_pa;
+    last_point=baseb_pa;
+    }
+  timf3_pc=(timf3_pc+2*mix2.new_points*ui.rx_rf_channels)&timf3_mask;
+  break;
+
   }
 // **********************************************************
 // If morse decoding is enabled, compute the fourier transform
@@ -1334,7 +1343,7 @@ if(genparm[CW_DECODE_ENABLE] != 0)
     }
   }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-if(fft1_correlation_flag != 2)
+if(fft1_correlation_flag <= 1)
   {
   cg_update_count++;
   if(cg_update_count > cg_update_interval)
@@ -1905,19 +1914,7 @@ else
     break;
        
     case 3:
-    if(fft1_correlation_flag == 2)
-      {
-// Baseb contains coh-detected amplitude and phase modulation.
-// Four arrays of size mix2.new_points.
-// Wait until we have fft3_size 
-//last_point=(baseb_pa+mix2.new_points)&baseband_mask;
-      if(sg_enable_flag == TRUE)
-        {
-        while(((baseb_pa - baseb_px + baseband_size)&baseband_mask) >
-                                                   sg_siz)do_siganal();
-        }
-      }
-    else
+    if(fft1_correlation_flag <= 1)
 // Use the carrier phase to make I/Q demodulator.
 // We already did it in the coherent function so just use the data.
 // Send I to both ears, but only if greater than zero. Skip Q.
@@ -1961,6 +1958,40 @@ else
             p0=(p0+1)&baseband_mask;
             }
           }
+        }
+      }
+    if(fft1_correlation_flag == 2)
+      {
+// Baseb contains coh-detected amplitude and phase modulation.
+// Four arrays of size mix2.new_points.
+// Wait until we have fft3_size 
+//last_point=(baseb_pa+mix2.new_points)&baseband_mask;
+      if(correlation_reset_flag != fft1corr_reset_flag)
+        {
+        make_siganal_graph(TRUE,TRUE);
+        correlation_reset_flag=fft1corr_reset_flag; 
+        break;
+        }
+      if(basebcorr_enable_flag == TRUE)
+        {
+        while(((baseb_pa - baseb_px + baseband_size)&baseband_mask) >
+                                                   sg_siz)do_siganal();
+        }
+      }
+    if(fft1_correlation_flag == 3)
+      {
+// d_baseb_carrier contains a signal with frequency near zero.
+      if(correlation_reset_flag != fft1corr_reset_flag)
+        {
+        make_allan_graph(TRUE,TRUE);
+        make_allanfreq_graph(TRUE,TRUE);
+        correlation_reset_flag=fft1corr_reset_flag; 
+        break;
+        }
+      if(basebcorr_enable_flag == TRUE)
+        {
+        while(((baseb_pa - baseb_px + baseband_size)&baseband_mask) >
+                                                   vg_siz)do_allan();
         }
       }
     break;

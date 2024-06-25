@@ -369,47 +369,54 @@ airspyhf_libhandle=dlopen(AIRSPYHF_LIBNAME, RTLD_LAZY);
 if(!airspyhf_libhandle)goto airspyhf_load_error;
 info=1;
 airspyhf_open=(p_airspyhf_open)dlsym(airspyhf_libhandle, "airspyhf_open");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_open == NULL)goto airspyhf_sym_error;
 airspyhf_lib_version=(p_airspyhf_lib_version)
                          dlsym(airspyhf_libhandle,"airspyhf_lib_version");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_lib_version == NULL)goto airspyhf_sym_error;
 airspyhf_version_string_read=(p_airspyhf_version_string_read)
                       dlsym(airspyhf_libhandle, "airspyhf_version_string_read");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_version_string_read == NULL)goto airspyhf_sym_error;
 airspyhf_board_partid_serialno_read=(p_airspyhf_board_partid_serialno_read) 
                dlsym(airspyhf_libhandle, "airspyhf_board_partid_serialno_read");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_board_partid_serialno_read == NULL)goto airspyhf_sym_error;
 airspyhf_close=(p_airspyhf_close)dlsym(airspyhf_libhandle, "airspyhf_close");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_close == NULL)goto airspyhf_sym_error;
 airspyhf_get_samplerates=(p_airspyhf_get_samplerates)dlsym(airspyhf_libhandle, 
                                                    "airspyhf_get_samplerates");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_get_samplerates == NULL)goto airspyhf_sym_error;
 airspyhf_set_samplerate=(p_airspyhf_set_samplerate)dlsym(airspyhf_libhandle, 
                                                    "airspyhf_set_samplerate");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_set_samplerate == NULL)goto airspyhf_sym_error;
 airspyhf_start=(p_airspyhf_start)dlsym(airspyhf_libhandle, 
                                                      "airspyhf_start");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_start == NULL)goto airspyhf_sym_error;
 airspyhf_stop=(p_airspyhf_stop)dlsym(airspyhf_libhandle, 
                                                      "airspyhf_stop");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_stop == NULL)goto airspyhf_sym_error;
 airspyhf_set_freq=(p_airspyhf_set_freq)dlsym(airspyhf_libhandle, 
                                                        "airspyhf_set_freq");
-if(dlerror() != 0)goto airspyhf_sym_error;
+if(airspyhf_set_freq == NULL)goto airspyhf_sym_error;
 airspyhf_set_optimal_iq_correction_point=(p_airspyhf_set_optimal_iq_correction_point)
                   dlsym(airspyhf_libhandle,"airspyhf_set_optimal_iq_correction_point");
+if(airspyhf_set_optimal_iq_correction_point == NULL)goto airspyhf_sym_error;
 airspyhf_iq_balancer_configure=(p_airspyhf_iq_balancer_configure)
               dlsym(airspyhf_libhandle,"airspyhf_iq_balancer_configure"); 
+if(airspyhf_iq_balancer_configure == NULL)goto airspyhf_sym_error;
 airspyhf_set_lib_dsp=(p_airspyhf_set_lib_dsp)dlsym(airspyhf_libhandle,
                                                     "airspyhf_set_lib_dsp");
+if(airspyhf_set_lib_dsp == NULL)goto airspyhf_sym_error;
 airspyhf_set_hf_agc=(p_airspyhf_set_hf_agc)dlsym(airspyhf_libhandle,
                                                        "airspyhf_set_hf_agc");
+if(airspyhf_set_hf_agc == NULL)goto airspyhf_sym_error;
 airspyhf_set_hf_agc_threshold=(p_airspyhf_set_hf_agc_threshold)
             dlsym(airspyhf_libhandle,"airspyhf_set_hf_agc_threshold");
+if(airspyhf_set_hf_agc_threshold == NULL)goto airspyhf_sym_error;
 airspyhf_set_hf_att=(p_airspyhf_set_hf_att)dlsym(airspyhf_libhandle,
                                                        "airspyhf_set_hf_att");
+if(airspyhf_set_hf_att == NULL)goto airspyhf_sym_error;
 airspyhf_set_hf_lna=(p_airspyhf_set_hf_lna)dlsym(airspyhf_libhandle,
                                                          "airspyhf_set_hf_lna");
+if(airspyhf_set_hf_lna == NULL)goto airspyhf_sym_error;
 airspyhf_library_flag=TRUE;
 return;
 airspyhf_sym_error:;

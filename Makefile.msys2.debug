@@ -144,6 +144,8 @@ AIRSPY=Makefile airspy.c timing_setup.c input_speed.c globdef.h uidef.h screende
 AIRSPYHF=Makefile airspyhf.c timing_setup.c input_speed.c globdef.h uidef.h \
 	screendef.h usbdefs.h hwaredef.h options.h bufbars.h wscreen.h \
 	lscreen.h sdrdef.h seldef.h osnum.h fft1def.h
+ALLAN_GRAPH=Makefile allan_graph.c globdef.h osnum.h uidef.h screendef.h \
+	thrdef.h vernr.h seldef.h sigdef.h fft3def.h
 BASEB_GRAPH=Makefile baseb_graph.c globdef.h uidef.h fft1def.h screendef.h vernr.h \
 	sigdef.h seldef.h fft2def.h fft3def.h graphcal.h osnum.h \
 	thrdef.h options.h bufbars.h wscreen.h lscreen.h
@@ -451,7 +453,7 @@ rxout.oz sdrip.oz wsdr.oz si570.oz soft66.oz usb2lpt.oz excalibur.oz \
 extio.oz wse.oz rtl2832.oz elektor.oz hidwin.oz fcdpp.oz pcie9842.oz \
 bladerf.oz mirics.oz sdrplay2.oz sdrplay3.oz openhpsdr.oz httpd.oz \
 html_server.oz afedri.oz affinity.oz loadusb.oz soundcard.oz cloudiq.oz \
-airspyhf.oz siganal_graph.oz
+airspyhf.oz siganal_graph.oz allan_graph.oz
 
 	$(WINWCC) -mwindows -mconsole -o linrad.exe \
 wmain.oz keyboard_var.oz uivar.oz fft1var.oz fft3var.oz txvar.oz ui.oz \
@@ -471,7 +473,7 @@ si570.oz soft66.oz excalibur.oz usb2lpt.oz -lws2_32 -lgdi32 -lwinmm \
 extio.oz rtl2832.oz elektor.oz hidwin.oz fcdpp.oz pcie9842.oz loadusb.oz \
 bladerf.oz mirics.oz sdrplay2.oz sdrplay3.oz openhpsdr.oz httpd.oz \
 html_server.oz afedri.oz affinity.oz soundcard.oz cloudiq.oz airspyhf.oz \
-siganal_graph.oz \
+siganal_graph.oz allan_graph.oz \
 -lole32 -lsetupapi -lcomdlg32
 
 
@@ -530,6 +532,8 @@ airspy.oz: $(AIRSPY)
 	$(WINWCC) airspy.c $(CFW) airspy.oz
 airspyhf.oz: $(AIRSPYHF)
 	$(WINWCC) airspyhf.c $(CFW) airspyhf.oz
+allan_graph.oz: Makefile $(ALLAN_GRAPH)
+	$(WINWCC) allan_graph.c $(CFW) allan_graph.oz
 baseb_graph.oz: Makefile $(BASEB_GRAPH)
 	$(WINWCC) baseb_graph.c $(CFW) baseb_graph.oz
 buf.oz: Makefile $(BUF)
@@ -744,7 +748,7 @@ rxout.ox sdrip.ox wsdr.ox si570.ox soft66.ox usb2lpt.ox excalibur.ox \
 extio.ox wse.ox rtl2832.ox elektor.ox hidwin.ox fcdpp.ox pcie9842.ox \
 bladerf.ox mirics.ox sdrplay2.ox sdrplay3.ox openhpsdr.ox httpd.ox \
 html_server.ox afedri.ox affinity.ox loadusb.ox soundcard.ox cloudiq.ox \
-airspyhf.ox siganal_graph.ox
+airspyhf.ox siganal_graph.ox allan_graph.ox
 
 	$(WINWCC64) -mwindows -mconsole -o linrad64.exe \
 wmain.ox keyboard_var.ox uivar.ox fft1var.ox fft3var.ox txvar.ox ui.ox \
@@ -764,7 +768,7 @@ si570.ox soft66.ox excalibur.ox usb2lpt.ox -lws2_32 -lgdi32 -lwinmm \
 extio.ox rtl2832.ox elektor.ox hidwin.ox fcdpp.ox pcie9842.ox loadusb.ox \
 bladerf.ox mirics.ox sdrplay2.ox sdrplay3.ox openhpsdr.ox httpd.ox \
 html_server.ox afedri.ox affinity.ox soundcard.ox cloudiq.ox airspyhf.ox \
-siganal_graph.ox -lole32 -lsetupapi -lcomdlg32
+siganal_graph.ox allan_graph.ox -lole32 -lsetupapi -lcomdlg32
 
 
 
@@ -822,6 +826,8 @@ airspy.ox: $(AIRSPY)
 	$(WINWCC64) airspy.c $(CFW64) airspy.ox
 airspyhf.ox: $(AIRSPYHF)
 	$(WINWCC64) airspyhf.c $(CFW64) airspyhf.ox
+allan_graph.ox: Makefile $(ALLAN_GRAPH)
+	$(WINWCC64) allan_graph.c $(CFW64) allan_graph.ox
 baseb_graph.ox: Makefile $(BASEB_GRAPH)
 	$(WINWCC64) baseb_graph.c $(CFW64) baseb_graph.ox
 buf.ox: Makefile $(BUF)
@@ -1059,7 +1065,7 @@ rxout.ow sdrip.ow wsdr.ow si570.ow soft66.ow usb2lpt.ow excalibur.ow \
 wse.ow extio.ow rtl2832.ow elektor.ow fcdpp.ow hidwin.ow pcie9842.ow \
 bladerf.ow mirics.ow sdrplay2.ow sdrplay3.ow openhpsdr.ow httpd.ow \
 html_server.ow afedri.ow affinity.ow loadusb.ow soundcard.ow cloudiq.ow \
-airspyhf.ow siganal_graph.ow
+airspyhf.ow siganal_graph.ow allan_graph.ow
 
 	$(WCC) \
 -o linrad.exe \
@@ -1079,7 +1085,7 @@ tx.ow tx_graph.ow txssb.ow pavar.ow pa.ow rxout.ow sdrip.ow wsdr.ow \
 wse.ow si570.ow soft66.ow usb2lpt.ow excalibur.ow extio.ow rtl2832.ow \
 elektor.ow fcdpp.ow hidwin.ow pcie9842.ow bladerf.ow mirics.ow sdrplay2.ow \
 sdrplay3.ow soundcard.ow openhpsdr.ow httpd.ow html_server.ow afedri.ow \
-affinity.ow loadusb.ow cloudiq.ow siganal_graph.ow \
+affinity.ow loadusb.ow cloudiq.ow siganal_graph.ow allan_graph.ow \
 -lws2_32 -lgdi32 -lwinmm airspyhf.ow -lsetupapi -lole32 -lcomdlg32 
 endif
 
@@ -1137,6 +1143,8 @@ airspy.ow: $(AIRSPY)
 	$(WCC) airspy.c $(CFW) airspy.ow
 airspyhf.ow: $(AIRSPYHF)
 	$(WCC) airspyhf.c $(CFW) airspyhf.ow
+allan_graph.ow: $(ALLAN_GRAPH)
+	$(WCC) allan_graph.c $(CFW) allan_graph.ow
 baseb_graph.ow: $(BASEB_GRAPH)
 	$(WCC) baseb_graph.c $(CFW) baseb_graph.ow
 buf.ow: $(BUF)
@@ -1352,7 +1360,7 @@ rxout.oy sdrip.oy wsdr.oy si570.oy soft66.oy usb2lpt.oy excalibur.oy \
 wse.oy extio.oy rtl2832.oy elektor.oy fcdpp.oy hidwin.oy pcie9842.oy \
 bladerf.oy mirics.oy sdrplay2.oy sdrplay3.oy openhpsdr.oy httpd.oy \
 html_server.oy afedri.oy affinity.oy loadusb.oy soundcard.oy cloudiq.oy \
-airspyhf.oy siganal_graph.oy
+airspyhf.oy siganal_graph.oy allan_graph.oy
 
 	$(WCC64) \
 -o linrad64.exe \
@@ -1372,7 +1380,7 @@ tx.oy tx_graph.oy txssb.oy pavar.oy pa.oy rxout.oy sdrip.oy wsdr.oy \
 wse.oy si570.oy soft66.oy usb2lpt.oy excalibur.oy extio.oy rtl2832.oy \
 elektor.oy fcdpp.oy hidwin.oy pcie9842.oy bladerf.oy mirics.oy sdrplay2.oy \
 sdrplay3.oy soundcard.oy openhpsdr.oy httpd.oy html_server.oy afedri.oy \
-affinity.oy loadusb.oy cloudiq.oy airspyhf.oy siganal_graph.oy \
+affinity.oy loadusb.oy cloudiq.oy airspyhf.oy siganal_graph.oy allan_graph.oy \
 -lws2_32 -lgdi32 -lwinmm -lsetupapi -lole32 -lcomdlg32 
 
 split.oy: Makefile split64.s
@@ -1427,6 +1435,8 @@ airspy.oy: $(AIRSPY)
 	$(WCC64) airspy.c $(CFW64) airspy.oy
 airspyhf.oy: $(AIRSPYHF)
 	$(WCC64) airspyhf.c $(CFW64) airspyhf.oy
+allan_graph.oy: $(ALLAN_GRAPH)
+	$(WCC64) allan_graph.c $(CFW64) allan_graph.oy
 baseb_graph.oy: $(BASEB_GRAPH)
 	$(WCC64) baseb_graph.c $(CFW64) baseb_graph.oy
 buf.oy: $(BUF)
@@ -1717,7 +1727,7 @@ meter_graph.ol fonts.ol screensub.ol tx_graph.ol txssb.ol wxsys.ol rxout.ol \
 rxin.ol sdrip.ol perseus.ol lsdr.ol wse.ol si570.ol soft66.ol usb2lpt.ol \
 excalibur.ol extio.ol rtl2832.ol elektor.ol fcdpp.ol hid.ol pcie9842.ol \
 bladerf.ol mirics.ol sdrplay2.ol sdrplay3.ol openhpsdr.ol oclprogs.ol \
-loadalsa.ol cloudiq.ol lfxsys.ol airspyhf.ol siganal_graph.ol
+loadalsa.ol cloudiq.ol lfxsys.ol airspyhf.ol siganal_graph.ol allan_graph.ol
 
 	${CC} -m32 -o xlinrad @ST@ \
 xmain.ol xvar.ol ui.ol lsetad.ol fft1.ol buf.ol lvar.ol radar.ol \
@@ -1739,6 +1749,7 @@ txvar.ol screensub.ol fft3.ol wxsys.ol meter_graph.ol wse.ol si570.ol \
 extio.ol soft66.ol excalibur.ol usb2lpt.ol rtl2832.ol elektor.ol \
 fcdpp.ol hid.ol pcie9842.ol bladerf.ol mirics.ol sdrplay2.ol sdrplay3.ol \
 openhpsdr.ol oclprogs.ol loadalsa.ol lfxsys.ol airspyhf.ol siganal_graph.ol \
+allan_graph.ol \
 @SVGA32_LD@ @SVGAGL32_LD@ \
 @LIBOPENCL32_LD@ @CLFFTPATH32@ \
 @LIBXEXT32_LD@ \
@@ -1832,6 +1843,8 @@ airspy.ol: $(AIRSPY)
 	$(LCC) airspy.c -DAIRSPY_LIBNAME=\"@LIBAIRSPY32_LD@\" $(CFL) airspy.ol
 airspyhf.ol: $(AIRSPYHF)
 	$(LCC) airspyhf.c -DAIRSPYHF_LIBNAME=\"@LIBAIRSPYHF32_LD@\" $(CFL) airspyhf.ol
+allan_graph.ol: $(ALLAN_GRAPH)
+	$(LCC) allan_graph.c $(CFL) allan_graph.ol
 baseb_graph.ol: $(BASEB_GRAPH)
 	$(LCC) baseb_graph.c $(CFL) baseb_graph.ol
 bladerf.ol: $(BLADERF)
@@ -2069,7 +2082,7 @@ rxin.om perseus.om rxout.om sdrip.om lsdr.om wse.om si570.om soft66.om \
 usb2lpt.om excalibur.om extio.om rtl2832.om elektor.om fcdpp.om hid.om \
 pcie9842.om bladerf.om mirics.om sdrplay2.om sdrplay3.om openhpsdr.om \
 soundcard.om oclprogs.om loadalsa.om cloudiq.om lfxsys.om loadusb.om \
-airspyhf.om siganal_graph.om
+airspyhf.om siganal_graph.om allan_graph.om
 
 	${CC} -m64 -o xlinrad64 @ST@ \
 xmain.om xvar.om ui.om lsetad.om fft1.om buf.om lvar.om radar.om \
@@ -2091,7 +2104,7 @@ txvar.om screensub.om fft3.om wxsys.om meter_graph.om wse.om si570.om \
 soft66.om perseus.om usb2lpt.om excalibur.om extio.om rtl2832.om \
 elektor.om fcdpp.om hid.om pcie9842.om bladerf.om mirics.om sdrplay2.om \
 sdrplay3.om openhpsdr.om oclprogs.om loadalsa.om cloudiq.om lfxsys.om \
-airspyhf.om siganal_graph.om \
+airspyhf.om siganal_graph.om allan_graph.om \
 @LIBOPENCL64_LD@ @CLFFTPATH64@ \
 @SVGA64_LD@ \
 @SVGAGL64_LD@ \
@@ -2177,6 +2190,8 @@ airspy.om: $(AIRSPY)
 	$(LCC) airspy.c -DAIRSPY_LIBNAME=\"@LIBAIRSPY64_LD@\" $(CFL64) airspy.om
 airspyhf.om: $(AIRSPYHF)
 	$(LCC) airspyhf.c -DAIRSPYHF_LIBNAME=\"@LIBAIRSPYHF64_LD@\" $(CFL64) airspyhf.om
+allan_graph.om: $(ALLAN_GRAPH)
+	$(LCC) allan_graph.c $(CFL64) allan_graph.om
 baseb_graph.om: $(BASEB_GRAPH)
 	$(LCC) baseb_graph.c $(CFL64) baseb_graph.om
 bladerf.om: $(BLADERF)

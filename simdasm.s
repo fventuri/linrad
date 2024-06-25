@@ -42,6 +42,8 @@ global simd1_32_nowin_real
 global simd1_16_win_real
 global simd1_16_nowin_real
 
+section .note.GNU-stack
+
 section .bss
 %define NEG ebp-16
 

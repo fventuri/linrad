@@ -993,13 +993,12 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
     if(ib < mm*fft1_first_point-kk)ib=mm*fft1_first_point-kk;
     for(i=n; i<ib; i++)fftn_tmp[i]=0;
     for(i=ib; i<n2; i++)fftn_tmp[i]=x[i];
-    if(fft1_correlation_flag == 2)
+    if(fft1_correlation_flag >= 2)
       {
       if(mix1_selfreq[ss] != old_mix1_selfreq)
         {
         old_mix1_selfreq=mix1_selfreq[ss];
         skip_timf3=TRUE;
-        sg_inhibit_count=MAX_SG_INHIBIT_COUNT;
         }
       }  
     do_mix1(ss,0);
@@ -1017,7 +1016,6 @@ if(skip_timf3)
 fft1_nx=(fft1_nx+1)&fft1n_mask;  
 fft1_px=(fft1_px+fft1_block)&fft1_mask;  
 }
-
 
 
 void fft1_mix1_afc(void)

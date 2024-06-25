@@ -58,6 +58,8 @@ mem2 resd 1
 mem3 resd 1
 mem5 resd 1
 
+section .note.GNU-stack
+
 
 %define INCC ebp-4
 %define SIZ2 ebp-8

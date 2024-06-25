@@ -48,6 +48,12 @@
 #define SDRPLAY_API_VERSION   (float)(3.10)
 #elif SDRPLAY3PAR_VERNR == 311
 #define SDRPLAY_API_VERSION   (float)(3.11)
+#elif SDRPLAY3PAR_VERNR == 312
+#define SDRPLAY_API_VERSION   (float)(3.12)
+#elif SDRPLAY3PAR_VERNR == 314
+#define SDRPLAY_API_VERSION   (float)(3.14)
+#elif SDRPLAY3PAR_VERNR == 315
+#define SDRPLAY_API_VERSION   (float)(3.15)
 #endif
 
 // API Constants
@@ -62,6 +68,12 @@
 #define SDRPLAY3_RSP2_ID                      (2)
 #define SDRPLAY3_RSPduo_ID                    (3)
 #define SDRPLAY3_RSPdx_ID                     (4)
+#if SDRPLAY3PAR_VERNR >= 314
+#define SDRPLAY3_RSP1B_ID                     (6)
+#endif
+#if SDRPLAY3PAR_VERNR >= 315
+#define SDRPLAY3_RSPdxR2_ID                   (7)
+#endif
 
 // Enum types
 typedef enum
@@ -222,7 +234,7 @@ typedef struct
     unsigned char resetFsUpdate;
 } sdrplay_api_ResetFlagsT;   
 
-// RSP1A parameter structs
+// RSP1A/RSP1B parameter structs
 typedef struct
 {
     unsigned char rfNotchEnable;
@@ -267,6 +279,14 @@ typedef enum
     sdrplay_api_RspDuo_AMPORT_2 = 0,
 } sdrplay_api_RspDuo_AmPortSelectT;
 
+#if SDRPLAY3PAR_VERNR >= 312
+typedef struct 
+{
+     unsigned char resetGainUpdate;      // default: 0
+     unsigned char resetRfUpdate;        // default: 0
+} sdrplay_api_RspDuo_ResetSlaveFlagsT;
+#endif
+
 // RSPduo parameter structs
 typedef struct
 {
@@ -280,6 +300,9 @@ typedef struct
     unsigned char tuner1AmNotchEnable;
     unsigned char rfNotchEnable;
     unsigned char rfDabNotchEnable;
+#if SDRPLAY3PAR_VERNR >= 312
+    sdrplay_api_RspDuo_ResetSlaveFlagsT resetSlaveFlags;
+#endif
 } sdrplay_api_RspDuoTunerParamsT;
 
 // RSPdx parameter enums
@@ -557,6 +580,9 @@ typedef enum
     sdrplay_api_Update_RspDx_RfNotchControl        = 0x00000008,
     sdrplay_api_Update_RspDx_RfDabNotchControl     = 0x00000010,
     sdrplay_api_Update_RspDx_HdrBw                 = 0x00000020,
+#if SDRPLAY3PAR_VERNR >= 312
+    sdrplay_api_Update_RspDuo_ResetSlaveFlags      = 0x00000040,
+#endif
 } sdrplay_api_ReasonForUpdateExtension1T;
 
 
@@ -594,9 +620,15 @@ typedef enum
 // device names
 #define SDRPLAY3_RSP1_NAME                    "RSP1"
 #define SDRPLAY3_RSP1A_NAME                   "RSP1A"
+#if SDRPLAY3PAR_VERNR >= 314
+#define SDRPLAY3_RSP1B_NAME                   "RSP1B"
+#endif
 #define SDRPLAY3_RSP2_NAME                    "RSP2"
 #define SDRPLAY3_RSPduo_NAME                  "RSPduo"
 #define SDRPLAY3_RSPdx_NAME                   "RSPdx"
+#if SDRPLAY3PAR_VERNR >= 315
+#define SDRPLAY3_RSPdxR2_NAME                 "RSPdx-R2"
+#endif
 
 // AGC mode names
 #define SDRPLAY3_AGC_DISABLE_NAME             "Disabled"
@@ -1080,16 +1112,29 @@ static void sdrplay3_select_device(int *line)
 
   line[0] = 2;
   for (i = 0; i < num_devs; i++) {
+#if SDRPLAY3PAR_VERNR >= 309
+    if (!devices[i].valid) {
+      continue;
+    }
+#endif
     if (devices[i].hwVer == SDRPLAY3_RSP1_ID) {
       device_name = SDRPLAY3_RSP1_NAME;
     } else if (devices[i].hwVer == SDRPLAY3_RSP1A_ID) {
       device_name = SDRPLAY3_RSP1A_NAME;
+#if SDRPLAY3PAR_VERNR >= 314
+    } else if (devices[i].hwVer == SDRPLAY3_RSP1B_ID) {
+      device_name = SDRPLAY3_RSP1B_NAME;
+#endif
     } else if (devices[i].hwVer == SDRPLAY3_RSP2_ID) {
       device_name = SDRPLAY3_RSP2_NAME;
     } else if (devices[i].hwVer == SDRPLAY3_RSPduo_ID) {
       device_name = SDRPLAY3_RSPduo_NAME;
     } else if (devices[i].hwVer == SDRPLAY3_RSPdx_ID) {
       device_name = SDRPLAY3_RSPdx_NAME;
+#if SDRPLAY3PAR_VERNR >= 315
+    } else if (devices[i].hwVer == SDRPLAY3_RSPdxR2_ID) {
+      device_name = SDRPLAY3_RSPdxR2_NAME;
+#endif
     }
     snprintf(s, 120, " %2d: %s   MFG: %s   SN: %.64s", i, device_name,
              "SDRplay", devices[i].SerNo);
@@ -1129,6 +1174,14 @@ static void sdrplay3_select_device(int *line)
   err = sdrplay_api_UnlockDeviceApi();
   if (err != sdrplay_api_Success) {
     lir_text(3, 2, "sdrplay3: sdrplay_api_UnlockDeviceApi() failed.");
+    lir_text(5, 7, press_any_key);
+    await_keyboard();
+    goto release_sdrplay3_device;
+  }
+
+  err = sdrplay_api_DebugEnable(device.dev, SDRPLAY3_DEBUG);
+  if (err != sdrplay_api_Success) {
+    lir_text(3, 2, "sdrplay3: sdrplay_api_DebugEnable() failed.");
     lir_text(5, 7, press_any_key);
     await_keyboard();
     goto release_sdrplay3_device;
@@ -1547,6 +1600,42 @@ static int sdrplay3_select_antenna(int *line)
       }
       break;
     }
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    line[0] += 2;
+    lir_text(3, line[0], "A=Antenna A");
+    line[0]++;
+    lir_text(3, line[0], "B=Antenna B");
+    line[0]++;
+    lir_text(3, line[0], "C=Antenna C");
+    line[0] += 2;
+    lir_text(3, line[0], "Select antenna (A/B/C) =>");
+    for (;;) {
+      await_processed_keyboard();
+      if (kill_all_flag)
+        return -1;
+      switch (lir_inkey) {
+        case 'A':
+          device_params->devParams->rspDxParams.antennaSel = sdrplay_api_RspDx_ANTENNA_A;
+          line[0]++;
+          lir_text(3, line[0], "Selected antenna is Antenna A");
+          break;
+        case 'B':
+          device_params->devParams->rspDxParams.antennaSel = sdrplay_api_RspDx_ANTENNA_B;
+          line[0]++;
+          lir_text(3, line[0], "Selected antenna is Antenna B");
+          break;
+        case 'C':
+          device_params->devParams->rspDxParams.antennaSel = sdrplay_api_RspDx_ANTENNA_C;
+          line[0]++;
+          lir_text(3, line[0], "Selected antenna is Antenna C");
+          break;
+        default:
+          continue;
+      }
+      break;
+    }
+#endif
   }
   return 0;
 }
@@ -1640,6 +1729,20 @@ static uint8_t lna_states_rsp1a_420_1000[] = { 0, 7, 13, 19, 20, 27, 33, 39, 45,
 static int num_lna_states_rsp1a_1000_2000 = 9;
 static uint8_t lna_states_rsp1a_1000_2000[] = { 0, 6, 12, 20, 26, 32, 38, 43, 62 };
 
+#if SDRPLAY3PAR_VERNR >= 314
+/* RSP1B */
+static int num_lna_states_rsp1b_0_50 = 7;
+static uint8_t lna_states_rsp1b_0_50[] = { 0, 6, 12, 18, 37, 42, 61 };
+static int num_lna_states_rsp1b_50_60 = 10;
+static uint8_t lna_states_rsp1b_50_60[] = { 0, 6, 12, 18, 20, 26, 32, 38, 57, 62 };
+static int num_lna_states_rsp1b_60_420 = 10;
+static uint8_t lna_states_rsp1b_60_420[] = { 0, 6, 12, 18, 20, 26, 32, 38, 57, 62 };
+static int num_lna_states_rsp1b_420_1000 = 10;
+static uint8_t lna_states_rsp1b_420_1000[] = { 0, 7, 13, 19, 20, 27, 33, 39, 45, 64 };
+static int num_lna_states_rsp1b_1000_2000 = 9;
+static uint8_t lna_states_rsp1b_1000_2000[] = { 0, 6, 12, 20, 26, 32, 38, 43, 62 };
+#endif
+
 /* RSP2 */
 static int num_lna_states_rsp2_0_420 = 9;
 static uint8_t lna_states_rsp2_0_420[] = { 0, 10, 15, 21, 24, 34, 39, 45, 64 };
@@ -1684,6 +1787,31 @@ static int num_lna_states_rspdx_420_1000 = 21;
 static uint8_t lna_states_rspdx_420_1000[] = { 0, 7, 10, 13, 16, 19, 22, 25, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67 };
 static int num_lna_states_rspdx_1000_2000 = 19;
 static uint8_t lna_states_rspdx_1000_2000[] = { 0, 5, 8, 11, 14, 17, 20, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65 };
+
+#if SDRPLAY3PAR_VERNR >= 315
+/* RSPdx-R2 */
+static int num_lna_states_rspdxr2_0_2_hdr = 22;
+static uint8_t lna_states_rspdxr2_0_2_hdr[] = { 0, 3, 6, 9, 12, 15, 18, 21, 24, 25, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60 };
+static int num_lna_states_rspdxr2_0_12 = 19;
+static uint8_t lna_states_rspdxr2_0_12[] = { 0, 3, 6, 9, 12, 15, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60 };
+#if SDRPLAY3PAR_VERNR == 307
+static int num_lna_states_rspdxr2_12_60 = 20;
+static uint8_t lna_states_rspdxr2_12_60[] = { 0, 3, 6, 9, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60 };
+#elif SDRPLAY3PAR_VERNR >= 309
+static int num_lna_states_rspdxr2_12_50 = 20;
+static uint8_t lna_states_rspdxr2_12_50[] = { 0, 3, 6, 9, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60 };
+static int num_lna_states_rspdxr2_50_60 = 25;
+static uint8_t lna_states_rspdxr2_50_60[] = { 0, 3, 6, 9, 12, 20, 23, 26, 29, 32, 35, 38, 44, 47, 50, 53, 56, 59, 62, 65, 68, 71, 74, 77, 80 };
+#endif
+static int num_lna_states_rspdxr2_60_250 = 27;
+static uint8_t lna_states_rspdxr2_60_250[] = { 0, 3, 6, 9, 12, 15, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84 };
+static int num_lna_states_rspdxr2_250_420 = 28;
+static uint8_t lna_states_rspdxr2_250_420[] = { 0, 3, 6, 9, 12, 15, 18, 24, 27, 30, 33, 36, 39, 42, 45, 48, 51, 54, 57, 60, 63, 66, 69, 72, 75, 78, 81, 84 };
+static int num_lna_states_rspdxr2_420_1000 = 21;
+static uint8_t lna_states_rspdxr2_420_1000[] = { 0, 7, 10, 13, 16, 19, 22, 25, 31, 34, 37, 40, 43, 46, 49, 52, 55, 58, 61, 64, 67 };
+static int num_lna_states_rspdxr2_1000_2000 = 19;
+static uint8_t lna_states_rspdxr2_1000_2000[] = { 0, 5, 8, 11, 14, 17, 20, 32, 35, 38, 41, 44, 47, 50, 53, 56, 59, 62, 65 };
+#endif
 
 static int sdrplay3_select_rf_gain_band_rsp1(int *line)
 {
@@ -1759,6 +1887,53 @@ static double sdrplay3_select_rf_gain_band_rsp1a(int *line)
   }
   return freq;
 }
+
+#if SDRPLAY3PAR_VERNR >= 314
+static double sdrplay3_select_rf_gain_band_rsp1b(int *line)
+{
+  double freq;
+
+  line[0] += 2;
+  lir_text(3, line[0], "A=RF gain reduction band 0-50 MHz");
+  line[0]++;
+  lir_text(3, line[0], "B=RF gain reduction band 50-60 MHz");
+  line[0]++;
+  lir_text(3, line[0], "C=RF gain reduction band 60-420 MHz");
+  line[0]++;
+  lir_text(3, line[0], "D=RF gain reduction band 420-1000 MHz");
+  line[0]++;
+  lir_text(3, line[0], "E=RF gain reduction band 1000-2000 MHz");
+  line[0] += 2;
+  lir_text(3, line[0], "Select RF gain reduction band (A-E) =>");
+  freq = -1;
+  for (;;) {
+    await_processed_keyboard();
+    if (kill_all_flag)
+      return -1;
+    switch (lir_inkey) {
+      case 'A':
+        freq = 30e6;
+        break;
+      case 'B':
+        freq = 55e6;
+        break;
+      case 'C':
+        freq = 200e6;
+        break;
+      case 'D':
+        freq = 600e6;
+        break;
+      case 'E':
+        freq = 1200e6;
+        break;
+      default:
+        continue;
+    }
+    break;
+  }
+  return freq;
+}
+#endif
 
 static double sdrplay3_select_rf_gain_band_rsp2(int *line)
 {
@@ -1933,6 +2108,67 @@ static double sdrplay3_select_rf_gain_band_rspdx(int *line)
   return freq;
 }
 
+#if SDRPLAY3PAR_VERNR >= 315
+static double sdrplay3_select_rf_gain_band_rspdxr2(int *line)
+{
+  double freq;
+
+  if (device_params->devParams->rspDxParams.hdrEnable) {
+    freq = 1e6;
+  } else {
+    line[0] += 2;
+    lir_text(3, line[0], "A=RF gain reduction band 0-12 MHz");
+    line[0]++;
+    lir_text(3, line[0], "B=RF gain reduction band 12-50 MHz");
+    line[0]++;
+    lir_text(3, line[0], "C=RF gain reduction band 50-60 MHz");
+    line[0]++;
+    lir_text(3, line[0], "D=RF gain reduction band 60-250 MHz");
+    line[0]++;
+    lir_text(3, line[0], "E=RF gain reduction band 250-420 MHz");
+    line[0]++;
+    lir_text(3, line[0], "F=RF gain reduction band 420-1000 MHz");
+    line[0]++;
+    lir_text(3, line[0], "G=RF gain reduction band 1000-2000 MHz");
+    line[0] += 2;
+    lir_text(3, line[0], "Select RF gain reduction band (A-G) =>");
+    freq = -1;
+    for (;;) {
+      await_processed_keyboard();
+      if (kill_all_flag)
+        return -1;
+      switch (lir_inkey) {
+        case 'A':
+          freq = 10e6;
+          break;
+        case 'B':
+          freq = 30e6;
+          break;
+        case 'C':
+          freq = 55e6;
+          break;
+        case 'D':
+          freq = 200e6;
+          break;
+        case 'E':
+          freq = 350e6;
+          break;
+        case 'F':
+          freq = 600e6;
+          break;
+        case 'G':
+          freq = 1200e6;
+          break;
+        default:
+          continue;
+      }
+      break;
+    }
+  }
+  return freq;
+}
+#endif
+
 static uint8_t *sdrplay3_find_lna_states(double freq, int *p_num_lna_states)
 {
   if (device.hwVer == SDRPLAY3_RSP1_ID) {
@@ -1960,6 +2196,25 @@ static uint8_t *sdrplay3_find_lna_states(double freq, int *p_num_lna_states)
       *p_num_lna_states = num_lna_states_rsp1a_1000_2000;
       return lna_states_rsp1a_1000_2000;
     }
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+    if (freq < 50e6) {
+      *p_num_lna_states = num_lna_states_rsp1b_0_50;
+      return lna_states_rsp1b_0_50;
+    } else if (freq < 60e6) {
+      *p_num_lna_states = num_lna_states_rsp1b_50_60;
+      return lna_states_rsp1b_50_60;
+    } else if (freq < 420e6) {
+      *p_num_lna_states = num_lna_states_rsp1b_60_420;
+      return lna_states_rsp1b_60_420;
+    } else if (freq < 1000e6) {
+      *p_num_lna_states = num_lna_states_rsp1b_420_1000;
+      return lna_states_rsp1b_420_1000;
+    } else {
+      *p_num_lna_states = num_lna_states_rsp1b_1000_2000;
+      return lna_states_rsp1b_1000_2000;
+    }
+#endif
   } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
     if (freq < 60e6 &&
         rx_channel_params->rsp2TunerParams.antennaSel == sdrplay_api_Rsp2_ANTENNA_A &&
@@ -2028,6 +2283,35 @@ static uint8_t *sdrplay3_find_lna_states(double freq, int *p_num_lna_states)
       *p_num_lna_states = num_lna_states_rspdx_1000_2000;
       return lna_states_rspdx_1000_2000;
     }
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    if (freq < 2e6 &&
+        device_params->devParams->rspDxParams.hdrEnable) {
+      *p_num_lna_states = num_lna_states_rspdxr2_0_2_hdr;
+      return lna_states_rspdxr2_0_2_hdr;
+    } else if (freq < 12e6) {
+      *p_num_lna_states = num_lna_states_rspdxr2_0_12;
+      return lna_states_rspdxr2_0_12;
+    } else if (freq < 50e6) {
+      *p_num_lna_states = num_lna_states_rspdxr2_12_50;
+      return lna_states_rspdxr2_12_50;
+    } else if (freq < 60e6) {
+      *p_num_lna_states = num_lna_states_rspdxr2_50_60;
+      return lna_states_rspdxr2_50_60;
+    } else if (freq < 250e6) {
+      *p_num_lna_states = num_lna_states_rspdxr2_60_250;
+      return lna_states_rspdxr2_60_250;
+    } else if (freq < 420e6) {
+      *p_num_lna_states = num_lna_states_rspdxr2_250_420;
+      return lna_states_rspdxr2_250_420;
+    } else if (freq < 1000e6) {
+      *p_num_lna_states = num_lna_states_rspdxr2_420_1000;
+      return lna_states_rspdxr2_420_1000;
+    } else {
+      *p_num_lna_states = num_lna_states_rspdxr2_1000_2000;
+      return lna_states_rspdxr2_1000_2000;
+    }
+#endif
   }
   // unknown RSP model; return NULL
   *p_num_lna_states = 0;
@@ -2101,12 +2385,20 @@ static int sdrplay3_select_rf_gain(int *line)
         freq = sdrplay3_select_rf_gain_band_rsp1(line);
       } else if (device.hwVer == SDRPLAY3_RSP1A_ID) {
         freq = sdrplay3_select_rf_gain_band_rsp1a(line);
+#if SDRPLAY3PAR_VERNR >= 314
+      } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+        freq = sdrplay3_select_rf_gain_band_rsp1b(line);
+#endif
       } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
         freq = sdrplay3_select_rf_gain_band_rsp2(line);
       } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
         freq = sdrplay3_select_rf_gain_band_rspduo(line);
       } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
         freq = sdrplay3_select_rf_gain_band_rspdx(line);
+#if SDRPLAY3PAR_VERNR >= 315
+      } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+        freq = sdrplay3_select_rf_gain_band_rspdxr2(line);
+#endif
       }
       if (kill_all_flag)
         return -1;
@@ -2126,6 +2418,11 @@ static int sdrplay3_select_rf_gain(int *line)
       } else if (device.hwVer == SDRPLAY3_RSP1A_ID) {
         lna_state_max = 9;
         sdrplay3_max_gain = 64;
+#if SDRPLAY3PAR_VERNR >= 314
+      } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+        lna_state_max = 9;
+        sdrplay3_max_gain = 64;
+#endif
       } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
         lna_state_max = 8;
         sdrplay3_max_gain = 64;
@@ -2135,6 +2432,11 @@ static int sdrplay3_select_rf_gain(int *line)
       } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
         lna_state_max = 27;
         sdrplay3_max_gain = 84;
+#if SDRPLAY3PAR_VERNR >= 315
+      } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+        lna_state_max = 27;
+        sdrplay3_max_gain = 84;
+#endif
       }
       line[0] += 2;
       snprintf(s, 120, "Select LNA state (0-%d) =>", lna_state_max);
@@ -2362,8 +2664,17 @@ static int sdrplay3_select_notch_filters(int *line)
   uint8_t rf_notch;
   uint8_t dab_notch;
 
-  if (device.hwVer == SDRPLAY3_RSP1A_ID || device.hwVer == SDRPLAY3_RSP2_ID ||
-      device.hwVer == SDRPLAY3_RSPduo_ID || device.hwVer == SDRPLAY3_RSPdx_ID) {
+  if (device.hwVer == SDRPLAY3_RSP1A_ID ||
+#if SDRPLAY3PAR_VERNR >= 314
+      device.hwVer == SDRPLAY3_RSP1B_ID ||
+#endif
+      device.hwVer == SDRPLAY3_RSP2_ID ||
+      device.hwVer == SDRPLAY3_RSPduo_ID ||
+      device.hwVer == SDRPLAY3_RSPdx_ID ||
+#if SDRPLAY3PAR_VERNR >= 315
+      device.hwVer == SDRPLAY3_RSPdxR2_ID ||
+#endif
+      FALSE) {
     line[0] += 2;
     lir_text(3, line[0], "Enable RF notch filter? (Y/N) =>");
     for (;;) {
@@ -2384,17 +2695,33 @@ static int sdrplay3_select_notch_filters(int *line)
     }
     if (device.hwVer == SDRPLAY3_RSP1A_ID) {
       device_params->devParams->rsp1aParams.rfNotchEnable = rf_notch;
+#if SDRPLAY3PAR_VERNR >= 314
+    } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+      device_params->devParams->rsp1aParams.rfNotchEnable = rf_notch;
+#endif
     } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
       rx_channel_params->rsp2TunerParams.rfNotchEnable = rf_notch;
     } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
       rx_channel_params->rspDuoTunerParams.rfNotchEnable = rf_notch;
     } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
       device_params->devParams->rspDxParams.rfNotchEnable = rf_notch;
+#if SDRPLAY3PAR_VERNR >= 315
+    } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+      device_params->devParams->rspDxParams.rfNotchEnable = rf_notch;
+#endif
     }
   }
 
-  if (device.hwVer == SDRPLAY3_RSP1A_ID || device.hwVer == SDRPLAY3_RSPduo_ID ||
-      device.hwVer == SDRPLAY3_RSPdx_ID) {
+  if (device.hwVer == SDRPLAY3_RSP1A_ID ||
+#if SDRPLAY3PAR_VERNR >= 314
+      device.hwVer == SDRPLAY3_RSP1B_ID ||
+#endif
+      device.hwVer == SDRPLAY3_RSPduo_ID ||
+      device.hwVer == SDRPLAY3_RSPdx_ID ||
+#if SDRPLAY3PAR_VERNR >= 315
+      device.hwVer == SDRPLAY3_RSPdxR2_ID ||
+#endif
+      FALSE) {
     line[0] += 2;
     lir_text(3, line[0], "Enable DAB notch filter? (Y/N) =>");
     for (;;) {
@@ -2415,10 +2742,18 @@ static int sdrplay3_select_notch_filters(int *line)
     }
     if (device.hwVer == SDRPLAY3_RSP1A_ID) {
       device_params->devParams->rsp1aParams.rfDabNotchEnable = dab_notch;
+#if SDRPLAY3PAR_VERNR >= 314
+    } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+      device_params->devParams->rsp1aParams.rfDabNotchEnable = dab_notch;
+#endif
     } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
       rx_channel_params->rspDuoTunerParams.rfDabNotchEnable = dab_notch;
     } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
       device_params->devParams->rspDxParams.rfDabNotchEnable = dab_notch;
+#if SDRPLAY3PAR_VERNR >= 315
+    } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+      device_params->devParams->rspDxParams.rfDabNotchEnable = dab_notch;
+#endif
     }
   }
 
@@ -2449,9 +2784,17 @@ static int sdrplay3_select_bias_t(int *line)
 {
   uint8_t biasT;
 
-  if (device.hwVer == SDRPLAY3_RSP1A_ID || device.hwVer == SDRPLAY3_RSP2_ID ||
+  if (device.hwVer == SDRPLAY3_RSP1A_ID ||
+#if SDRPLAY3PAR_VERNR >= 314
+      device.hwVer == SDRPLAY3_RSP1B_ID ||
+#endif
+      device.hwVer == SDRPLAY3_RSP2_ID ||
       (device.hwVer == SDRPLAY3_RSPduo_ID && rx_channel_params == device_params->rxChannelB) ||
-      device.hwVer == SDRPLAY3_RSPdx_ID) {
+      device.hwVer == SDRPLAY3_RSPdx_ID ||
+#if SDRPLAY3PAR_VERNR >= 315
+      device.hwVer == SDRPLAY3_RSPdxR2_ID ||
+#endif
+      FALSE) {
     line[0] += 2;
     lir_text(3, line[0], "Enable Bias-T? (Y/N) =>");
     for (;;) {
@@ -2472,12 +2815,20 @@ static int sdrplay3_select_bias_t(int *line)
     }
     if (device.hwVer == SDRPLAY3_RSP1A_ID) {
       rx_channel_params->rsp1aTunerParams.biasTEnable = biasT;
+#if SDRPLAY3PAR_VERNR >= 314
+    } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+      rx_channel_params->rsp1aTunerParams.biasTEnable = biasT;
+#endif
     } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
       rx_channel_params->rsp2TunerParams.biasTEnable = biasT;
     } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
       rx_channel_params->rspDuoTunerParams.biasTEnable = biasT;
     } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
       device_params->devParams->rspDxParams.biasTEnable = biasT;
+#if SDRPLAY3PAR_VERNR >= 315
+    } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+      device_params->devParams->rspDxParams.biasTEnable = biasT;
+#endif
     }
   }
   return 0;
@@ -2714,6 +3065,10 @@ static int sdrplay3_save_configuration(char *filename)
               100 * rx_channel_params->rspDuoTunerParams.tuner1AmPortSel;
   } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
     sdrplay3_parms.antenna = device_params->devParams->rspDxParams.antennaSel;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    sdrplay3_parms.antenna = device_params->devParams->rspDxParams.antennaSel;
+#endif
   } else {
     sdrplay3_parms.antenna = 0;
   }
@@ -2740,6 +3095,11 @@ static int sdrplay3_save_configuration(char *filename)
   if (device.hwVer == SDRPLAY3_RSP1A_ID) {
     sdrplay3_parms.notch_filters = device_params->devParams->rsp1aParams.rfNotchEnable +
               100 * device_params->devParams->rsp1aParams.rfDabNotchEnable;
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+    sdrplay3_parms.notch_filters = device_params->devParams->rsp1aParams.rfNotchEnable +
+              100 * device_params->devParams->rsp1aParams.rfDabNotchEnable;
+#endif
   } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
     sdrplay3_parms.notch_filters = rx_channel_params->rsp2TunerParams.rfNotchEnable;
   } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
@@ -2749,17 +3109,30 @@ static int sdrplay3_save_configuration(char *filename)
   } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
     sdrplay3_parms.notch_filters = device_params->devParams->rspDxParams.rfNotchEnable +
               100 *device_params->devParams->rspDxParams.rfDabNotchEnable;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    sdrplay3_parms.notch_filters = device_params->devParams->rspDxParams.rfNotchEnable +
+              100 *device_params->devParams->rspDxParams.rfDabNotchEnable;
+#endif
   } else {
     sdrplay3_parms.notch_filters = 0;
   }
   if (device.hwVer == SDRPLAY3_RSP1A_ID) {
     sdrplay3_parms.bias_t = rx_channel_params->rsp1aTunerParams.biasTEnable;
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+    sdrplay3_parms.bias_t = rx_channel_params->rsp1aTunerParams.biasTEnable;
+#endif
   } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
     sdrplay3_parms.bias_t = rx_channel_params->rsp2TunerParams.biasTEnable;
   } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
     sdrplay3_parms.bias_t = rx_channel_params->rspDuoTunerParams.biasTEnable;
   } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
     sdrplay3_parms.bias_t = device_params->devParams->rspDxParams.biasTEnable;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    sdrplay3_parms.bias_t = device_params->devParams->rspDxParams.biasTEnable;
+#endif
   } else {
     sdrplay3_parms.bias_t = 0;
   }
@@ -2767,6 +3140,12 @@ static int sdrplay3_save_configuration(char *filename)
     sdrplay3_parms.rspdx_hdr_mode_and_bandwidth =
                   device_params->devParams->rspDxParams.hdrEnable ?
                   (int)(rx_channel_params->rspDxTunerParams.hdrBw) : -1;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    sdrplay3_parms.rspdx_hdr_mode_and_bandwidth =
+                  device_params->devParams->rspDxParams.hdrEnable ?
+                  (int)(rx_channel_params->rspDxTunerParams.hdrBw) : -1;
+#endif
   } else {
     sdrplay3_parms.rspdx_hdr_mode_and_bandwidth = -1;
   }
@@ -2853,6 +3232,12 @@ void init_sdrplay3(void)
     if (sdrplay3_select_rspdx_hdr_mode(&line) != 0)
       goto release_sdrplay3_device;
   }
+#if SDRPLAY3PAR_VERNR >= 315
+  if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    if (sdrplay3_select_rspdx_hdr_mode(&line) != 0)
+      goto release_sdrplay3_device;
+  }
+#endif
   if (sdrplay3_select_rf_gain(&line) != 0)
     goto release_sdrplay3_device;
 
@@ -2988,6 +3373,11 @@ static int sdrplay3_set_device(double dt1)
 
     found = 0;
     for (i = 0; i < num_devs; i++) {
+#if SDRPLAY3PAR_VERNR >= 309
+      if (!devices[i].valid) {
+        continue;
+      }
+#endif
       if (devices[i].hwVer == sdrplay3_parms.hw_version &&
           strcmp(devices[i].SerNo, serial) == 0) {
         device = devices[i];
@@ -3028,6 +3418,11 @@ static int sdrplay3_set_device(double dt1)
     goto release_sdrplay3_device;
 
   errcod = 2625;
+  err = sdrplay_api_DebugEnable(device.dev, SDRPLAY3_DEBUG);
+  if (err != sdrplay_api_Success)
+    goto release_sdrplay3_device;
+
+  errcod = 2626;
   err = sdrplay_api_GetDeviceParams(device.dev, &device_params);
   if (err != sdrplay_api_Success)
     goto release_sdrplay3_device;
@@ -3095,6 +3490,10 @@ static int sdrplay3_set_antenna(void)
     }
   } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
     device_params->devParams->rspDxParams.antennaSel = sdrplay3_parms.antenna;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    device_params->devParams->rspDxParams.antennaSel = sdrplay3_parms.antenna;
+#endif
   }
   return errcod;
 }
@@ -3163,6 +3562,11 @@ static void sdrplay3_set_notch_filters(void)
   if (device.hwVer == SDRPLAY3_RSP1A_ID) {
     device_params->devParams->rsp1aParams.rfNotchEnable = sdrplay3_parms.notch_filters % 100;
     device_params->devParams->rsp1aParams.rfDabNotchEnable = sdrplay3_parms.notch_filters / 100;
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+    device_params->devParams->rsp1aParams.rfNotchEnable = sdrplay3_parms.notch_filters % 100;
+    device_params->devParams->rsp1aParams.rfDabNotchEnable = sdrplay3_parms.notch_filters / 100;
+#endif
   } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
     rx_channel_params->rsp2TunerParams.rfNotchEnable = sdrplay3_parms.notch_filters;
   } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
@@ -3172,6 +3576,11 @@ static void sdrplay3_set_notch_filters(void)
   } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
     device_params->devParams->rspDxParams.rfNotchEnable = sdrplay3_parms.notch_filters % 100;
     device_params->devParams->rspDxParams.rfDabNotchEnable = sdrplay3_parms.notch_filters / 100;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    device_params->devParams->rspDxParams.rfNotchEnable = sdrplay3_parms.notch_filters % 100;
+    device_params->devParams->rspDxParams.rfDabNotchEnable = sdrplay3_parms.notch_filters / 100;
+#endif
   }
   return;
 }
@@ -3180,12 +3589,20 @@ static void sdrplay3_set_bias_t(void)
 {
   if (device.hwVer == SDRPLAY3_RSP1A_ID) {
     rx_channel_params->rsp1aTunerParams.biasTEnable = sdrplay3_parms.bias_t;
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (device.hwVer == SDRPLAY3_RSP1B_ID) {
+    rx_channel_params->rsp1aTunerParams.biasTEnable = sdrplay3_parms.bias_t;
+#endif
   } else if (device.hwVer == SDRPLAY3_RSP2_ID) {
     rx_channel_params->rsp2TunerParams.biasTEnable = sdrplay3_parms.bias_t;
   } else if (device.hwVer == SDRPLAY3_RSPduo_ID) {
     rx_channel_params->rspDuoTunerParams.biasTEnable = sdrplay3_parms.bias_t % RX2_OFFSET;
   } else if (device.hwVer == SDRPLAY3_RSPdx_ID) {
     device_params->devParams->rspDxParams.biasTEnable = sdrplay3_parms.bias_t;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (device.hwVer == SDRPLAY3_RSPdxR2_ID) {
+    device_params->devParams->rspDxParams.biasTEnable = sdrplay3_parms.bias_t;
+#endif
   }
   return;
 }
@@ -3606,6 +4023,10 @@ void sdrplay3_input(void)
     goto sdrplay3_release_device;
   if (device.hwVer == SDRPLAY3_RSPdx_ID)
     sdrplay3_set_rspdx_hdr_mode();
+#if SDRPLAY3PAR_VERNR >= 315
+  if (device.hwVer == SDRPLAY3_RSPdxR2_ID)
+    sdrplay3_set_rspdx_hdr_mode();
+#endif
   sdrplay3_set_rf_gain();
   sdrplay3_set_if_gain();
   sdrplay3_set_frequency_correction();
@@ -3694,19 +4115,9 @@ sdrplay3_stop_streaming:
     goto sdrplay3_close_api;
   }
 sdrplay3_release_device:
-  err = sdrplay_api_LockDeviceApi();
-  if (err != sdrplay_api_Success) {
-    lirerr(2692);
-    goto sdrplay3_close_api;
-  }
   err = sdrplay_api_ReleaseDevice(&device);
   if (err != sdrplay_api_Success) {
     lirerr(2693);
-    goto sdrplay3_close_api;
-  }
-  err = sdrplay_api_UnlockDeviceApi();
-  if (err != sdrplay_api_Success) {
-    lirerr(2694);
     goto sdrplay3_close_api;
   }
 sdrplay3_close_api:
@@ -3790,12 +4201,20 @@ int display_sdrplay3_parm_info(int *line)
     device_name = SDRPLAY3_RSP1_NAME;
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP1A_ID) {
     device_name = SDRPLAY3_RSP1A_NAME;
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP1B_ID) {
+    device_name = SDRPLAY3_RSP1B_NAME;
+#endif
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP2_ID) {
     device_name = SDRPLAY3_RSP2_NAME;
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPduo_ID) {
     device_name = SDRPLAY3_RSPduo_NAME;
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdx_ID) {
     device_name = SDRPLAY3_RSPdx_NAME;
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdxR2_ID) {
+    device_name = SDRPLAY3_RSPdxR2_NAME;
+#endif
   }
   ise[0] = sdrplay3_parms.sernum1;
   ise[1] = sdrplay3_parms.sernum2;
@@ -3895,6 +4314,16 @@ int display_sdrplay3_parm_info(int *line)
     } else if (sdrplay3_parms.antenna == sdrplay_api_RspDx_ANTENNA_C) {
       snprintf(s, 120, "Antenna = Antenna C");
     }
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdxR2_ID) {
+    if (sdrplay3_parms.antenna == sdrplay_api_RspDx_ANTENNA_A) {
+      snprintf(s, 120, "Antenna = Antenna A");
+    } else if (sdrplay3_parms.antenna == sdrplay_api_RspDx_ANTENNA_B) {
+      snprintf(s, 120, "Antenna = Antenna B");
+    } else if (sdrplay3_parms.antenna == sdrplay_api_RspDx_ANTENNA_C) {
+      snprintf(s, 120, "Antenna = Antenna C");
+    }
+#endif
   }
   if (s[0] != '\0') {
     lir_text(24, line[0], s);
@@ -4009,6 +4438,10 @@ int display_sdrplay3_parm_info(int *line)
   s[0] = '\0';
   if (sdrplay3_parms.hw_version == SDRPLAY3_RSP1A_ID) {
     snprintf(s, 120, "RF Notch Filter = %s, DAB Notch Filter = %s", rf_notch_filter_mode_name, rf_dab_notch_filter_mode_name);
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP1B_ID) {
+    snprintf(s, 120, "RF Notch Filter = %s, DAB Notch Filter = %s", rf_notch_filter_mode_name, rf_dab_notch_filter_mode_name);
+#endif
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP2_ID) {
     snprintf(s, 120, "RF Notch Filter = %s", rf_notch_filter_mode_name);
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPduo_ID) {
@@ -4048,6 +4481,10 @@ int display_sdrplay3_parm_info(int *line)
     }
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdx_ID) {
     snprintf(s, 120, "RF Notch Filter = %s, DAB Notch Filter = %s", rf_notch_filter_mode_name, rf_dab_notch_filter_mode_name);
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdxR2_ID) {
+    snprintf(s, 120, "RF Notch Filter = %s, DAB Notch Filter = %s", rf_notch_filter_mode_name, rf_dab_notch_filter_mode_name);
+#endif
   }
   if (s[0] != '\0') {
     lir_text(24, line[0], s);
@@ -4063,6 +4500,10 @@ int display_sdrplay3_parm_info(int *line)
   }
   if (sdrplay3_parms.hw_version == SDRPLAY3_RSP1A_ID) {
     snprintf(s, 120, "Bias-T = %s", bias_t_mode_name);
+#if SDRPLAY3PAR_VERNR >= 314
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP1B_ID) {
+    snprintf(s, 120, "Bias-T = %s", bias_t_mode_name);
+#endif
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSP2_ID) {
     snprintf(s, 120, "Bias-T = %s", bias_t_mode_name);
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPduo_ID) {
@@ -4079,6 +4520,10 @@ int display_sdrplay3_parm_info(int *line)
     }
   } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdx_ID) {
     snprintf(s, 120, "Bias-T = %s", bias_t_mode_name);
+#if SDRPLAY3PAR_VERNR >= 315
+  } else if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdxR2_ID) {
+    snprintf(s, 120, "Bias-T = %s", bias_t_mode_name);
+#endif
   }
   if (s[0] != '\0') {
     lir_text(24, line[0], s);
@@ -4086,7 +4531,11 @@ int display_sdrplay3_parm_info(int *line)
     line[0]++;
   }
 
-  if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdx_ID) {
+  if (sdrplay3_parms.hw_version == SDRPLAY3_RSPdx_ID ||
+#if SDRPLAY3PAR_VERNR >= 315
+      sdrplay3_parms.hw_version == SDRPLAY3_RSPdxR2_ID ||
+#endif
+      FALSE) {
     if (sdrplay3_parms.rspdx_hdr_mode_and_bandwidth == -1) {
       snprintf(s, 120, "RSPdx HDR Mode = %s", disabled_string);
     } else {

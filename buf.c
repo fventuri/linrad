@@ -769,8 +769,8 @@ if(timf1_bytes < t1)timf1_bytes=t1;
 // Make sure timf1 is also a power of two
 make_power_of_two(&timf1_bytes);
 if(rx_mode== MODE_TUNE)timf1_bytes=2*fft1_bytes;
+if(ui.min_dma_rate < MIN_DMA_RATE)timf1_bytes*=2; 
 timf1_bytemask=timf1_bytes-1; 
-timf1_neg=timf1_bytes/2;
 timf1p_pa=0;
 timf1p_pb=0;
 timf1p_px=0;
@@ -789,7 +789,6 @@ fft1_nx=0;
 // in getiq.s
 // Set a value in case we run setup first
 fft1_sumsq_recalc=fft1_size/2;
-
 // To save time i.e. when oversampling we only compute spectrum between
 // the points actually used.
 // Set up values (full spectrum) for use in test modes. 
@@ -929,7 +928,7 @@ if(!fft1_use_gpu)
     }
   }
 mem( 7,&fft1_filtercorr,fft1_blockbytes,8*sizeof(float));
-mem( 8,&fft1_char, 2*fft1_bytes,0);
+mem( 8,&fft1_char, 2*(size_t)fft1_bytes,0);
 mem( 9,&wg_waterf_sum,fft1_size*sizeof(float),0);
 mem(10,&fft1_sumsq,fft1_sumsq_bufsize*sizeof(float),0);
 if(fft1afc_flag != 0)
@@ -1225,29 +1224,26 @@ if( (ui.network_flag&NET_RXOUT_BASEB) != 0)
                                                        /ui.max_dma_rate;
   make_power_of_two(&basebnet_block_bytes);
   }
-if(genparm[FFT1_CORRELATION_SPECTRUM]!=0 && ui.rx_rf_channels==2)
+fft1_correlation_flag=genparm[FFT1_CORRELATION_SPECTRUM];
+if(ui.rx_rf_channels != 2)fft1_correlation_flag=0;
+if(fft1_correlation_flag == 1)
   {
 // Allocate memory for an averaged correlation spectrum in the main
 // spectrum window.
-  fft1_correlation_flag=genparm[FFT1_CORRELATION_SPECTRUM];
   mem(8101,&fft1_corrsum,2*fft1_sumsq_bufsize*sizeof(float),0);
   mem(8102,&fft1_slowcorr,2*fft1_size*sizeof(double),0);
   mem(8103,&fft1_corr_spectrum,screen_width*sizeof(short int),0);
   mem(8104,&fft1_slowcorr_tot,2*fft1_size*sizeof(double),0);
   mem(8105,&fft1_corr_spectrum_tot,screen_width*sizeof(short int),0);
-  if(fft1_correlation_flag != 0)
-    {
-    mem(8109,&d_mix1_fqwin,(mix1.size/2+16)*sizeof(double),0);
-    mem(8111,&d_mix1_table,mix1.size*sizeof(D_COSIN_TABLE)/2,0);
-    mem(8112,&d_mix1_cos2win,mix1.new_points*sizeof(double),0);
-    mem(8113,&d_mix1_sin2win,mix1.new_points*sizeof(double),0);
-    mem(8114,&d_mix1_window,(mix1.size/2+1)*sizeof(double),0);
-    mem(8115,&d_timf3_float,2*timf3_totsiz*sizeof(double),0);
-    }
   }
-else
+if(fft1_correlation_flag != 0)
   {
-  fft1_correlation_flag=0;
+  mem(8109,&d_mix1_fqwin,(mix1.size/2+16)*sizeof(double),0);
+  mem(8111,&d_mix1_table,mix1.size*sizeof(D_COSIN_TABLE)/2,0);
+  mem(8112,&d_mix1_cos2win,mix1.new_points*sizeof(double),0);
+  mem(8113,&d_mix1_sin2win,mix1.new_points*sizeof(double),0);
+  mem(8114,&d_mix1_window,(mix1.size/2+1)*sizeof(double),0);
+  mem(8115,&d_timf3_float,2*timf3_totsiz*sizeof(double),0);
   }
 fftx_totmem=memalloc(&fft1_handle,"fft1,fft2");
 if(fftx_totmem==0)
@@ -1541,6 +1537,8 @@ mg_flag=0;
 tg_flag=0;
 rg_flag=0;
 sg_flag=0;
+vg_flag=0;
+vgf_flag=0;
 xg_flag=0;
 eme_active_flag=0;
 timinfo_flag=0;
@@ -2131,8 +2129,12 @@ wg_waterf=chk_free(wg_waterf);
 fft3_handle=chk_free(fft3_handle);
 hires_handle=chk_free(hires_handle);
 blanker_handle=chk_free(blanker_handle);
+allan_handle=chk_free(allan_handle);
+siganal_handle=chk_free(siganal_handle);
 afc_handle=chk_free(afc_handle);
 baseband_handle=chk_free(baseband_handle);
 dx=chk_free(dx);
+vgf_freq=chk_free(vgf_freq);
+vgf_ampl=chk_free(vgf_ampl);
 }
 

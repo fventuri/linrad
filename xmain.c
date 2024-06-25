@@ -46,8 +46,10 @@
 #include <locale.h>
 #include <fcntl.h>
 #ifndef __FreeBSD__ 
+#ifndef __NetBSD__ 
 #if DARWIN == 0
 #include <linux/fb.h>
+#endif
 #endif
 #endif
 #include <sys/mman.h>
@@ -218,7 +220,11 @@ screen_setup:;
 get_screen:;
   printf("\n\nSelect your graphics from %c to %c => ",'A'+i1, 'A'+i2);
   while(fgets(s,8,stdin)==NULL);
+#ifdef __NetBSD__
+  i=toupper((int)(unsigned char)s[0]);
+#else
   i=toupper(s[0]);
+#endif  
   i-=(int)'A';
   if(i < i1 || i > i2)
     {
@@ -284,7 +290,11 @@ else
   i=0;
   while(tmp[i] && i<bytes)
     {
+#ifdef __NetBSD__
+    tmp[i]=toupper((int)(unsigned char)tmp[i]);
+#else
     tmp[i]=toupper(tmp[i]);
+#endif  
     i++;
     }
   j=0;
@@ -306,7 +316,11 @@ if(argv[1] != NULL)
     m=0;
     while(screen_types[j][m] != 0 || argv[1][m] != 0)
       {
+#ifdef __NetBSD__
+      if(toupper((int)(unsigned char)argv[1][m]) != screen_types[j][m])goto diff;
+#else
       if(toupper(argv[1][m]) != screen_types[j][m])goto diff;
+#endif  
       m++;
       }
     k=j;

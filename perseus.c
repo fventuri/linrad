@@ -47,6 +47,9 @@
 #ifdef __FreeBSD__ 
 #include <sys/time.h>
 #endif
+#ifdef __NetBSD__ 
+#include <sys/time.h>
+#endif
 #include "uidef.h"
 #include "vernr.h"
 #include "thrdef.h"
@@ -711,31 +714,31 @@ perseus_libhandle=dlopen(PERSEUS_LIBNAME, RTLD_LAZY);
 if(!perseus_libhandle)goto perseus_load_error;
 info=1;
 perseus_init=(p_perseus_init)dlsym(perseus_libhandle, "perseus_init");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_init == NULL)goto perseus_sym_error;
 perseus_exit=(p_perseus_exit)dlsym(perseus_libhandle, "perseus_exit");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_exit == NULL)goto perseus_sym_error;
 perseus_open=(p_perseus_open)dlsym(perseus_libhandle, "perseus_open");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_open == NULL)goto perseus_sym_error;
 perseus_set_attenuator=(p_perseus_set_attenuator)dlsym(perseus_libhandle, "perseus_set_attenuator");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_set_attenuator == NULL)goto perseus_sym_error;
 perseus_close=(p_perseus_close)dlsym(perseus_libhandle, "perseus_close");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_close == NULL)goto perseus_sym_error;
 perseus_firmware_download=(p_perseus_firmware_download)dlsym(perseus_libhandle, "perseus_firmware_download");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_firmware_download == NULL)goto perseus_sym_error;
 perseus_get_product_id=(p_perseus_get_product_id)dlsym(perseus_libhandle, "perseus_get_product_id");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_get_product_id == NULL)goto perseus_sym_error;
 perseus_set_ddc_center_freq=(p_perseus_set_ddc_center_freq)dlsym(perseus_libhandle, "perseus_set_ddc_center_freq");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_set_ddc_center_freq == NULL)goto perseus_sym_error;
 perseus_start_async_input=(p_perseus_start_async_input)dlsym(perseus_libhandle, "perseus_start_async_input");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_start_async_input == NULL)goto perseus_sym_error;
 perseus_get_sampling_rates=(p_perseus_get_sampling_rates)dlsym(perseus_libhandle, "perseus_get_sampling_rates");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_get_sampling_rates == NULL)goto perseus_sym_error;
 perseus_set_sampling_rate_n=(p_perseus_set_sampling_rate_n)dlsym(perseus_libhandle, "perseus_set_sampling_rate_n");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_set_sampling_rate_n == NULL)goto perseus_sym_error;
 perseus_stop_async_input=(p_perseus_stop_async_input)dlsym(perseus_libhandle, "perseus_stop_async_input");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_stop_async_input == NULL)goto perseus_sym_error;
 perseus_errorstr=(p_perseus_errorstr)dlsym(perseus_libhandle, "perseus_errorstr");
-if(dlerror() != 0)goto perseus_sym_error;
+if(perseus_errorstr == NULL)goto perseus_sym_error;
 return 0;
 perseus_sym_error:;
 dlclose(perseus_libhandle);

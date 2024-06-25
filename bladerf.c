@@ -476,80 +476,82 @@ if(bladerf_libhandle == NULL)goto load_error;
 info=1;
 bladerf_get_device_list=(p_bladerf_get_device_list)
                           dlsym(bladerf_libhandle, "bladerf_get_device_list");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_get_device_list == NULL)goto sym_error;
 bladerf_free_device_list=(p_bladerf_free_device_list)
                          dlsym(bladerf_libhandle, "bladerf_free_device_list");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_free_device_list == NULL)goto sym_error;
 bladerf_open_with_devinfo=(p_bladerf_open_with_devinfo)
                         dlsym(bladerf_libhandle, "bladerf_open_with_devinfo");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_open_with_devinfo == NULL)goto sym_error;
 bladerf_close=(p_bladerf_close)dlsym(bladerf_libhandle, "bladerf_close");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_close == NULL)goto sym_error;
 bladerf_enable_module=(p_bladerf_enable_module)
                            dlsym(bladerf_libhandle, "bladerf_enable_module");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_enable_module == NULL)goto sym_error;
 bladerf_set_sample_rate=(p_bladerf_set_sample_rate)
                         dlsym(bladerf_libhandle, "bladerf_set_sample_rate");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_sample_rate == NULL)goto sym_error;
 bladerf_set_sampling=(p_bladerf_set_sampling)
                              dlsym(bladerf_libhandle, "bladerf_set_sampling");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_sampling == NULL)goto sym_error;
 bladerf_set_lna_gain=(p_bladerf_set_lna_gain)
                             dlsym(bladerf_libhandle, "bladerf_set_lna_gain");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_lna_gain == NULL)goto sym_error;
 bladerf_set_rxvga1=(p_bladerf_set_rxvga1)
                              dlsym(bladerf_libhandle, "bladerf_set_rxvga1");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_rxvga1 == NULL)goto sym_error;
 bladerf_set_rxvga2=(p_bladerf_set_rxvga2)
                             dlsym(bladerf_libhandle, "bladerf_set_rxvga2");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_rxvga2 == NULL)goto sym_error;
 bladerf_set_bandwidth=(p_bladerf_set_bandwidth)
                             dlsym(bladerf_libhandle, "bladerf_set_bandwidth");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_bandwidth == NULL)goto sym_error;
 bladerf_select_band=(p_bladerf_select_band)
                              dlsym(bladerf_libhandle, "bladerf_select_band");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_select_band == NULL)goto sym_error;
 bladerf_set_lpf_mode=(p_bladerf_set_lpf_mode)
                             dlsym(bladerf_libhandle, "bladerf_set_lpf_mode");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_lpf_mode == NULL)goto sym_error;
 bladerf_set_frequency=(p_bladerf_set_frequency)
                            dlsym(bladerf_libhandle, "bladerf_set_frequency");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_frequency == NULL)goto sym_error;
 bladerf_init_stream=(p_bladerf_init_stream)dlsym
                                   (bladerf_libhandle, "bladerf_init_stream");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_init_stream == NULL)goto sym_error;
 bladerf_stream=(p_bladerf_stream)dlsym(bladerf_libhandle, "bladerf_stream");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_stream == NULL)goto sym_error;
 bladerf_deinit_stream=(p_bladerf_deinit_stream)
                             dlsym(bladerf_libhandle, "bladerf_deinit_stream");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_deinit_stream == NULL)goto sym_error;
 bladerf_get_fpga_size=(p_bladerf_get_fpga_size)dlsym
                                   (bladerf_libhandle, "bladerf_get_fpga_size");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_get_fpga_size == NULL)goto sym_error;
 bladerf_fw_version=(p_bladerf_fw_version)
                             dlsym(bladerf_libhandle, "bladerf_fw_version");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_fw_version == NULL)goto sym_error;
 bladerf_is_fpga_configured=(p_bladerf_is_fpga_configured)
                        dlsym(bladerf_libhandle, "bladerf_is_fpga_configured");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_is_fpga_configured == NULL)goto sym_error;
 bladerf_fpga_version=(p_bladerf_fpga_version)dlsym
                                   (bladerf_libhandle, "bladerf_fpga_version");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_fpga_version == NULL)goto sym_error;
 bladerf_strerror=(p_bladerf_strerror)
                                   dlsym(bladerf_libhandle, "bladerf_strerror");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_strerror == NULL)goto sym_error;
 bladerf_version=(p_bladerf_version)dlsym(bladerf_libhandle, "bladerf_version");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_version == NULL)goto sym_error;
 bladerf_calibrate_dc=(p_bladerf_calibrate_dc)
                               dlsym(bladerf_libhandle, "bladerf_calibrate_dc");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_calibrate_dc == NULL)goto sym_error;
 bladerf_expansion_attach=(p_bladerf_expansion_attach)
                   dlsym(bladerf_libhandle, "bladerf_expansion_attach");
+if(bladerf_expansion_attach == NULL)goto sym_error;
 bladerf_xb200_set_filterbank=(p_bladerf_xb200_set_filterbank) 
                   dlsym(bladerf_libhandle, "bladerf_xb200_set_filterbank");
+if(bladerf_xb200_set_filterbank == NULL)goto sym_error;
 bladerf_set_loopback=(p_bladerf_set_loopback)
                   dlsym(bladerf_libhandle, "bladerf_set_loopback");
-if(dlerror() != 0)goto sym_error;
+if(bladerf_set_loopback == NULL)goto sym_error;
 return 0;
 sym_error:;
 dlclose(bladerf_libhandle);

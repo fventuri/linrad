@@ -16,7 +16,7 @@
 #include <semaphore.h>
 #include <pthread.h>
 #include <fcntl.h>
-#ifndef __FreeBSD__ 
+#if !defined(__FreeBSD__) && !defined(__NetBSD__)
 #if DARWIN == 0
 #include <linux/fb.h>
 #endif

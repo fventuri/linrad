@@ -1134,6 +1134,18 @@ rmmod msi2500
 [1471]The linrad API and the installed library version is different.
 Install the latest library/driver from www.sdrplay.com.
 Should work fine with version equal or greater than 2.13
+[1472]Memeory allocation error. Enable the dumpfile in
+options.h and run again to get information about what went wrong.
+[1473]Too low samplingrate in the baseband to initialize
+FM low pass filter filter.
+[1474]Too low samplingrate in the baseband to initialize
+FM low pass filter filter.
+[1475]Too low samplingrate in the baseband to initialize
+FM low pass filter filter.
+[1476]Too low samplingrate in the baseband to initialize
+FM low pass filter filter.
+[1477]Too low samplingrate in the baseband to initialize
+FM low pass filter filter.
 [2600]The file par_sdrplay3 is corrupted or not consistent
 with other parameters. Use the U menu to set up your RSP device
 and do not forget to press W to save data in the main menu
