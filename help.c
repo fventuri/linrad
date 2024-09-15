@@ -435,6 +435,10 @@ for(i=0; i<no_of_scro; i++)
       case ALLAN_GRAPH:
       help_on_allan_graph();
       break;
+
+      case PHASING_GRAPH:
+      help_on_phasing_graph();
+      break;
       }
     }
   }

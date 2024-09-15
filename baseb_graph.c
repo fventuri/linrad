@@ -82,6 +82,49 @@ void prepare_mixer(MIXER_VARIABLES *m, int nn);
 
 static int ch2_signs[3]={1,-1,0};
 
+void skip_nonvalid(void)
+{
+float wt;
+// Called when frequency changed in correlation modes.
+// We need to discard the data that contains the frequency
+// jump.
+// Find out how much time the data waiting before fft1 sums up to.
+make_timing_info();
+wt=ad_wttim+fft1_wttim+timf2_wttim+fft2_wttim+
+                       timf3_wttim+fft3_wttim+baseb_wttim;
+timf2_pa=0;
+timf2_pb=0;
+timf2_pc=0;
+timf2_pn1=0;
+timf2_pn2=0;
+timf2_pt=0;
+timf2_px=0;
+timf3_pa=0;
+timf3_px=0;
+timf3_py=0;
+timf3_ps=0;
+timf3_pn=0;
+timf3_pc=0;
+timf3_pd=0;
+baseb_pa=0;
+baseb_pb=0;
+baseb_pc=0;
+baseb_pd=0;
+baseb_pe=0;
+baseb_pf=0;
+baseb_ps=0;
+baseb_pm=0;
+baseb_pn=0;
+baseb_py=0;
+baseb_px=0;
+daout_px=daout_pa;
+// We want to discard all old data in buffers.
+// Une unit of inhibit_count discards one block of size mix2.new_points
+// in the fft3 buffer. The associated time is 
+// 2*mix2.new_points*ui.rx_rf_channels/timf3_sampling_speed
+basebcorr_inhibit_count=1+rint(0.5+wt/(
+          (float)(2*mix2.new_points*ui.rx_rf_channels)/timf3_sampling_speed));
+}
 
 double iir5_c4(float fq)
 {
@@ -599,8 +642,6 @@ for(i=0; i<points[0]; i++)
 return(TRUE);
 }
 
-
-
 void init_basebmem(void)
 {
 float t1, t2;
@@ -1085,7 +1126,6 @@ sprintf(s,"%2d",bg.squelch_point);
 show_button(&bgbutt[BG_SQUELCH_POINT],s);
 settextcolor(7);
 } 
-
 
 void make_bg_filter(void)
 {

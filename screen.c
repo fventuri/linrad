@@ -55,13 +55,11 @@ double users_extra_time;
 #include "users_extra.c"
 #endif
 
-float phasing_update_interval;
 int local_ag_ps;
 void update_meter_graph(void);
 void hg_stonbars_redraw(void);
 void show_map65_buttons(void);
 void show_sellim_buttons(void);
-void phasing(void);
 
 double get_center_frequency(void)
 {
@@ -2191,9 +2189,6 @@ sprintf(s,"Ymin %d",vg.ymin);
 show_button(&vgbutt[VG_NEW_YMIN],s);
 sprintf(s,"Ymax %d",vg.ymax);
 show_button(&vgbutt[VG_NEW_YMAX],s);
-s[0]=vg_types[vg.type];
-s[1]=0;
-show_button(&vgbutt[VG_NEW_TYPE],s);
 s[0]=vg_modes[vg.mode];
 s[1]=0;
 show_button(&vgbutt[VG_NEW_MODE],s);
@@ -2317,220 +2312,109 @@ centerinv=.000001/(fg.passband_center*sqrt(2.0));
 x=0;
 yc=0;
 xold=vg_first_xpixel;
-if(vg.type == 0)
+for(i=0;i<vg_no_of_tau; i++)
   {
-  for(i=0;i<vg_no_of_tau; i++)
+  if(vg.mode == 0)
     {
-    if(vg.mode == 0)
+    if(vg_sumno[i] > 0)
       {
-      if(vg_sumno[i] > 0)
+      x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
+      dy1=vg_asum[2*i  ];
+      dy2=vg_asum[2*i+1];
+      dy1=centerinv*sqrt(dy1/(2*vg_sumno[i]));
+      dy2=centerinv*sqrt(dy2/(2*vg_sumno[i]));
+      if(dy1 < 1.e-18)dy1=1.e-18;
+      if(dy2 < 1.e-18)dy2=1.e-18;
+      iy1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
+      y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
+      if(y2 < vg_yt)y2=vg_yt;
+      if(y2 > vg_yb)y2=vg_yb;
+      if(vg_acorrsum[i] < 0)
         {
-        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
-        dy1=vg_asum[2*i  ];
-        dy2=vg_asum[2*i+1];
-        if(dy1 < 1.e-18)dy1=1.e-18;
-        if(dy2 < 1.e-18)dy2=1.e-18;
-        dy1=centerinv*sqrt(dy1/(2*vg_sumno[i]));
-        dy2=centerinv*sqrt(dy2/(2*vg_sumno[i]));
-        iy1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
-        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg_acorrsum[i] < 0)
-          {
-          color=3;
-          sum=-vg_acorrsum[i];
-          }
-        else
-          {  
-          color=14;
-          sum=vg_acorrsum[i];
-          }
-        if(sum < 1.e-18)sum=1.e-18;
-        dy=centerinv*sqrt(sum/(2*vg_sumno[i]));
-        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
-        if(yc < vg_yt)yc=vg_yt;
-        if(yc > vg_yb)yc=vg_yb;
-        if(iy1 < vg_yt)iy1=vg_yt;
-        if(iy1 > vg_yb)iy1=vg_yb;
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg.clear == 0 && i != 0)
-          {
-          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
-          }
-        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
-        lir_setcross(x,vg_y1pix[i],0);
-        lir_setcross(x,vg_y2pix[i],0);
-        lir_setcross(x,vg_ycpix[2*i],0);
-        vg_y1pix[i]=iy1;
-        vg_y2pix[i]=y2;
-        vg_ycpix[2*i+1]=vg_ycpix[2*i];
-        vg_ycpix[2*i]=yc;
-        lir_setcross(x,yc,color);
-        lir_setcross(x,iy1,10);
-        lir_setcross(x,y2,55);
-        xold=x;
+        color=3;
+        sum=-vg_acorrsum[i];
         }
-      }
-    else
-      {
-      if(vg_sumno[i] > 0)
+      else
+        {  
+        color=14;
+        sum=vg_acorrsum[i];
+        }
+      if(sum < 1.e-18)sum=1.e-18;
+      dy=centerinv*sqrt(sum/(2*vg_sumno[i]));
+      yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
+      if(yc < vg_yt)yc=vg_yt;
+      if(yc > vg_yb)yc=vg_yb;
+      if(iy1 < vg_yt)iy1=vg_yt;
+      if(iy1 > vg_yb)iy1=vg_yb;
+      if(y2 < vg_yt)y2=vg_yt;
+      if(y2 > vg_yb)y2=vg_yb;
+      if(vg.clear == 0 && i != 0)
         {
-        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
-        dy1=vg_hsum[2*i  ];
-        dy2=vg_hsum[2*i+1];
-        if(dy1 < 1.e-18)dy1=1.e-18;
-        if(dy2 < 1.e-18)dy2=1.e-18;
-        dy1=centerinv*sqrt(dy1/(2*vg_sumno[i]));
-        dy2=centerinv*sqrt(dy2/(2*vg_sumno[i]));
-        iy1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
-        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg_hcorrsum[i] < 0)
-          {
-          color=3;
-          sum=-vg_hcorrsum[i];
-          }
-        else
-          {  
-          color=14;
-          sum=vg_hcorrsum[i];
-          }
-        dy=centerinv*sqrt(sum/(2*vg_sumno[i]));
-        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
-        if(yc < vg_yt)yc=vg_yt;
-        if(yc > vg_yb)yc=vg_yb;
-        if(iy1 < vg_yt)iy1=vg_yt;
-        if(iy1 > vg_yb)iy1=vg_yb;
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg.clear == 0 && i != 0)
-          {
-          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
-          }
-        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
-        lir_setcross(x,vg_y1pix[i],0);
-        lir_setcross(x,vg_y2pix[i],0);
-        lir_setcross(x,vg_ycpix[2*i],0);
-        vg_y1pix[i]=iy1;
-        vg_y2pix[i]=y2;
-        vg_ycpix[2*i+1]=vg_ycpix[2*i];
-        vg_ycpix[2*i]=yc;
-        lir_setcross(x,yc,color);
-        lir_setcross(x,iy1,10);
-        lir_setcross(x,y2,55);
-        xold=x;
+        lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
         }
+      if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
+      lir_setcross(x,vg_y1pix[i],0);
+      lir_setcross(x,vg_y2pix[i],0);
+      lir_setcross(x,vg_ycpix[2*i],0);
+      vg_y1pix[i]=iy1;
+      vg_y2pix[i]=y2;
+      vg_ycpix[2*i+1]=vg_ycpix[2*i];
+      vg_ycpix[2*i]=yc;
+      lir_setcross(x,yc,color);
+      lir_setcross(x,iy1,10);
+      lir_setcross(x,y2,55);
+      xold=x;
       }
     }
-  }
-else
-  {
-  for(i=0;i<vg_no_of_tau; i++)
+  else
     {
-    if(vg.mode == 0)
+    if(vg_sumno[i] > 0)
       {
-      if(vg_sumno[i] > 0)
+      x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
+      dy1=vg_hsum[2*i  ];
+      dy2=vg_hsum[2*i+1];
+      if(dy1 < 1.e-18)dy1=1.e-18;
+      if(dy2 < 1.e-18)dy2=1.e-18;
+      dy1=centerinv*sqrt(dy1/(2*vg_sumno[i]));
+      dy2=centerinv*sqrt(dy2/(2*vg_sumno[i]));
+      iy1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
+      y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
+      if(y2 < vg_yt)y2=vg_yt;
+      if(y2 > vg_yb)y2=vg_yb;
+      if(vg_hcorrsum[i] < 0)
         {
-        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
-        dy1=vg_asum_ampl[2*i  ];
-        dy2=vg_asum_ampl[2*i+1];
-        if(dy1 < 1.e-18)dy1=1.e-18;
-        if(dy2 < 1.e-18)dy2=1.e-18;
-        dy1=sqrt(dy1/vg_sumno[i]);
-        dy2=sqrt(dy2/vg_sumno[i]);
-        iy1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
-        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg_acorrsum_ampl[i] < 0)
-          {
-          color=3;
-          sum=-vg_acorrsum_ampl[i];
-          }
-        else
-          {  
-          color=14;
-          sum=vg_acorrsum_ampl[i];
-          }
-        dy=sqrt(sum/vg_sumno[i]);
-        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
-        if(yc < vg_yt)yc=vg_yt;
-        if(yc > vg_yb)yc=vg_yb;
-        if(iy1 < vg_yt)iy1=vg_yt;
-        if(iy1 > vg_yb)iy1=vg_yb;
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg.clear == 0 && i != 0)
-          {
-          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
-          }
-        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
-        lir_setcross(x,vg_y1pix[i],0);
-        lir_setcross(x,vg_y2pix[i],0);
-        lir_setcross(x,vg_ycpix[2*i],0);
-        vg_y1pix[i]=iy1;
-        vg_y2pix[i]=y2;
-        vg_ycpix[2*i+1]=vg_ycpix[2*i];
-        vg_ycpix[2*i]=yc;
-        lir_setcross(x,yc,color);
-        lir_setcross(x,iy1,10);
-        lir_setcross(x,y2,55);
-        xold=x;
+        color=3;
+        sum=-vg_hcorrsum[i];
         }
-      }
-    else
-      {
-      if(vg_sumno[i] > 0)
+      else
+        {  
+        color=14;
+        sum=vg_hcorrsum[i];
+        }
+      dy=centerinv*sqrt(sum/(2*vg_sumno[i]));
+      yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
+      if(yc < vg_yt)yc=vg_yt;
+      if(yc > vg_yb)yc=vg_yb;
+      if(iy1 < vg_yt)iy1=vg_yt;
+      if(iy1 > vg_yb)iy1=vg_yb;
+      if(y2 < vg_yt)y2=vg_yt;
+      if(y2 > vg_yb)y2=vg_yb;
+      if(vg.clear == 0 && i != 0)
         {
-        x=vg_tau_to_xpix(vg_tau[i]/baseband_sampling_speed);
-        dy1=vg_hsum_ampl[2*i  ];
-        dy2=vg_hsum_ampl[2*i+1];
-        if(dy1 < 1.e-18)dy1=1.e-18;
-        if(dy2 < 1.e-18)dy2=1.e-18;
-        dy1=sqrt(dy1/vg_sumno[i]);
-        dy2=sqrt(dy2/vg_sumno[i]);
-        iy1=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy1)+vg.ymin));
-        y2=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy2)+vg.ymin));
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg_hcorrsum_ampl[i] < 0)
-          {
-          color=3;
-          sum=-vg_hcorrsum_ampl[i];
-          }
-        else
-          {  
-          color=14;
-          sum=vg_hcorrsum_ampl[i];
-          }
-        dy=sqrt(sum/(vg_sumno[i]));
-        yc=vg_yb-(int)((vg_ypix_per_decade)*(log10(dy)+vg.ymin));
-        if(yc < vg_yt)yc=vg_yt;
-        if(yc > vg_yb)yc=vg_yb;
-        if(iy1 < vg_yt)iy1=vg_yt;
-        if(iy1 > vg_yb)iy1=vg_yb;
-        if(y2 < vg_yt)y2=vg_yt;
-        if(y2 > vg_yb)y2=vg_yb;
-        if(vg.clear == 0 && i != 0)
-          {
-          lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
-          }
-        if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
-        lir_setcross(x,vg_y1pix[i],0);
-        lir_setcross(x,vg_y2pix[i],0);
-        lir_setcross(x,vg_ycpix[2*i],0);
-        vg_y1pix[i]=iy1;
-        vg_y2pix[i]=y2;
-        vg_ycpix[2*i+1]=vg_ycpix[2*i];
-        vg_ycpix[2*i]=yc;
-        lir_setcross(x,yc,color);
-        lir_setcross(x,iy1,10);
-        lir_setcross(x,y2,55);
-        xold=x;
+        lir_line(xold,vg_ycpix[2*(i-1)+1],x,vg_ycpix[2*i],0);
         }
+      if(i != 0)lir_line(xold,vg_ycpix[2*(i-1)],x,yc,color);
+      lir_setcross(x,vg_y1pix[i],0);
+      lir_setcross(x,vg_y2pix[i],0);
+      lir_setcross(x,vg_ycpix[2*i],0);
+      vg_y1pix[i]=iy1;
+      vg_y2pix[i]=y2;
+      vg_ycpix[2*i+1]=vg_ycpix[2*i];
+      vg_ycpix[2*i]=yc;
+      lir_setcross(x,yc,color);
+      lir_setcross(x,iy1,10);
+      lir_setcross(x,y2,55);
+      xold=x;
       }
     }
   }
@@ -2543,6 +2427,85 @@ lir_pixwrite(vgbutt[VG_NEW_CLEAR].x1-17*text_width/2,vg.ytop+text_height/2,s);
 
 void fill_vgf_graph(void)
 {
+int i, j, k, m, h, iy0;
+char s[16];
+float timestep, t1;
+// One y pixel is vgf.freqgain milliHz.
+// Place scale divisions at a multiple of 10 pixels
+iy0=(vgf_yt+vgf_yb)/2;
+lir_hline(vgf_first_xpixel,iy0,vgf_last_xpixel,VGF_FREQSCALE_COLOR);
+lir_pixwrite(vgf.xleft+2+5*text_width,iy0-text_height/2,"0");
+lir_pixwrite(vgf.xleft+text_width/2,iy0-text_height/2,"mHz");
+m=2*text_height;
+i=10;
+while(i < m)i+=10;
+j=i;
+h=(vgf_yb-vgf_yt)/2;
+while(j<h)
+  {
+  lir_hline(vgf_first_xpixel,iy0+j,vgf_last_xpixel,VGF_FREQSCALE_COLOR);
+  lir_hline(vgf_first_xpixel,iy0-j,vgf_last_xpixel,VGF_FREQSCALE_COLOR);
+  sprintf(&s[1],"%.4f",j*vgf.freqgain+.00001);
+  s[0]=' ';
+  m=strlen(s)-1;
+  while(s[m]=='0')m--;
+  if(s[m]== '.')m--;
+  m++;
+  s[m]=0;
+  lir_pixwrite(vgf.xleft+2+(7-m)*text_width,iy0-j-text_height/2,s);
+  s[0]='-';
+  lir_pixwrite(vgf.xleft+2+(7-m)*text_width,iy0+j-text_height/2,s);
+  j+=i;
+  }  
+// Place a time scale at the bottom. One pixel=vgf.time
+// Place vertical lines for the time scale at least 7 characters apart.
+lir_line(vgf_first_xpixel,vgf_yt,vgf_first_xpixel,vgf_yb,VGF_FREQSCALE_COLOR);
+lir_pixwrite(vgf_first_xpixel-text_width/2,vgf.ybottom-text_height,"0");
+m=7*text_width; 
+i=100;
+while(i < m)i+=100;
+timestep=i*vgf.time;
+k=0;
+if(timestep > 10)
+  {
+  k--;
+  timestep/=10;
+  }
+if(timestep < 1)
+  {
+  k++;
+  timestep*=10;
+  }
+timestep=nearbyint(timestep);
+while(k > 0)
+  {  
+  timestep/=10;
+  k--;
+  }
+while(k<0)
+  {
+  timestep*=10;
+  k++;
+  }  
+j=0;
+t1=timestep;
+while(j<vgf_last_xpixel-4*text_width)
+  {
+  j=timestep/vgf.time+vgf_first_xpixel;
+  lir_line(j,vgf_yt,j,vgf_yb,VGF_FREQSCALE_COLOR);
+  sprintf(s,"%.4f",timestep);
+  m=strlen(s)-1;
+  while(s[m]=='0')m--;
+  if(s[m]== '.')m--;
+  m++;
+  s[m]='s';
+  m++;
+  s[m]=0;
+  lir_pixwrite(j-(m*text_width)/2,vgf.ybottom-text_height,s);
+  j+=i;
+  timestep+=t1;
+  }
+
 }
 
 void show_vgf_buttons(void)
@@ -2566,15 +2529,6 @@ else
   sprintf(s,"mHz %6.5f",vgf.freqgain);
   }
 show_button(&vgfbutt[VGF_NEW_FREQGAIN],s);
-if(vgf.amplgain >= 1)
-  {
-  sprintf(s,"Ampl ppm %6.0f",vgf.amplgain);
-  }
-else
-  {  
-  sprintf(s,"Ampl ppm %6.5f",vgf.amplgain);
-  }
-show_button(&vgfbutt[VGF_NEW_AMPLGAIN],s);
 s[0]=42;
 s[1]=0;
 show_button(&vgfbutt[VGF_NEW_CENTER_TRACES],s);
@@ -2586,7 +2540,6 @@ hide_mouse(vgf.xleft,vgf.xright,vgf.ytop,vgf.ybottom);
 lir_fillbox(vgf.xleft,vgf.ytop,vgf.xright-vgf.xleft+1,vgf.ybottom-vgf.ytop+1,0);
 graph_borders((void*)&vgf,7);
 show_vgf_buttons();
-//if(vgf_mid_ampl == -1)return;
 fill_vgf_graph();
 }
 
@@ -2596,7 +2549,11 @@ char s[40];
 int i, k, m, n, p0, iy0;
 double dy1, dy2, dt1, dt2;
 int x, iy1, y2;
-// Look for frequency and amplitude as functions of time
+#if SHOW_ALLAN_FREQDIFF == TRUE
+double dy3;
+int y3;
+#endif
+// Look for frequency as a function of time
 k=(vgf_pa+1-vgf_px+vgf_size)&vgf_mask;
 if(k < 5)return;
 //Find the average center frequency for the latest 20 points
@@ -2621,29 +2578,13 @@ while(p0 != m)
   }
 dt1/=n;
 dt2/=n;
-if(vgf_mid_ampl == -1 || vgf_center_traces == TRUE)
+if(vgf_mid_freq == BIGDOUBLE || vgf_center_traces == TRUE)
   {
-  vgf_mid_ampl=0; // remove when mid_ampl is properly set in this routine.
   vgf_mid_freq=(dt1+dt2)/2.0;
   redraw_allanfreq_graph();
   fill_vgf_graph();
   vgf_center_traces=FALSE;
   }
-else
-  {  
-// If the average differs too much from the old mid frequency we have
-// to change the zero point for the frequency scale.
-/*
-  if(fabs((dt1+dt2)/2.0-vgf_mid_freq)*1000./vgf.freqgain > (vg_yb-vg_yt)/4)
-    {
-    vgf_mid_freq=(dt1+dt2)/2.0;
-//    lir_fillbox(vgf_first_xpixel,vgf_yt,vgf_xpixels,vgf_yb-vgf_yt+1,0);
-//    graph_borders((void*)&vgf,7);
-//    show_vgf_buttons();
-    }
-*/
-  }
-  
 lir_fillbox(vgf_first_xpixel,vgf_yt,vgf_xpixels,vgf_yb-vgf_yt+1,0);
 fill_vgf_graph();
 // Redraw the curves. k is the number of points we have.
@@ -2654,14 +2595,21 @@ while(p0 != vgf_pa)
   {
   dy1=vgf_freq[2*p0  ]-vgf_mid_freq;
   dy2=vgf_freq[2*p0+1]-vgf_mid_freq;
-  iy1=iy0+dy1*1000.0/vgf.freqgain;
-  y2=iy0+dy2*1000.0/vgf.freqgain;
+  iy1=iy0-dy1*1000.0/vgf.freqgain;
+  y2=iy0-dy2*1000.0/vgf.freqgain;
   if(iy1 < vgf_yt)iy1=vgf_yt;
   if(y2 < vgf_yt)y2=vgf_yt;
   if(iy1 > vgf_yb)iy1=vgf_yb;
   if(y2 > vgf_yb)y2=vgf_yb;
   lir_setpixel(x,iy1,10);
   lir_setpixel(x,y2,55);
+#if SHOW_ALLAN_FREQDIFF == TRUE
+  dy3=vgf_freq[2*p0  ]-vgf_freq[2*p0+1];
+  y3=iy0-dy3*1000.0/vgf.freqgain;
+  if(y3 < vgf_yt)y3=vgf_yt;
+  if(y3 > vgf_yb)y3=vgf_yb;
+  lir_setpixel(x,y3,14);
+ #endif 
   x++;
   p0=(p0+1)&vgf_mask;
   }
@@ -3646,8 +3594,6 @@ sleep_time=bg_maxamp_time;
 #if (USERS_EXTRA_PRESENT == 1)
 users_extra_time=bg_maxamp_time;
 #endif
-phasing_time=bg_maxamp_time;
-
 for(i=0;i<wg_waterf_size;i++)wg_waterf[i]=0x8000;
 if(screen_type & (SCREEN_TYPE_SVGALIB+SCREEN_TYPE_FBDEV))
   {
@@ -3968,14 +3914,6 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     users_extra_time=current_time();
     }
 #endif
-  if(pg.enable_phasing == 1 && fft1_correlation_flag == 0)
-    {
-    if(fabs(phasing_time-recent_time) > phasing_update_interval)
-      {
-      phasing();
-      phasing_time=current_time();
-      }
-    }
   if(rx_mode != MODE_TXTEST && rx_mode != MODE_RADAR)
     {
     if(ampinfo_flag)

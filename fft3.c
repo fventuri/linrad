@@ -343,13 +343,11 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
                 t1*=(float)timf3_sampling_speed/fft3_size;
                 mix1_selfreq[0]+=t1;
                 add_mix1_cursor(0);
-                if(fft1_correlation_flag > 1)
-                  {
-                  baseb_reset_counter++;
-                  }
                 timf3_pd=timf3_pc;
                 corr_afc_count=0;
                 sc[SC_SHOW_CENTER_FQ]++;  
+                skip_nonvalid();
+                return;
                 }
               }
             }
@@ -551,7 +549,8 @@ else
     else
       {
       sprintf(fft3_skip, "fft3 skip %6.2f",10*log10(1000*fabs(t1+t2)));
-      baseb_reset_counter++;
+      skip_nonvalid();
+      return;
       }
     }
 corrpow_x:;        

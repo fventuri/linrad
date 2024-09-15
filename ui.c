@@ -894,6 +894,38 @@ while(thread_command_flag[THREAD_USER_COMMAND] == THRFLAG_ACTIVE)
     switch(usercontrol_mode)
       {
       case USR_NORMAL_RX:
+// Used cases in alphabetic order:
+// +
+// -
+// A
+// B
+// C
+// E
+// F
+// N
+// M
+// Q
+// R
+// S
+// Alt S
+// T
+// U
+// V
+// W
+// ALT_W
+// F1
+// F2
+// F3
+// F5
+// F7
+// F8
+// F9
+// F11
+// SHIFT_F3
+// ARROW_DOWN
+// ARROW_LEFT
+// ARROW_RIGHT
+// ARROW_UP
       switch (lir_inkey)
         {
         case 'A':
@@ -951,6 +983,18 @@ while(thread_command_flag[THREAD_USER_COMMAND] == THRFLAG_ACTIVE)
         else
           {  
           disksave_stop();
+          }
+        break;
+
+        case ALT_S_KEY:
+        if(fft1_correlation_flag != 3)break;
+        if(allan_write_flag == 0)
+          {
+          allansave_start();
+          }
+        else
+          {  
+          allansave_stop();
           }
         break;
 

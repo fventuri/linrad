@@ -70,9 +70,10 @@ extern unsigned int sd[MAX_SC];
 #define AG_DBSCALE_COLOR 31
 #define BG_DBSCALE_COLOR 2
 #define HG_DBSCALE_COLOR 4
-#define MG_DBSCALE_COLOR 59
-#define SG_DBSCALE_COLOR 59
-#define VG_DBSCALE_COLOR 59
+#define MG_DBSCALE_COLOR 41
+#define SG_DBSCALE_COLOR 41
+#define VG_DBSCALE_COLOR 41
+#define VGF_FREQSCALE_COLOR 41
 
 #define WG_DBSCALE_COLOR 1
 #define AG_SRC_RANGE_COLOR 16
@@ -84,8 +85,8 @@ extern unsigned int sd[MAX_SC];
 #define BG_GAIN_COLOR 35
 #define BG_INACTIVE_BUTTON_COLOR 1
 #define BG_ACTIVE_BUTTON_COLOR 56
-#define PG_BACKGROUND_COLOR 38
-#define PC_CONTROL_COLOR 43
+#define PG_BACKGROUND_COLOR 39
+#define PC_CONTROL_COLOR 42
 #define MG_BAR_COLOR 52
 
 
@@ -100,8 +101,6 @@ extern unsigned int sd[MAX_SC];
 #define TXTEST_WIDE_AVERAGE_COLOR 12
 
 #define NO_SG_MODES 4
-
-
 #define MAX_SVGA_PALETTE 60
 
 
@@ -128,6 +127,10 @@ extern unsigned int sd[MAX_SC];
 // It is independent of the rx mode and has to be the same as MAX_GRAPHTYPES 
 #define GRAPHTYPE_NET 16
 #define MAX_GRAPHTYPES 16
+
+#define DISKSAVE_X_SIZE 48*text_width
+#define DISKSAVE_Y_SIZE 7*text_height    
+#define DISKSAVE_SCREEN_SIZE (DISKSAVE_X_SIZE*DISKSAVE_Y_SIZE)
 
 extern char *graphtype_names[MAX_GRAPHTYPES];
 extern char *graphtype_parptr[MAX_GRAPHTYPES];
@@ -198,7 +201,6 @@ extern float bg_waterf_yfac;
 extern char sg_modes[NO_SG_MODES];
 extern char *sg_xscales[2];
 extern float sg_hz_per_pixel;
-extern char vg_types[2];
 extern char vg_modes[2];
 extern char vg_clears[2];
 
@@ -388,6 +390,7 @@ extern ROUTINE current_mouse_activity;
 extern int mouse_active_flag;
 extern unsigned char svga_palette[];
 extern unsigned char color_scale[];
+void c_to_ampl_phase(int write_flag);
 void make_button(int x, int y, BUTTONS *butt, int m, char chr);
 void wg_error(char *txt, int line);
 void new_fft1_averages(int ptr, int ia, int ib);
@@ -408,6 +411,8 @@ void mouse_on_allan_graph(void);
 void mouse_on_allanfreq_graph(void);
 void mouse_on_elektor_graph(void);
 void mouse_on_fcdproplus_graph(void);
+void mouse_on_users_graph(void);
+void mouse_on_phasing_graph(void);
 void help_on_wide_graph(void);
 void help_on_hires_graph(void);
 void help_on_afc_graph(void);
@@ -422,6 +427,7 @@ void help_on_radar_graph(void);
 void help_on_siganal_graph(void);
 void help_on_allan_graph(void);
 void help_on_allanfreq_graph(void);
+void help_on_phasing_graph(void);
 void update_wg_spectrum(void);
 void init_wide_graph(void);
 void init_hires_graph(void);

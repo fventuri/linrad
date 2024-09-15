@@ -105,12 +105,14 @@ if( genparm[SECOND_FFT_ENABLE] != 0 )
     {
     timf2_wttim=0;
     fft2_wttim=0;
-    }  
+    }
   }
 else
   {
   if(mix1_selfreq[0] >=0 )
     {
+    timf2_wttim=0;
+    fft2_wttim=0;
 // ***********************************************
 // fft1_wtb completed fft1 transforms waiting to be 
 // transformed to the baseband by mix1.

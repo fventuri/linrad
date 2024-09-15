@@ -1,4 +1,4 @@
-000061
+000065
 [1]KEYBOARD COMMANDS (available in most modes) 
 A = Numerical display, amplitudes
 E = Eliminate spur (If AFC present)
@@ -8,7 +8,9 @@ G = Save entire screen as .GIF file
 M = Toggle freq stepping mode. Center, Passband or BFO (See Left, Right) 
 R = Remember tune frequency in autostart mode.
 S = Save input data as file (S again to stop)  
+Alt S = Save frequency vs time from Allan graph (correlation mode 3.)
 T = Numerical display, processing delays
+U = User defined functio if present.
 W = Write output data as .WAV file (W again to stop)
 Alt W = Save .WAV file as 'W', but only when squelch is open.
 X = Exit from current mode to menu.
@@ -45,8 +47,11 @@ F = File playback control. Select what part(s) to play.
 C = Clear spur elimination tables (If AFC present)
 G = Save entire screen as .GIF file
 M = Toggle freq stepping mode. Center, Passband or BFO (See Left, Right) 
+R = Remember tune frequency in autostart mode.
 S = Save input data as file (S again to stop)  
+Alt S = Save frequency vs time from Allan graph (correlation mode 3.)
 T = Numerical display, processing delays
+U = User defined functio if present.
 W = Write output data as .WAV file (W again to stop)
 Alt W = Save .WAV file as 'W', but only when squelch is open.
 X = Exit from current mode to menu
@@ -1911,6 +1916,7 @@ frequency scale.
 in the time scale.
 [361]Enter the shortest time for which to compute sigma.
 [362]Enter the longest time for which to compute sigma.
+This time must not be greater than 0.25*baseband storage time.
 [363]Enter a positive number for the top of the sigma scale. 9 gives 1.E-9.
 [364]Enter a positive number for the bottom of the sigma scale 12 gives 1.E-12. 
 [365]Press ALT Z to clear the sideband noise graph
@@ -1932,11 +1938,37 @@ S = Save old correlation traces. This helps to see how statistics improve.
 [368]Click this button to toggle between:
 A = Allan variance
 H = Hadamard variance
-[369]Click this button to toggle between:
-P = Phase noise
-A = Amplitude noise
 [370]Enter milliHZ for the range of the Y-scale..
 [371]Enter parts per million for the range of the amplitude scale here.
 [372]Enter the time between points for frequencies and amplitudes.
 [373]Click this box to center the 20 latest points of the traces vertically.
+[374]Press left mouse button to change direction.
+This function is intended for use in "Fixed" mode.
+[375]Press left mouse button to move the white line. That will change
+the amplitude ratio.
+This function is intended for use in "Fixed" mode.
+[376]Press left mouse button and move horizontal line to change time 
+constant of the direction evaluation.
+[377]Slow increase of gain balance between the channels.
+[378]Slow decrease of gain balance between the channels.
+[379]Slow increase of phase shift between the channels.
+[380]Slow decrease of phase shift between the channels.
+[381]Fast increase of gain balance between the channels.
+[382]Fast decrease of gain balance between the channels.
+[383]Fast increase of phase shift between the channels.
+[384]Fast decrease of phase shift between the channels.
+[385]Write the present values of gain and phase to Memory 1.
+[386]Write the present values of gain and phase to Memory 2.
+[387]Write the present values of gain and phase to Memory 3.
+[388]Make the present values of gain and phase equal to these stored in Memory 1.
+[389]Make the present values of gain and phase equal to these stored in Memory 2.
+[390]Make the present values of gain and phase equal to these stored in Memory 3.
+[391]Orthonormal transformation. Changes the sign of gain balance and adds 180 degrees to phase shift (e.g.
+pair -3 dB, +38 degrees becomes +3 dB, -142 degrees).
+[392]Changes the sign of phase shift (e.g. +38 degrees becomes -38 degrees).
+[393]Inversion of phase. 180 degrees is being added (e.g. +38 degrees turns into -142 degrees).
+[394]Individual channel toggle. Toggles the gain balance between -50 dB (channel 2 attenuated) and +50 dB
+(channel 1 attenuated).
+[395]Make the present values of gain and phase equal to these given below (in numerical input fields for gain and phase).
+[396]Enter angle for azimuth correction here.
 [0]

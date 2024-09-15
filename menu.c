@@ -137,9 +137,11 @@ if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
   init_afc_graph();
   if(kill_all_flag || lir_status != LIR_OK) goto radar_x;
   }
-if(ui.rx_rf_channels == 2)
+if(ui.rx_rf_channels == 2 && fft1_correlation_flag ==0)
   {
   init_pol_graph();
+  if(kill_all_flag || lir_status != LIR_OK) goto radar_x;
+  if(pg.enable_phasing != 0) init_phasing_window();
   if(kill_all_flag || lir_status != LIR_OK) goto radar_x;
   }
 init_radar_graph();
@@ -169,7 +171,6 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   {
   open_afedriusb_control();  
   }
-phasing_init_mode();
 users_init_mode();
 if(kill_all_flag || lir_status != LIR_OK) goto radar_x;
 show_name_and_size();
@@ -442,7 +443,6 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   {
   open_afedriusb_control();  
   }
-phasing_init_mode();
 users_init_mode();
 show_name_and_size();
 settextcolor(7);
@@ -579,6 +579,7 @@ else
   get_wideband_sizes();
   if(kill_all_flag) goto normal_rx_x;
   get_buffers(1);
+  if(kill_all_flag) goto normal_rx_x;
   netfd.rec_rx=INVSOCK;
   }
 if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
@@ -600,9 +601,11 @@ if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
   init_afc_graph();
   if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
   }
-if(ui.rx_rf_channels == 2)
+if(ui.rx_rf_channels == 2 && fft1_correlation_flag ==0)
   {
   init_pol_graph();
+  if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
+  if(pg.enable_phasing != 0) init_phasing_window();
   if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
   }
 init_baseband_graph();
@@ -648,7 +651,6 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   {
   open_afedriusb_control();  
   }
-phasing_init_mode();
 users_init_mode();
 if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
 show_name_and_size();
@@ -3162,12 +3164,15 @@ go_updparm:;
     restore_uiparm();
     goto updparm;
 
-    case LIR_NEW_POL:
-    clear_screen();
-    select_pol_default();
-    if(kill_all_flag) goto menu_x;
-    lir_status = LIR_OK;
-    goto do_pc_radio;
+    if(rx_rf_channels == 2)
+      {
+      case LIR_NEW_POL:
+      clear_screen();
+      select_pol_default();
+      if(kill_all_flag) goto menu_x;
+      lir_status = LIR_OK;
+      goto do_pc_radio;
+      }
 
     case LIR_POWTIM:
     goto do_pc_radio;  

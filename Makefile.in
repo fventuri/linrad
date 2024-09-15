@@ -1,3 +1,4 @@
+
 # Copyright (c) <2012> <Leif Asbrink>
 #
 # Permission is hereby granted, free of charge, to any person 
@@ -29,8 +30,8 @@ CC=@CC@
 # so we definitely know it is for Linux.
 # (*.o files can be present by mistake)
 LCC     = ${CC} -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
-WCC	= @MINGWBIN@ -march=i686 -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
-WCC64	= x86_64-w64-mingw32-gcc -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
+WCC	= @MINGWBIN32@ -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
+WCC64	= @MINGWBIN64@ -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
 WINWCC  = C:\mingw\bin\mingw32-gcc -march=i686 -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
 WINWCC64 = C:\mingw64\mingw64\bin\x86_64-w64-mingw32-gcc -march=x86-64 -D_FILE_OFFSET_BITS=64 @LUSERHWDEF@ @WUSERHWDEF@
 NASML	= nasm -w-orphan-labels @ELF32@ -s 
@@ -1037,12 +1038,11 @@ wse.ox: Makefile $(WSE)
 	@echo "To cross compile for Windows you need the w64-mingw32 package."
 	@echo " "
 	@echo "Install the w64-mingw32 package and run configure again."
-	@echo "Debian, Ubuntu: apt-get install mingw32"
-	@echo "Debian, Ubuntu: apt-get install gcc-mingw32"
-	@echo "Debian, Ubuntu: apt-get install gcc-mingw-w64-i686"
-	@echo "old Fedora: yum install mingw32-gcc"
-	@echo "Fedora 22 and later: dnf install mingw32-gcc"
+	@echo "Debian: apt-get install gcc-mingw-w64-i686"
+	@echo "Fedora: dnf install mingw32-gcc"
 	@echo "Mageia: urpmi mingw32-gcc"
+	@echo " "
+	@echo "Then run ./configure again to update Makefile."
 	@echo " "
 	@echo "---------------------------------------------------------"
 endif
@@ -1342,6 +1342,23 @@ wse.ow: $(WSE)
 	$(WCC) wse.c $(CFW) wse.ow
 
 
+  ifeq ("@WLIN64_OK@", "0")
+@LLINRAD64_EXE@ : Makefile
+	@echo " "
+  ifeq ("@MINGW64_OK@", "0")
+	@echo "---------------------------------------------------------"
+	@echo "To cross compile for 64 bit Windows you need x86_64-w64-mingw32-gcc"
+	@echo " "
+	@echo "Install the package and run configure again."
+	@echo "Debian: apt-get install gcc-mingw-w64-x86-64"
+	@echo "Fedora: yum install mingw64-gcc"
+	@echo "openSUSE: zypper install mingw64-cross-gcc"
+	@echo " "
+	@echo "Then run ./configure again to update Makefile."
+	@echo " "
+	@echo "---------------------------------------------------------"
+  endif
+  else
 @LLINRAD64_EXE@ : Makefile wmain.oy keyboard_var.oy uivar.oy fft1var.oy \
 fft3var.oy txvar.oy blnkvar.oy sigvar.oy calvar.oy screenvar.oy sdrvar.oy \
 selvar.oy ui.oy palette.oy menu.oy fft2var.oy thrvar.oy modesub.oy \
@@ -1382,7 +1399,7 @@ sdrplay3.oy soundcard.oy openhpsdr.oy httpd.oy html_server.oy afedri.oy \
 affinity.oy loadusb.oy cloudiq.oy airspyhf.oy siganal_graph.oy \
 allan_graph.oy \
 -lws2_32 -lgdi32 -lwinmm -lsetupapi -lole32 -lcomdlg32 
-
+endif
 split.oy: Makefile split64.s
 	$(NASMW64) split64.s -o split.oy
 fft2mmxa.oy: Makefile fft2mmxa64.s

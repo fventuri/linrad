@@ -198,8 +198,12 @@ getchar();
 
 int investigate_cpu(void)
 {
-#ifndef __NetBSD__
-int i;
+#if CPU == CPU_INTEL
+  int i;
+#else
+  #if TRUE_BSD == FALSE
+    int i;
+  #endif
 #endif
 #if TRUE_BSD == FALSE
 int k, maxproc, maxproc_flag;

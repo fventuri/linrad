@@ -94,10 +94,11 @@ float im;
 #define DB2DBM 106
 
 extern char fft3_level[12];
-extern char fft3_skip[17];
+extern char fft3_skip[32];
 
 
 void mg_compute_stonavg(void);
+void skip_nonvalid(void);
 
 extern int bg_filter_points;
 extern int bg_carrfilter_points;
@@ -349,7 +350,6 @@ extern double *vg_asum;
 extern double *vg_acorrsum;
 extern double *vg_hsum;
 extern double *vg_hcorrsum;
-extern double *vg_amplitude;
 extern double *vg_asum_ampl;
 extern double *vg_acorrsum_ampl;
 extern double *vg_hsum_ampl;
@@ -378,18 +378,14 @@ extern int vgf_size;
 extern int vgf_mask;
 extern double vgf_average_freq1;
 extern double vgf_average_freq2;
-extern double vgf_average_ampl1;
-extern double vgf_average_ampl2;
-extern int vgf_ampfreq_tau;
-extern int vgf_ampfreq_n;
+extern int vgf_tau;
+extern int vgf_n;
 extern int vgf_xpixels;
 extern int vgf_yt;
 extern int vgf_yb;
 extern int vgf_first_xpixel;
 extern int vgf_last_xpixel;
 extern float *vgf_freq;
-extern float *vgf_ampl;
-extern double vgf_mid_ampl;
 extern double vgf_mid_freq;
 extern int vgf_center_traces;
 
@@ -592,4 +588,5 @@ void clear_baseb(void);
 void make_allan_graph(int flag1, int flag2);
 void make_allanfreq_graph(int flag1, int flag2);
 void make_siganal_graph(int flag1, int flag2);
-
+void allansave_start(void);
+void allansave_stop(void);

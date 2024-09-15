@@ -2008,17 +2008,46 @@ fq_scale(wg_freq_x1, wg_freq_x2, ya,
                           wg_first_xpixel, first_frequency, wg_hz_per_pixel);
 }
 
+
 void show_pol(void)
 {
 char s[80];
 int angstep,i,x1,x2,y9,y2;
+int x222, y222;
+int r222;
+float markers_angle;
+int x111, y111, r111;
+float phase_shift;
 float major,minor,z1,z2,a1,a2,c1;
 float pol_a,sina,pol_b;
 hide_mouse(pg.xleft,pg.xright,pg.ytop,pg.ybottom);
 // Make an ellipse to describe circular polarization
 i=pgbutt[PG_ANGLE].x2-pgbutt[PG_ANGLE].x1;
-lir_fillbox(pgbutt[PG_ANGLE].x1,pgbutt[PG_ANGLE].y1,i,i,PG_BACKGROUND_COLOR);
 major=0.45*i;
+lir_fillbox(pgbutt[PG_ANGLE].x1,pgbutt[PG_ANGLE].y1,i,i,PG_BACKGROUND_COLOR); 
+c_to_ampl_phase(pg.enable_phasing);
+pol_a=acos(pg.c1);
+if(pg.c3 == 0)
+  {
+  pg_b=0;
+  }
+else
+  {
+  pg_b=atan2(pg.c3,pg.c2); 
+  }
+if(fabs(1-pg.c1*pg.c1-pg.c2*pg.c2-pg.c3*pg.c3) >0.01)
+  {
+// Something went wrong.
+  DEB"pol error c1 %f  c2 %f  c3 %f",pg.c1, pg.c2, pg.c3);
+  lirerr(887999);
+  return;
+  }
+// Rotate the coordinate system by pg.angle
+pol_b=pol_a-pg.angle*PI_L/180;
+if(pol_b > PI_L)pol_b-=PI_L;
+if(pol_b <0)pol_b+=PI_L;
+if(pg.azimuth == 0)
+  {
 // The complex amplitudes in our two channels are:
 // re_x=cos(z)*cos(a)
 // im_x=sin(z)*cos(a)
@@ -2045,77 +2074,100 @@ major=0.45*i;
 // For linear polarization B=0 and for circular B=0.5
 // Illustrate the polarization with an ellipse.
 // the axis power lengths are B and (1-B)
-pol_a=acos(pg.c1);
-if(pg.c3 == 0)
-  {
-  pg_b=0;
-  }
-else
-  {
-  pg_b=atan2(pg.c3,pg.c2); 
-  }
-if(fabs(1-pg.c1*pg.c1-pg.c2*pg.c2-pg.c3*pg.c3) >0.01)
-  {
+  pol_a=acos(pg.c1);
+  if(pg.c3 == 0)
+    {
+    pg_b=0;
+    }
+  else
+    {
+    pg_b=atan2(pg.c3,pg.c2); 
+    }
+  if(fabs(1-pg.c1*pg.c1-pg.c2*pg.c2-pg.c3*pg.c3) >0.01)
+    {
 // Something went wrong.
-DEB"pol error c1 %f  c2 %f  c3 %f",pg.c1, pg.c2, pg.c3);
-  lirerr(887999);
-  return;
-  }
+  DEB"pol error c1 %f  c2 %f  c3 %f",pg.c1, pg.c2, pg.c3);
+    lirerr(887999);
+    return;
+    }
 // Rotate the coordinate system by pg.angle
-pol_b=pol_a-pg.angle*PI_L/180;
-if(pol_b > PI_L)pol_b-=PI_L;
-if(pol_b <0)pol_b+=PI_L;
-c1=cos(pol_b);
-z1=pow(sin(2*pol_a),2.)*0.5*(1-cos(2*pg_b));
-minor=major*z1;
-angstep=2*major/PI_L;
-angstep*=sqrt(fabs(minor/major));
-angstep++;
-angstep&=0xfffffffe;
-if(angstep < 2)angstep=2;
-z2=2*PI_L/angstep;
-z1=pol_a;
-angstep++;
-sina=sin(pol_b);
-x1=pg_x0+major*c1;
-y9=pg_y0-major*sina;
-for(i=0; i<angstep; i++)
-  {
-  a1=major*cos(z1-pol_a);
-  a2=minor*sin(z1-pol_a);
-  x2=pg_x0+(a1*c1+a2*sina);
-  y2=pg_y0+(a2*c1-a1*sina);
-  lir_line(x1,y9,x2,y2,7);
-  if(kill_all_flag) return;
-  x1=x2;
-  y9=y2;
-  z1+=z2;
+  pol_b=pol_a-pg.angle*PI_L/180;
+  if(pol_b > PI_L)pol_b-=PI_L;
+  if(pol_b <0)pol_b+=PI_L;
+  c1=cos(pol_b);
+  z1=pow(sin(2*pol_a),2.)*0.5*(1-cos(2*pg_b));
+  minor=major*z1;
+  angstep=2*major/PI_L;
+  angstep*=sqrt(fabs(minor/major));
+  angstep++;
+  angstep&=0xfffffffe;
+  if(angstep < 2)angstep=2;
+  z2=2*PI_L/angstep;
+  z1=pol_a;
+  angstep++;
+  sina=sin(pol_b);
+  x1=pg_x0+major*c1;
+  y9=pg_y0-major*sina;
+  for(i=0; i<angstep; i++)
+    {
+    a1=major*cos(z1-pol_a);
+    a2=minor*sin(z1-pol_a);
+    x2=pg_x0+(a1*c1+a2*sina);
+    y2=pg_y0+(a2*c1-a1*sina);
+    lir_line(x1,y9,x2,y2,7);
+    if(kill_all_flag) return;
+    x1=x2;
+    y9=y2;
+    z1+=z2;
+    }
+  a2=y2=x2=0;
+  pg_pol_angle=180*pol_b/PI_L;
+  sprintf(s,"%3d",(int)(pg_pol_angle));
+  lir_pixwrite(pgbutt[PG_CIRC].x1+text_width/2,pgbutt[PG_CIRC].y2+1,s);
+  lir_fillbox(pgbutt[PG_CIRC].x1,pgbutt[PG_CIRC].y1,
+             pgbutt[PG_CIRC].x2-pgbutt[PG_CIRC].x1,
+             pgbutt[PG_CIRC].y2-pgbutt[PG_CIRC].y1,PC_CONTROL_COLOR);
+  if(pol_a < 0.5*PI_L)
+    {
+    a1=1;
+    }
+  else
+    {
+    a1=-1;
+    }
+  if(a1*pg_b > 0)
+    {
+    s[0]='R';
+    }
+  else
+    {
+    s[0]='L';
+    }
+  s[1]=0;
+  lir_pixwrite(pg_x0-text_width/4,pg_y0-text_height/3,s); 
+  i=0.88*pg_b*(pgbutt[PG_CIRC].x2-pgbutt[PG_CIRC].x1)/PI_L;
+  lir_line(pg_x0+i,pgbutt[PG_CIRC].y1,pg_x0+i,pgbutt[PG_CIRC].y2-1,15);
   }
-a2=y2=x2=0;
-pg_pol_angle=180*pol_b/PI_L;
-sprintf(s,"%3d",(int)(pg_pol_angle));
-lir_pixwrite(pgbutt[PG_CIRC].x1+text_width/2,pgbutt[PG_CIRC].y2+1,s);
-lir_fillbox(pgbutt[PG_CIRC].x1,pgbutt[PG_CIRC].y1,
+else
+  {  
+  r222=0.5*(pgbutt[PG_ANGLE].x2-pgbutt[PG_ANGLE].x1)-3;
+  markers_angle = PI_L/4; 
+  for(i=0; i<8; i++)
+    {
+	x222=pg_x0+r222*sin(i*markers_angle);
+	y222=pg_y0+r222*cos(i*markers_angle);
+	lir_setpixel(x222,y222,14);
+    }
+  r111=0.5*(pgbutt[PG_ANGLE].x2-pgbutt[PG_ANGLE].x1)-6;
+  phase_shift=xg.phase_shift*2*PI_L/360;
+  x111=pg_x0+r111*sin(phase_shift);
+  y111=pg_y0-r111*cos(phase_shift);
+  lir_line(pg_x0,pg_y0,x111,y111,14); 
+  pg_pol_angle=180*pol_b/PI_L;
+  lir_fillbox(pgbutt[PG_CIRC].x1,pgbutt[PG_CIRC].y1,
            pgbutt[PG_CIRC].x2-pgbutt[PG_CIRC].x1,
-           pgbutt[PG_CIRC].y2-pgbutt[PG_CIRC].y1,PC_CONTROL_COLOR);
-if(pol_a < 0.5*PI_L)
-  {
-  a1=1;
+           pgbutt[PG_CIRC].y2-pgbutt[PG_CIRC].y1,PG_BACKGROUND_COLOR);
+  i=0.01*(xg.ampl_bal)*(pgbutt[PG_CIRC].x2-pgbutt[PG_CIRC].x1-1);
+  lir_line(pg_x0+i,pgbutt[PG_CIRC].y1+1,pg_x0+i,pgbutt[PG_CIRC].y2-1,14);
   }
-else
-  {
-  a1=-1;
-  }
-if(a1*pg_b > 0)
-  {
-  s[0]='R';
-  }
-else
-  {
-  s[0]='L';
-  }
-s[1]=0;
-lir_pixwrite(pg_x0-text_width/4,pg_y0-text_height/3,s); 
-i=0.88*pg_b*(pgbutt[PG_CIRC].x2-pgbutt[PG_CIRC].x1)/PI_L;
-lir_line(pg_x0+i,pgbutt[PG_CIRC].y1,pg_x0+i,pgbutt[PG_CIRC].y2-1,15);
 }

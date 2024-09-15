@@ -238,7 +238,6 @@ mg_meter_file=NULL;
 corr_afc_count=MAX_CORR_AFC_COUNT;
 fft1_skip_flag=1;
 vgf_freq=NULL;
-vgf_ampl=NULL;
 }
  
 int skip_calibration(void)
@@ -1918,8 +1917,10 @@ for(i=0; i<memalloc_no; i++)
   dt+=memalloc_mem[i].size+memalloc_mem[i].scratch_size+DEBMEM;
   if(dt-(double)(totbytes) != 0)
    {
-   PERMDEB"\nERROR %s totbytes=%f wanted %f",s,(double)(totbytes),dt);
-   printf("\nERROR %s totbytes=%f wanted %f",s,(double)(totbytes),dt);
+   DEB"\nERROR %s totbytes=%.0fMB bytes wanted %.0fMB",s,
+                    (double)(totbytes/1.e6),dt/1.e6);
+   fprintf(stderr,"\nERROR %s totbytes=%.0fMB wanted %.0fMB",s,
+                    (double)(totbytes/1.e6),dt/1.e6);
    lirerr(1472);
    return 0;
    }

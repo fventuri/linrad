@@ -209,6 +209,9 @@ FILE *dmp;
 FILE *dmp1;
 FILE *sndlog;
 FILE *wav_file;
+FILE *allan_file_ch1;
+FILE *allan_file_ch2;
+FILE *allan_file_diff;
 float total_wttim;
 int rx_daout_bytes;
 int rx_daout_channels;
@@ -230,6 +233,7 @@ double dasync_avgtime;
 double da_start_time;
 int overrun_count;
 int wav_write_flag;
+int allan_write_flag;
 int wav_read_flag;
 int audio_dump_flag;
 int diskread_pause_flag;
@@ -264,7 +268,6 @@ int si570_open_switch;
 int file_rate_correction;
 int file_center_correction;
 float fg_truncation_error;
-
 DXDATA *dx;
 MEM_INF fft1mem[MAX_FFT1_ARRAYS];
 MEM_INF fft3mem[MAX_FFT3_ARRAYS];
@@ -636,8 +639,7 @@ char *vg_intpar_text[MAX_VG_INTPAR]={"ytop",               //1
                                      "Ymax neg pow10",     //7
                                      "Clear traces",       //8
                                      "Mode",               //9 
-                                     "Type",               //10                    
-                                     "Check"};             //11
+                                     "Check"};             //10
                                       
 char *vg_floatpar_text[MAX_VG_FLOATPAR]={"Min tau",         //1
                                          "Max tau"};        //2
@@ -649,8 +651,7 @@ char *vgf_intpar_text[MAX_VGF_INTPAR]={"ytop",               //1
                                        "Check"};              //5
 
 char *vgf_floatpar_text[MAX_VGF_FLOATPAR]={"Freq gain",      //1
-                                           "Ampl gain",      //2
-                                           "Time step"};     //3  
+                                           "Time step"};     //2
 
 char *hg_intpar_text[MAX_HG_INTPAR]={"ytop",                //1
                                      "ybottom",             //2
@@ -736,7 +737,9 @@ char *pg_intpar_text[MAX_PG_INTPAR]={"ytop",            //1
                                      "avg",             //6
                                      "startpol",        //7
                                      "enable phasing",  //8
-                                     "check"};          //9
+                                     "azimuth",         //9
+                                     "size",            //10
+                                     "check"};          //11
 
 char *pg_floatpar_text[MAX_PG_FLOATPAR]={"angle",       //1
                                          "c1",          //2

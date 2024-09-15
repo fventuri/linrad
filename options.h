@@ -43,15 +43,19 @@
 // GIFDIR is where screen dumps are saved
 // WAVDIR is where output audio files are saved
 // RAWDIR is where input raw data files are saved
+// ALLANDIR is where frequency data from the Allan graph is saved.
+
 #if OSNUM == OSNUM_LINUX
 #if DARWIN == 1
 #define GIFDIR "/linrad_data/"
 #define WAVDIR "/linrad_data/"
 #define RAWDIR "/linrad_data/"
+#define ALLANDIR "/linrad_data/"
 #else
 #define GIFDIR "/home/linrad_data/"
 #define WAVDIR "/home/linrad_data/"
 #define RAWDIR "/home/linrad_data/"
+#define ALLANDIR "/home/linrad_data/"
 #endif
 #endif
 
@@ -59,12 +63,21 @@
 # define GIFDIR "C:\\linrad_data\\"
 # define WAVDIR "C:\\linrad_data\\"
 # define RAWDIR "C:\\linrad_data\\"
+#define ALLANDIR "C:\\linrad_data\\"
 # if IA64 == 0
 #  define DLLDIR "C:\\linrad\\dll\\"
 #  else
 #  define DLLDIR "C:\\linrad\\dll\\x64\\"
 # endif
 #endif
+// Define one or more ALLAN files if you want to produce input
+// for TimeLab from Linrad
+//#define ALLANFILE_CH1 TRUE
+#define ALLANFILE_CH1 FALSE
+//#define ALLANFILE_CH2 TRUE
+#define ALLANFILE_CH2 FALSE  
+//#define ALLANFILE_DIFF TRUE  
+#define ALLANFILE_DIFF FALSE  
 // ************************************************************
 //               ----   Configuration   ----
 // The coherent graph which also contains the S-meter is rectangular
@@ -161,7 +174,7 @@
 // the performance of filters, AGC and possibly other things that
 // depend on user selected parameters in Linrad. The data can be
 // saved as .raw files which can be converted to .wav files and
-// subsequently used for input to other SDR softwares.
+// subsequently used for input to other SDR software.
 // Define one of the generator modes TRUE and the other ones FALSE.
 #define INTERNAL_GEN_CARRIER TRUE
 #define INTERNAL_GEN_FILTER_TEST FALSE
@@ -211,3 +224,10 @@
 // Disable the test for a serial number in Afedri.
 //#define DISABLE_AFEDRI_SERIAL_NUMBER TRUE
 #define DISABLE_AFEDRI_SERIAL_NUMBER FALSE
+// **********************************************************************
+// Show the frequency difference between the channels in the Allan window,
+// (correlation_flag = 3)
+//#define SHOW_ALLAN_FREQDIFF TRUE
+#define SHOW_ALLAN_FREQDIFF FALSE
+// **********************************************************************
+

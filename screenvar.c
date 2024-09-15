@@ -270,7 +270,6 @@ int s_meter_avg_filled_flag;
 char *sg_xscales[2]={"lin","log"};
 char sg_modes[NO_SG_MODES]={'B','P','A','C'}; 
 char ch2_phase_symbol[MAX_CH2_PHASES]={'+','-','c'};
-char vg_types[2]={'P','A'};
 char vg_modes[2]={'A','H'};
 char vg_clears[2]={'C','S'};
 

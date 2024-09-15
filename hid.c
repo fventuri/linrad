@@ -1357,7 +1357,6 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 				len = strlen(str);
 				cur_dev->path = calloc(len+1, sizeof(char));
 				strcpy(cur_dev->path, str);
-				cur_dev->path[len] = '\0';
 			}
 			else
 				cur_dev->path = NULL;

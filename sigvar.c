@@ -171,7 +171,7 @@ unsigned char morsascii6[64]={
 243};//______
 
 char fft3_level[12]="           ";
-char fft3_skip[17]="                 ";
+char fft3_skip[32]="            ";
 unsigned char *morsascii[6]={morsascii1, morsascii2, morsascii3, 
                morsascii4, morsascii5, morsascii6};               
 
@@ -309,7 +309,6 @@ double *vg_asum;
 double *vg_acorrsum;
 double *vg_hsum;
 double *vg_hcorrsum;
-double *vg_amplitude;
 double *vg_asum_ampl;
 double *vg_acorrsum_ampl;
 double *vg_hsum_ampl;
@@ -342,19 +341,15 @@ int vgf_size;
 int vgf_mask;
 double vgf_average_freq1;
 double vgf_average_freq2;
-double vgf_average_ampl1;
-double vgf_average_ampl2;
 int vgf_first_xpixel;
 int vgf_last_xpixel;
 int vgf_xpixels;
 int vgf_yt;
 int vgf_yb;
 float *vgf_freq;
-float *vgf_ampl;
-double vgf_mid_ampl;
 double vgf_mid_freq;
-int vgf_ampfreq_tau;
-int vgf_ampfreq_n;
+int vgf_tau;
+int vgf_n;
 int vgf_center_traces;
 
 size_t *siganal_handle;

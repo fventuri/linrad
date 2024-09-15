@@ -196,7 +196,7 @@ if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
     sc[SC_SHOW_CENTER_FQ]++;
     if(fft1_correlation_flag > 1)
       {
-      baseb_reset_counter++;
+      skip_nonvalid();
       }
     break;
     

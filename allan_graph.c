@@ -31,6 +31,7 @@
 #include "seldef.h"
 #include "sigdef.h"
 #include "fft3def.h"
+#include "options.h"
 
 #if OSNUM == OSNUM_WINDOWS
 #include "wscreen.h"
@@ -52,12 +53,94 @@ int reinit_vg;
 float ampfreq_i;
 int fix_allanfreq;
 void fix_ampfreq_time(void);
+int allan_line;
+char allan_filename[160];
+
+void allansave_start(void)
+{
+int i;
+char *allanwr_screencopy;
+char s[160];
+#if (ALLANFILE_CH1 == TRUE ||\
+     ALLANFILE_CH2 == TRUE ||\
+     ALLANFILE_DIFF == TRUE)  
+#else
+  return;
+#endif
+pause_thread(THREAD_SCREEN);
+allanwr_screencopy=malloc(DISKSAVE_SCREEN_SIZE);
+if(allanwr_screencopy == NULL)
+  {
+  lirerr(1031);
+  return;
+  }
+allan_write_flag = 0;
+lir_getbox(0,0,DISKSAVE_X_SIZE,DISKSAVE_Y_SIZE,(size_t*)allanwr_screencopy);
+lir_fillbox(0,0,DISKSAVE_X_SIZE,DISKSAVE_Y_SIZE,10);
+sprintf(s,"Enter name for ASCII files. Tau=%fs",vgf.time);
+lir_text(0,0,s);
+lir_text(0,1,"ENTER to skip.");
+i=lir_get_filename(2,2,s);          
+if(kill_all_flag || i==0) return;
+allan_line=2;
+#if ALLANFILE_CH1 == TRUE
+complete_filename(i, s, "_ch1.txt", ALLANDIR, allan_filename);
+allan_file_ch1 = fopen( allan_filename, "wb");
+if(allan_file_ch1 == NULL)
+  {
+  could_not_create(allan_filename, allan_line);
+  allan_line++;
+  }
+else
+  {
+  allan_write_flag = 1;
+  }
+#endif
+#if ALLANFILE_CH2 == TRUE
+complete_filename(i, s, "_ch2.txt", ALLANDIR, allan_filename);
+allan_file_ch2 = fopen( allan_filename, "wb");
+if(allan_file_ch2 == NULL)
+  {
+  could_not_create(allan_filename, allan_line);
+  allan_line++;
+  }
+else
+  {
+  allan_write_flag = 1;
+  }
+#endif
+#if ALLANFILE_DIFF == TRUE
+complete_filename(i, s, "_diff.txt", ALLANDIR, allan_filename);
+allan_file_diff = fopen( allan_filename, "wb");
+if(allan_file_diff == NULL)
+  {
+  could_not_create(allan_filename, allan_line);
+  allan_line++;
+  }
+else
+  {
+  allan_write_flag = 1;
+  }
+#endif
+lir_putbox(0,0,DISKSAVE_X_SIZE,DISKSAVE_Y_SIZE,(size_t*)allanwr_screencopy);
+free(allanwr_screencopy);
+resume_thread(THREAD_SCREEN);
+}
+
+void allansave_stop(void)
+{
+if(allan_file_ch1)fclose(allan_file_ch1);
+if(allan_file_ch2)fclose(allan_file_ch2);
+if(allan_file_diff)fclose(allan_file_diff);
+allan_write_flag = 0;
+}
 
 void do_allan(void)
 {
 int i, k, ia, iaold, ib, ic, id;
-double dt1, dt2, dt3, dt4, dt5, dt6;
-double freqinv,totamp1, totamp2, totamp3, totamp4;
+double dt1, dt2, dt3, dt4;
+double freqinv;
+double disksave_time;
 ia=baseb_px;
 iaold=(ia-1+baseband_size)&baseband_mask;
 if(fabs(vg_phase[2*iaold  ]) > 10000. ||
@@ -69,10 +152,6 @@ if(fabs(vg_phase[2*iaold  ]) > 10000. ||
   dt2=atan2(d_baseb_carrier[4*ia+3], d_baseb_carrier[4*ia+2])/PI_L;
   vg_phase[2*ia  ]=dt1;
   vg_phase[2*ia+1]=dt2;
-  vg_amplitude[2*ia  ]=sqrt(d_baseb_carrier[4*ia  ]*d_baseb_carrier[4*ia  ]+
-                            d_baseb_carrier[4*ia+1]*d_baseb_carrier[4*ia+1]);
-  vg_amplitude[2*ia+1]=sqrt(d_baseb_carrier[4*ia+2]*d_baseb_carrier[4*ia+2]+
-                            d_baseb_carrier[4*ia+3]*d_baseb_carrier[4*ia+3]);
   for(i=0; i<vg_no_of_tau; i++)
     {
     vg_start_pointer[i]=ia;
@@ -82,6 +161,7 @@ if(fabs(vg_phase[2*iaold  ]) > 10000. ||
   baseb_px=ia;
   return;
   }
+disksave_time=current_time();
 while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
   {
   dt1=atan2(d_baseb_carrier[4*ia+1], d_baseb_carrier[4*ia  ])/PI_L;
@@ -90,12 +170,6 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
   dt2-=round(dt2-vg_phase[2*iaold+1]);
   vg_phase[2*ia  ]=dt1;  
   vg_phase[2*ia+1]=dt2;
-  dt5=sqrt(d_baseb_carrier[4*ia  ]*d_baseb_carrier[4*ia  ]+
-           d_baseb_carrier[4*ia+1]*d_baseb_carrier[4*ia+1]);
-  dt6=sqrt(d_baseb_carrier[4*ia+2]*d_baseb_carrier[4*ia+2]+
-           d_baseb_carrier[4*ia+3]*d_baseb_carrier[4*ia+3]);
-  vg_amplitude[2*ia  ]=dt5;
-  vg_amplitude[2*ia+1]=dt6;
   for(i=0; i<vg_no_of_tau; i++)
     {
     if(vg_n[i] == 3*vg_tau[i])
@@ -105,20 +179,9 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
       ib=(ia-vg_tau[i]+baseband_size)&baseband_mask;
       ic=(ib-vg_tau[i]+baseband_size)&baseband_mask;
       id=(ic-vg_tau[i]+baseband_size)&baseband_mask;
-      totamp1=sqrt((vg_amplitude[2*ib]*vg_amplitude[2*ib]+
-                    vg_amplitude[2*ic]*vg_amplitude[2*ic]+dt5*dt5)/2);
-      totamp2=sqrt((vg_amplitude[2*ib+1]*vg_amplitude[2*ib+1]+
-                    vg_amplitude[2*ic+1]*vg_amplitude[2*ic+1]+dt6*dt6)/2);
-      totamp3=sqrt((vg_amplitude[2*ib]*vg_amplitude[2*ib]+
-                    vg_amplitude[2*ic]*vg_amplitude[2*ic]+
-                    vg_amplitude[2*id]*vg_amplitude[2*id]+dt5*dt5)/6);
-      totamp4=sqrt((vg_amplitude[2*ib+1]*vg_amplitude[2*ib+1]+
-                    vg_amplitude[2*ic+1]*vg_amplitude[2*ic+1]+
-                    vg_amplitude[2*id+1]*vg_amplitude[2*id+1]+
-                    dt6*dt6)/6);
       if(i == ampfreq_i)
         {
-        if(vgf_ampfreq_n == vgf_ampfreq_tau)
+        if(vgf_n == vgf_tau)
           {
           vg_basebfreq1=(vg_phase[2*ib  ]-dt1)*freqinv;
           vg_basebfreq2=(vg_phase[2*ib+1]-dt2)*freqinv;
@@ -129,8 +192,6 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
           vg_interchannel_phase*=360;
           vgf_freq[2*vgf_pa  ]=vg_basebfreq1;
           vgf_freq[2*vgf_pa+1]=vg_basebfreq2;
-          vgf_ampl[2*vgf_pa  ]=totamp3;
-          vgf_ampl[2*vgf_pa+1]=totamp4;
           vgf_pa=(vgf_pa+1)&vgf_mask;
           k=(vgf_pa-vgf_px+vgf_size)&vgf_mask;
           if(k >= vgf_xpixels)
@@ -138,51 +199,51 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
             k=vgf_xpixels-1;
             vgf_px=(vgf_pa-k+vgf_size)&vgf_mask;
             }
-          vgf_ampfreq_n=0;
+          vgf_n=0;
+          if(allan_write_flag == 1)
+            {
+#if ALLANFILE_CH1 == TRUE
+            fprintf(allan_file_ch1,"\n%.16e",vg_basebfreq1+1000.*hwfreq);
+#endif
+#if ALLANFILE_CH2 == TRUE
+            fprintf(allan_file_ch2,"\n%.16e",vg_basebfreq2+1000.*hwfreq);
+#endif
+#if ALLANFILE_DIFF == TRUE
+            fprintf(allan_file_diff,"\n%.16e",
+                                  vg_basebfreq2-vg_basebfreq1+1000.*hwfreq);
+#endif 
+            if(recent_time-disksave_time > 2.F)
+              {
+              fflush(NULL);
+              disksave_time=current_time();
+              }
+            }
           }
         else
           {  
-          vgf_ampfreq_n++;
+          vgf_n++;
           }
         }    
 // Allan variance for phase/frequency
 // Get the phase shift for the three latest regions and compute by how 
 // much the phase shifts differ.
-      dt3=2*freqinv*(dt1-2*vg_phase[2*ib  ]+vg_phase[2*ic  ]);
-      dt4=2*freqinv*(dt2-2*vg_phase[2*ib+1]+vg_phase[2*ic+1]);
-      vg_asum[2*i  ]+=dt3*dt3;
-      vg_asum[2*i+1]+=dt4*dt4;
-      vg_acorrsum[i]+=dt3*dt4;
+      dt3=freqinv*(dt1-2*vg_phase[2*ib  ]+vg_phase[2*ic  ]);
+      dt4=freqinv*(dt2-2*vg_phase[2*ib+1]+vg_phase[2*ic+1]);
+      vg_asum[2*i  ]+=2*dt3*dt3;
+      vg_asum[2*i+1]+=2*dt4*dt4;
+      vg_acorrsum[i]+=2*dt3*dt4;
 // Hadamard for phase/frequency
       freqinv/=sqrt(3.0);
       dt3=freqinv*(dt1-3*(vg_phase[2*ib  ]-vg_phase[2*ic  ])-vg_phase[2*id  ]);
       dt4=freqinv*(dt2-3*(vg_phase[2*ib+1]-vg_phase[2*ic+1])-vg_phase[2*id+1]);
-      vg_hsum[2*i  ]+=dt3*dt3;
-      vg_hsum[2*i+1]+=dt4*dt4;
-      vg_hcorrsum[i]+=dt3*dt4;
-// Compute for amplitudes.
-      dt3=-2*vg_amplitude[2*ib  ]+dt5+vg_amplitude[2*ic  ];
-      dt4=-2*vg_amplitude[2*ib+1]+dt6+vg_amplitude[2*ic+1];
-      dt3/=totamp1;
-      vg_asum_ampl[2*i  ]+=dt3*dt3;
-      dt4/=totamp2;
-      vg_asum_ampl[2*i+1]+=dt4*dt4;
-      vg_acorrsum_ampl[i]+=dt3*dt4;
-      dt3=-3*(vg_amplitude[2*ib  ]-vg_amplitude[2*ic  ])+dt5-
-                                                     vg_amplitude[2*id];
-      dt4=-3*(vg_amplitude[2*ib+1]-vg_amplitude[2*ic+1])+dt6-
-                                                     vg_amplitude[2*id+1];
-      dt3/=totamp3;
-      vg_hsum_ampl[2*i  ]+=dt3*dt3;
-      dt4/=totamp4;
-      vg_hsum_ampl[2*i+1]+=dt4*dt4;
-      vg_hcorrsum_ampl[i]+=dt3*dt4;
+      vg_hsum[2*i  ]+=2*dt3*dt3;
+      vg_hsum[2*i+1]+=2*dt4*dt4;
+      vg_hcorrsum[i]+=2*dt3*dt4;
       vg_sumno[i]++;
 // Control overlaping with vg_n[i]
 //  vg_n[i]=vg_tau[i]+1; Gives old, not overlapping Allan variance
 //  vg_n[i] unchanged gives fully overlapped variances
 //  Anything between gives partly overlapped variances 
-
       }
     else
       {
@@ -225,7 +286,8 @@ float t1;
 t1=vg.maxtau;
 vg.maxtau=numinput_float_data;
 if(vg.maxtau < 10*vg.mintau)vg.maxtau=10*vg.mintau;
-if(vg.maxtau > 10000)vg.maxtau=10000;
+if(vg.maxtau > genparm[BASEBAND_STORAGE_TIME]/4)
+              vg.maxtau=genparm[BASEBAND_STORAGE_TIME]/4;
 if(vg.maxtau != t1)
   {
   make_modepar_file(GRAPHTYPE_VG);
@@ -327,10 +389,6 @@ for(event_no=0; event_no<MAX_VGBUTT; event_no++)
       
       case VG_NEW_MODE:
       msg_no=368;
-      break;
-      
-      case VG_NEW_TYPE:
-      msg_no=369;
       break;
       }
     }  
@@ -447,10 +505,6 @@ switch (mouse_active_flag-1)
   case VG_NEW_MODE:
   vg.mode^=1;
   goto finish;
-    
-  case VG_NEW_TYPE:
-  vg.type^=1;
-  goto finish;
 
   default:
 // This should never happen.    
@@ -561,18 +615,6 @@ x1+=9*text_width;
 lir_pixwrite(x1,vg.ytop+text_height/2,s);
 settextcolor(7);
 mouse_active_flag=1;
-}
-
-void new_vgf_ampgain(void)
-{
-float t1;
-t1=vgf.amplgain;
-vgf.amplgain=numinput_float_data;
-if(vgf.amplgain != t1)
-  {
-  make_modepar_file(GRAPHTYPE_VGF);
-  sc[SC_VGF_REDRAW]++;
-  }
 }
 
 void new_vgf_freqgain(void)
@@ -712,16 +754,6 @@ switch (mouse_active_flag-1)
   par_from_keyboard_routine=new_vgf_freqgain;
   return;
       
-  case VGF_NEW_AMPLGAIN:
-  mouse_active_flag=1;
-  numinput_xpix=vgfbutt[VGF_NEW_AMPLGAIN].x1+19*text_width/2-1;
-  numinput_ypix=vgfbutt[VGF_NEW_AMPLGAIN].y1+2;
-  numinput_chars=6;    
-  erase_numinput_txt();
-  numinput_flag=FIXED_FLOAT_PARM;
-  par_from_keyboard_routine=new_vgf_ampgain;
-  return;
-
   case VGF_NEW_CENTER_TRACES:
   vgf_center_traces=TRUE;
   goto finish;
@@ -762,14 +794,14 @@ void fix_ampfreq_time(void)
 {
 int i;
 float t1, t2;
-vgf_ampfreq_tau=baseband_sampling_speed*vgf.time;
-t1=(float)(vgf_ampfreq_tau/vg_tau[0]);
-t2=(float)(vgf_ampfreq_tau/vg_tau[1]);
+vgf_tau=(rint)(baseband_sampling_speed*vgf.time);
+t1=(float)(vgf_tau/vg_tau[0]);
+t2=(float)(vgf_tau/vg_tau[1]);
 i=1;
 while(t1 > 1 && i < vg_no_of_tau)
   {
   t2=t1;
-  t1=(float)vgf_ampfreq_tau/vg_tau[i];
+  t1=(float)vgf_tau/vg_tau[i];
   i++; 
   }
 i--;    
@@ -779,11 +811,11 @@ if(i>0 && i< vg_no_of_tau-1)
     {
     i--;
     }
-  vgf_ampfreq_tau=vg_tau[i];  
+  vgf_tau=vg_tau[i];  
   ampfreq_i=i;
-  vgf.time=vgf_ampfreq_tau/baseband_sampling_speed;  
+  vgf.time=vgf_tau/baseband_sampling_speed;  
   }
-vgf_ampfreq_n=0;
+vgf_n=0;
 }
 
 void make_pix_per_decade(void)
@@ -888,14 +920,11 @@ vgbutt[VG_NEW_YMAX].y2=y2;
 x2=vg.xright-text_width/2;
 x1=x2-text_width/2;
 iy1=vg.ytop+text_height-2;
-make_button(x1,iy1,vgbutt, VG_NEW_TYPE,vg_types[vg.type]);
-x2=x1-text_height/2;
-x1=x2-3*text_width/2;
 make_button(x1,iy1,vgbutt, VG_NEW_MODE,vg_modes[vg.mode]);
 x2=x1-text_height/2;
 x1=x2-3*text_width/2;
 make_button(x1,iy1,vgbutt, VG_NEW_CLEAR,vg_clears[vg.clear]);
-if(!restart && vg.type != 2)
+if(!restart)
   {
   make_pix_per_decade();
   fix_ampfreq_time();
@@ -913,7 +942,7 @@ init_memalloc(allanmem, MAX_SIGANAL_ARRAYS);
 mem( 1,&vg_phase, baseband_size*2*sizeof(double),0);
 // Find out at what tau values we want to store sigma.
 // Allocate some extra just in case
-i=(int)(float)vg.points_per_decade*(vg.maxtau+1)/vg.mintau;
+i=(int)(float)(vg.points_per_decade)*(1+log10(vg.maxtau/vg.mintau));
 mem( 2,&vg_start_pointer, i*sizeof(int),0);
 mem( 3,&vg_tau,i*sizeof(int),0);
 mem( 4,&vg_asum,2*i*sizeof(double),0);
@@ -927,11 +956,6 @@ mem(11,&vg_decimal_xpixel,10*sizeof(short int),0);
 mem(12,&vg_decimal_ypixel,10*sizeof(short int),0);
 mem(13,&vg_hsum,2*i*sizeof(double),0);
 mem(14,&vg_hcorrsum,i*sizeof(double),0);
-mem(15,&vg_amplitude, baseband_size*2*sizeof(double),0);
-mem(16,&vg_asum_ampl,2*i*sizeof(double),0);
-mem(17,&vg_acorrsum_ampl,i*sizeof(double),0);
-mem(18,&vg_hsum_ampl,2*i*sizeof(double),0);
-mem(19,&vg_hcorrsum_ampl,i*sizeof(double),0);
 
 
 allan_totmem=memalloc(&allan_handle,"allan");
@@ -950,15 +974,10 @@ vg_basebfreq1=0;
 vg_basebfreq2=0;
 make_pix_per_decade();
 for(i=0; i<2*baseband_size; i++)vg_phase[i]=BIGDOUBLE;
-for(i=0; i<2*baseband_size; i++)vg_amplitude[i]=0;
 for(i=0; i<2*vg_no_of_tau; i++)vg_asum[i]=0;
 for(i=0; i<vg_no_of_tau; i++)vg_acorrsum[i]=0;
 for(i=0; i<2*vg_no_of_tau; i++)vg_hsum[i]=0;
 for(i=0; i<vg_no_of_tau; i++)vg_hcorrsum[i]=0;
-for(i=0; i<2*vg_no_of_tau; i++)vg_asum_ampl[i]=0;
-for(i=0; i<vg_no_of_tau; i++)vg_acorrsum_ampl[i]=0;
-for(i=0; i<2*vg_no_of_tau; i++)vg_hsum_ampl[i]=0;
-for(i=0; i<vg_no_of_tau; i++)vg_hcorrsum_ampl[i]=0;
 for(i=0; i<vg_no_of_tau; i++)vg_sumno[i]=0;
 for(i=0; i<vg_no_of_tau; i++)vg_y1pix[i]=vg_yb;
 for(i=0; i<vg_no_of_tau; i++)vg_y2pix[i]=vg_yb;
@@ -989,7 +1008,6 @@ vg_default:
   vg.ymin=11;
   vg.clear=0;
   vg.mode=0;
-  vg.type=0;
   vg.check=VG_VERNR;
   }
 if(vg.mintau < .0099F ||
@@ -1007,8 +1025,6 @@ if(vg.mintau < .0099F ||
    vg.clear > 1 ||
    vg.mode < 0 ||
    vg.mode > 1 ||
-   vg.type < 0 ||
-   vg.type > 2 ||
    vg.check != VG_VERNR)goto vg_default;
 allan_graph_scro=no_of_scro;
 make_allan_graph(FALSE,TRUE);
@@ -1036,7 +1052,7 @@ current_graph_minw=75*text_width;
 check_graph_placement((void*)(&vgf));
 vgf_yt=vgf.ytop+2*text_height;
 vgf_yb=vgf.ybottom-3*text_height/2;
-vgf_first_xpixel=vgf.xleft+6*text_width;
+vgf_first_xpixel=vgf.xleft+7*text_width;
 vgf_last_xpixel=vgf.xright-2-6*text_width;
 vgf_xpixels=1+vgf_last_xpixel-vgf_first_xpixel;
 scro[allanfreq_graph_scro].no=ALLANFREQ_GRAPH;
@@ -1098,12 +1114,10 @@ vgf_pa=0;
 vgf_px=0;
 vgf_average_freq1=0;
 vgf_average_freq2=0;
-vgf_average_ampl1=0;
-vgf_average_ampl2=0;
-vgf_mid_ampl=-1;
+vgf_mid_freq=BIGDOUBLE;
 fix_allanfreq=0;
 vgf_center_traces=FALSE;
-vgf_ampfreq_n=0;
+vgf_n=0;
 sc[SC_VGF_REDRAW]++;
 resume_thread(THREAD_SCREEN);
 }
@@ -1111,41 +1125,29 @@ resume_thread(THREAD_SCREEN);
 void init_allanfreq_graph(void)
 {
 int k;
-// Set initial values in code or by reading
-// a file of your own.
 if (read_modepar_file(GRAPHTYPE_VGF) == 0)
   {
-/*
-fprintf(stderr,"read_modepar_file(GRAPHTYPE_VGF) failed");
-lirerr(99);
-return;
-*/
-//vgf_default:
+vgf_default:
   vgf.xleft=screen_width/2;
   vgf.xright=vgf.xleft+50*text_width;
   vgf.ytop=3*screen_height/4;
   vgf.ybottom=vgf.ytop+8.5*text_height;
   vgf.freqgain=0.01;
-  vgf.amplgain=1.0;
   vgf.time=1.0;
   vgf.check=VGF_VERNR;
   }
-/*  
 if(vgf.time < 0.01)vgf.time=0.01;
 if(vgf.time > 30)vgf.time=30;
-
+if(vg.maxtau > genparm[BASEBAND_STORAGE_TIME]/4)
+              vg.maxtau=genparm[BASEBAND_STORAGE_TIME]/4;
 if(vg.mintau < .0099F ||
-   vg.type > 2 ||
-   vgf.check != VGF_VERNR)goto vg_default;
-*/
+   vgf.check != VGF_VERNR)goto vgf_default;
 allanfreq_graph_scro=no_of_scro;
 vgf_size=screen_width;
 make_power_of_two(&vgf_size);
 vgf_mask=vgf_size-1;
 if(vgf_freq == NULL)vgf_freq=malloc(2*vgf_size*sizeof(float));
-if(vgf_ampl == NULL)vgf_ampl=malloc(2*vgf_size*sizeof(float));
 for(k=0; k<2*vgf_size; k++)vgf_freq[k]=0;
-for(k=0; k<2*vgf_size; k++)vgf_ampl[k]=0;
 make_allanfreq_graph(FALSE,TRUE);
 no_of_scro++;
 vgf_flag=1;

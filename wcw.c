@@ -1417,6 +1417,12 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
       memcheck(298,basebmem,&baseband_handle);
       if(kill_all_flag) goto wcw_error_exit;
       }
+    if(allan_handle != NULL)
+      {
+      memcheck(698,allanmem,&allan_handle);
+      if(kill_all_flag) goto wcw_error_exit;
+      }
+    
     break;
 
     case 3:

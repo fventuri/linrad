@@ -700,7 +700,8 @@ extern char *uiparm_text[MAX_UIPARM];
 #define PG_CIRC 5
 #define PG_AUTO 6
 #define PG_AVGNUM 7
-#define MAX_PGBUTT 8
+#define PG_AZIM_CAL 8
+#define MAX_PGBUTT 9
 
 // Definitions for type PHASING_GRAPH
 #define XG_TOP 0
@@ -754,8 +755,7 @@ extern char *uiparm_text[MAX_UIPARM];
 #define VG_NEW_YMAX 8
 #define VG_NEW_CLEAR 9
 #define VG_NEW_MODE 10
-#define VG_NEW_TYPE 11
-#define MAX_VGBUTT 12
+#define MAX_VGBUTT 11
 
 // Definitions for type allanfreq_graph
 #define VGF_TOP 0
@@ -939,12 +939,11 @@ int ymin;
 int ymax;
 int clear;
 int mode;
-int type;
 int check;
 float mintau;
 float maxtau;
 } VG_PARMS;
-#define MAX_VG_INTPAR 11
+#define MAX_VG_INTPAR 10
 extern char *vg_intpar_text[MAX_VG_INTPAR];
 #define MAX_VG_FLOATPAR 2
 extern char *vg_floatpar_text[MAX_VG_FLOATPAR];
@@ -957,12 +956,11 @@ int xleft;
 int xright;
 int check;
 float freqgain;
-float amplgain;
 float time;
 } VGF_PARMS;
 #define MAX_VGF_INTPAR 5
 extern char *vgf_intpar_text[MAX_VGF_INTPAR];
-#define MAX_VGF_FLOATPAR 3
+#define MAX_VGF_FLOATPAR 2
 extern char *vgf_floatpar_text[MAX_VGF_FLOATPAR];
 
 
@@ -1066,6 +1064,8 @@ int adapt;
 int avg;
 int startpol;
 int enable_phasing;
+int azimuth;
+int size;
 int check;
 float angle;
 float c1;
@@ -1074,7 +1074,7 @@ float c3;
 float ch2_amp;
 float ch2_phase;
 } PG_PARMS;
-#define MAX_PG_INTPAR 9
+#define MAX_PG_INTPAR 11
 extern char *pg_intpar_text[MAX_PG_INTPAR];
 #define MAX_PG_FLOATPAR 6
 extern char *pg_floatpar_text[MAX_PG_FLOATPAR];
