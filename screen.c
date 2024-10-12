@@ -603,7 +603,7 @@ ib=freq_readout_x2;
 n=(ib-ia)/text_width;
 if(n >= k)
   {
-  lir_fillbox(ia-1,freq_readout_y1,ib-ia+2,text_height+1,3);
+  lir_fillbox(ia-1,freq_readout_y1,ib-ia+2,text_height+1,0);
   if(j > n)j=n;
   s[j]=0;
   ia+=text_width*(n-j)/2;
@@ -1665,7 +1665,7 @@ else
       t2*=10;
       }
     xa=sg_logpix_from_freq(t1);
-    if(xa > sg_last_xpixel-3*text_width)break;
+    if(xa > sg_last_xpixel-3)break;
     k=sg.ytop;
     if(xa > sg_last_xpixel-20*text_width)
       {
@@ -1675,29 +1675,32 @@ else
         lir_line(xa,sg_ytop2,xa,sg.ytop,SG_DBSCALE_COLOR);  
         k=sg_ytop2+11*text_width;
         }
-      }  
-    lir_line(xa,sg_y0,xa,k,SG_DBSCALE_COLOR);  
+      }
+    lir_line(xa,sg_y0,xa,k,SG_DBSCALE_COLOR);
     if(j==1 || j==5)
       {
       lir_line(xa-1,sg_y0,xa-1,sg_y0-3,15);
       lir_line(xa,sg_y0,xa,sg_y0-3,15);
       lir_line(xa+1,sg_y0,xa+1,sg_y0-3,15);
-      if(t1 < 1.0)
+      if(xa < sg_last_xpixel-3*text_width)
         {
-        sprintf(s,"%.1f",t1);
-        }
-      else
-        {
-        if(t1 < 10)
+        if(t1 < 1.0)
           {
-          sprintf(s," %d",(int)t1);
+          sprintf(s,"%.1f",t1);
           }
         else
           {
-          sprintf(s,"%d",(int)t1);
+          if(t1 < 10)
+            {
+            sprintf(s," %d",(int)t1);
+            }
+          else
+            {
+            sprintf(s,"%d",(int)t1);
+            }
           }
+        lir_pixwrite(xa-3*text_width/2,sg_y0+text_height/2,s);
         }
-      lir_pixwrite(xa-3*text_width/2,sg_y0+text_height/2,s);
       }
     }
   }

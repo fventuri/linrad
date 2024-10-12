@@ -44,6 +44,7 @@ while(!kill_all_flag &&
   {
 // *******************************************************
 wait:;
+  if(thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)goto kill;
   thread_status_flag[THREAD_FFT3]=THRFLAG_SEM_WAIT;
   lir_sched_yield();
   lir_await_event(EVENT_FFT3);
@@ -635,6 +636,7 @@ else
       while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT)
         {
         lir_sleep(2000);
+        if(thread_command_flag[THREAD_FFT3] != THRFLAG_ACTIVE)return;  
         }
 // the siganal step size is sg_interleave_points at baseband_sampling_speed
 // each step is thus sg_interleave_points/baseband_sampling_speed seconds.

@@ -773,7 +773,7 @@ new_mix1_curx[0]=-1;
 if(t1 <  mix1_lowest_fq)t1=mix1_lowest_fq;
 if(t1 > mix1_highest_fq)t1=mix1_highest_fq;
 if(MAX_MIX1 > 1)
-  {
+ {
   for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
     {
     if( fabs(t1-mix1_selfreq[i]) < 3*wg_hz_per_pixel)
@@ -783,7 +783,7 @@ if(MAX_MIX1 > 1)
       mix1_point[i]=-1;
       }
     }
-  }
+  }  
 make_new_signal(0, t1);
 sc[SC_FREQ_READOUT]++;
 sc[SC_HG_FQ_SCALE]++;

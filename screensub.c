@@ -1134,7 +1134,7 @@ if(new_y != old_y || sw!=0)
           {
           bkg_color=MIX1_SUBCUR_COLOR;
           }
-        }  
+        }
       }  
     }
   lir_setpixel(xpix,old_y,bkg_color);
@@ -1180,7 +1180,7 @@ if(new_y!=old_y)
           bkg_color=MIX1_SUBCUR_COLOR;
           }
         }  
-      }
+      }  
     }
   lir_setpixel(xpix,old_y,bkg_color);
   lir_setpixel(xpix,new_y,14);

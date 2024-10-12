@@ -400,7 +400,7 @@ if(rightpressed==BUTTON_RELEASED)
     goto addx; 
     } 
   if(MAX_MIX1 > 1)
-    {
+    { 
     for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
       {
       if(mix1_selfreq[i]<0)
@@ -409,7 +409,7 @@ if(rightpressed==BUTTON_RELEASED)
         goto addx;
         }
       }  
-    }
+    }  
 addx:;
   if(rightpressed==BUTTON_RELEASED)
     {
