@@ -32,6 +32,55 @@
 
 int squelch [65536];
 
+void do_fft3(void)
+{
+#if OSNUM == OSNUM_LINUX
+clear_thread_times(THREAD_FFT3);
+#endif
+resume:;
+thread_status_flag[THREAD_FFT3]=THRFLAG_ACTIVE;
+while(!kill_all_flag && 
+         thread_command_flag[THREAD_FFT3]==THRFLAG_ACTIVE)
+  {
+// *******************************************************
+wait:;
+  thread_status_flag[THREAD_FFT3]=THRFLAG_SEM_WAIT;
+  lir_sched_yield();
+  lir_await_event(EVENT_FFT3);
+  thread_status_flag[THREAD_FFT3]=THRFLAG_ACTIVE;
+  lir_sched_yield();
+  while(((timf3_pa-timf3_px+timf3_size)&timf3_mask) >= twice_rxchan*fft3_size &&
+          ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) < fft3_totsiz-2*fft3_block)
+    {
+    if(mix1_selfreq[0] != old_mix1_selfreq)
+      {
+      lir_sleep(3000);
+      goto wait;;
+      }
+    if(thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)goto kill;
+    make_fft3_all();
+    lir_sched_yield();
+    }
+  }
+if(thread_command_flag[THREAD_FFT3] == THRFLAG_IDLE)
+  {
+  thread_status_flag[THREAD_FFT3]=THRFLAG_IDLE;
+  while(!kill_all_flag && thread_command_flag[THREAD_FFT3] == THRFLAG_IDLE)
+    {
+    lir_sleep(1000);
+    }
+  if(thread_command_flag[THREAD_FFT3] == THRFLAG_ACTIVE)goto resume;
+  }
+kill:;  
+thread_status_flag[THREAD_FFT3]=THRFLAG_RETURNED;
+while(!kill_all_flag)
+  {
+  if(thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)return;
+  lir_sleep(1000);
+  }
+}
+
+
 void update_squelch(void)
 {
 int i, j, k, ia, ib;
@@ -49,7 +98,7 @@ if(sw_onechan)
   {
   for(i=ia; i<=ib; i++)
     {
-    squelch_info[k]=fft3_slowsum[i]; //ööÖÖ *bg_filterfunc[i]; 
+    squelch_info[k]=fft3_slowsum[i]; //ööÖÖ *bg_filterfunc[i] ??
     k++;
     }
   }
@@ -104,7 +153,6 @@ if(t3 > pow(10,0.1*bg.squelch_level))
   squelch_turnon_time=recent_time;
   }
 }
-
 
 void update_bg_waterf(void)
 {
@@ -163,7 +211,6 @@ if( bg_waterf_lines != -1)awake_screen();
 
 void make_fft3_all(void)
 {
-char s[30];
 int ja,jb,im;
 int i,iw,j,k,m,p0,ss,poffs;
 int mm, ia, ib, ic, jr, pa, pb;
@@ -171,6 +218,7 @@ float t1,t2,t3,t4,x1,x2;
 float r1,r2,r3,r4;
 float amp, pos;
 double dt1,dt2,dt3,dt4,dx1,dx2;
+double ds1,ds2,ds3,ds4;
 double dr1,dr2,dr3,dr4;
 double *d_z;
 float *z;
@@ -182,14 +230,6 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
   d_z=&d_fft3[fft3_pa+ss*mm*fft3_size];
   if(mix1_selfreq[ss] >= 0)
     {
-    if(fft1_correlation_flag == 2)
-      {
-      sprintf(s,"%d",fft3_pa/(32*fft3_size));
-      i=0;
-      while(s[i]!=0)i++;
-      i--;
-      lir_pixwrite(sg_last_xpixel-text_width,sg_ytop2+13*text_height/2,&s[i]);
-     }
 // Frequency no ss is selected.
 // **********************************************************
 // **************  ONE CHANNEL ******************************
@@ -235,7 +275,7 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
       {  
 // **************************************************************
 // *************************  TWO CHANNELS *********************
-      if(fft1_correlation_flag != 0)
+      if(fft1_correlation_flag > 1)
         {
         pa=timf3_px;
         pb=(pa+2*fft3_size)&timf3_mask;
@@ -250,61 +290,61 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
           dt3=d_timf3_float[poffs+pb  ]*d_fft3_window[2*ia+1];
           dt4=d_timf3_float[poffs+pb+1]*d_fft3_window[2*ia+1];   
           dx1=dt1-dt3;
-          d_fftn_tmp[4*ia  ]=dt1+dt3;
+          d_timf3_tmp[4*ia  ]=dt1+dt3;
           dx2=dt4-dt2;
-          d_fftn_tmp[4*ia+1]=dt2+dt4;
-          d_fftn_tmp[2*ib  ]=fft3_tab[ia].cos*dx1+fft3_tab[ia].sin*dx2;
-          d_fftn_tmp[2*ib+1]=fft3_tab[ia].sin*dx1-fft3_tab[ia].cos*dx2;
+          d_timf3_tmp[4*ia+1]=dt2+dt4;
+          d_timf3_tmp[2*ib  ]=d_fft3_tab[ia].cos*dx1+d_fft3_tab[ia].sin*dx2;
+          d_timf3_tmp[2*ib+1]=d_fft3_tab[ia].sin*dx1-d_fft3_tab[ia].cos*dx2;
           dr1=d_timf3_float[poffs+pa+2]*d_fft3_window[2*ia];
           dr2=d_timf3_float[poffs+pa+3]*d_fft3_window[2*ia];      
           dr3=d_timf3_float[poffs+pb+2]*d_fft3_window[2*ia+1];
           dr4=d_timf3_float[poffs+pb+3]*d_fft3_window[2*ia+1];   
           dx1=dr1-dr3;
-          d_fftn_tmp[4*ia+2]=dr1+dr3;
+          d_timf3_tmp[4*ia+2]=dr1+dr3;
           dx2=dr4-dr2;
-          d_fftn_tmp[4*ia+3]=dr2+dr4;
+          d_timf3_tmp[4*ia+3]=dr2+dr4;
           pa=(pa+4)&timf3_mask;
           pb=(pb+4)&timf3_mask;
-          d_fftn_tmp[2*ib+2]=fft3_tab[ia].cos*dx1+fft3_tab[ia].sin*dx2;
-          d_fftn_tmp[2*ib+3]=fft3_tab[ia].sin*dx1-fft3_tab[ia].cos*dx2;
+          d_timf3_tmp[2*ib+2]=d_fft3_tab[ia].cos*dx1+d_fft3_tab[ia].sin*dx2;
+          d_timf3_tmp[2*ib+3]=d_fft3_tab[ia].sin*dx1-d_fft3_tab[ia].cos*dx2;
           } 
 
         d_bulk_of_dual_dif(fft3_size, fft3_n, 
-                                   d_fftn_tmp, d_fft3_tab, yieldflag_ndsp_fft3);
+                                   d_timf3_tmp, d_fft3_tab, yieldflag_ndsp_fft3);
 
         for(ia=0; ia < fft3_size; ia+=2)
           {
-          ib=4*fft3_permute[ia  ];                               
-          ic=4*fft3_permute[ia+1];                             
-          d_z[ib  ]=d_fftn_tmp[4*ia  ]+d_fftn_tmp[4*ia+4];
-          z[ib  ]=d_fftn_tmp[4*ia  ]+d_fftn_tmp[4*ia+4];
-          d_z[ic  ]=d_fftn_tmp[4*ia  ]-d_fftn_tmp[4*ia+4];
-          z[ic  ]=d_fftn_tmp[4*ia  ]-d_fftn_tmp[4*ia+4];
-          d_z[ib+1]=d_fftn_tmp[4*ia+1]+d_fftn_tmp[4*ia+5];
-          z[ib+1]=d_fftn_tmp[4*ia+1]+d_fftn_tmp[4*ia+5];
-          d_z[ic+1]=d_fftn_tmp[4*ia+1]-d_fftn_tmp[4*ia+5];
-          z[ic+1]=d_fftn_tmp[4*ia+1]-d_fftn_tmp[4*ia+5];
-          d_z[ib+2]=d_fftn_tmp[4*ia+2]+d_fftn_tmp[4*ia+6];
-          z[ib+2]=d_fftn_tmp[4*ia+2]+d_fftn_tmp[4*ia+6];
-          d_z[ic+2]=d_fftn_tmp[4*ia+2]-d_fftn_tmp[4*ia+6];
-          z[ic+2]=d_fftn_tmp[4*ia+2]-d_fftn_tmp[4*ia+6];
-          d_z[ib+3]=d_fftn_tmp[4*ia+3]+d_fftn_tmp[4*ia+7];
-          z[ib+3]=d_fftn_tmp[4*ia+3]+d_fftn_tmp[4*ia+7];
-          d_z[ic+3]=d_fftn_tmp[4*ia+3]-d_fftn_tmp[4*ia+7];
-          z[ic+3]=d_fftn_tmp[4*ia+3]-d_fftn_tmp[4*ia+7];
+          ib=4*fft3_bigpermute[ia  ];                               
+          ic=4*fft3_bigpermute[ia+1];                             
+          d_z[ib  ]=d_timf3_tmp[4*ia  ]+d_timf3_tmp[4*ia+4];
+          z[ib  ]=d_timf3_tmp[4*ia  ]+d_timf3_tmp[4*ia+4];
+          d_z[ic  ]=d_timf3_tmp[4*ia  ]-d_timf3_tmp[4*ia+4];
+          z[ic  ]=d_timf3_tmp[4*ia  ]-d_timf3_tmp[4*ia+4];
+          d_z[ib+1]=d_timf3_tmp[4*ia+1]+d_timf3_tmp[4*ia+5];
+          z[ib+1]=d_timf3_tmp[4*ia+1]+d_timf3_tmp[4*ia+5];
+          d_z[ic+1]=d_timf3_tmp[4*ia+1]-d_timf3_tmp[4*ia+5];
+          z[ic+1]=d_timf3_tmp[4*ia+1]-d_timf3_tmp[4*ia+5];
+          d_z[ib+2]=d_timf3_tmp[4*ia+2]+d_timf3_tmp[4*ia+6];
+          z[ib+2]=d_timf3_tmp[4*ia+2]+d_timf3_tmp[4*ia+6];
+          d_z[ic+2]=d_timf3_tmp[4*ia+2]-d_timf3_tmp[4*ia+6];
+          z[ic+2]=d_timf3_tmp[4*ia+2]-d_timf3_tmp[4*ia+6];
+          d_z[ib+3]=d_timf3_tmp[4*ia+3]+d_timf3_tmp[4*ia+7];
+          z[ib+3]=d_timf3_tmp[4*ia+3]+d_timf3_tmp[4*ia+7];
+          d_z[ic+3]=d_timf3_tmp[4*ia+3]-d_timf3_tmp[4*ia+7];
+          z[ic+3]=d_timf3_tmp[4*ia+3]-d_timf3_tmp[4*ia+7];
           }
 // Find the strongest signal within the baseband bandwidth.
-        if(fft1_correlation_flag == 2 && basebcorr_inhibit_count == 0)
+        if(fft1_correlation_flag == 2)
           {
           if(corr_afc_count < MAX_CORR_AFC_COUNT)
             {
-// increment MAX_CORR_AFC_COUNT times before trying to step the frequency (again.)
-            corr_afc_count++;
+// increment MAX_CORR_AFC_COUNT times before trying to step the 
+// frequency (again.)
+            if(corr_afc_count<100)corr_afc_count++;
             }
           else
-            {  
-            ib=(int)((float)fft3_size*bg_noise_bw/timf3_sampling_speed)/2;
-            if(ib < 5)ib=5;
+            { 
+            ib=20*bg_carr_20db_points;
             ia=fft3_size/2-ib;
             ib+=fft3_size/2;
             dt1=0;
@@ -312,7 +352,7 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
             for(i=ia; i<=ib; i++)
               {
               dt2=d_z[4*i  ]*d_z[4*i  ]+d_z[4*i+1]*d_z[4*i+1]+
-                 d_z[4*i+2]*d_z[4*i+2]+d_z[4*i+3]*d_z[4*i+3];
+                  d_z[4*i+2]*d_z[4*i+2]+d_z[4*i+3]*d_z[4*i+3];
               if(dt2 > dt1)
                 {
                 ic=i;
@@ -334,19 +374,17 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
               pos+=ic;
               t1=pos-fft3_size/2;
 // t1 is now the desired frequency step in bins.
-              t2=0.5*(float)(bg_flatpoints+bg_curvpoints)/bg.coh_factor;
+              t2=0.25*(float)bg_carr_20db_points;;
+// t2 is the smallest step we want to make.
 // Never step less than 0.5 bins
               if(t2 < 0.5F)t2=0.5F;
-              t3=t1;
               if(fabs(t1) > t2)
                 {
                 t1*=(float)timf3_sampling_speed/fft3_size;
                 mix1_selfreq[0]+=t1;
                 add_mix1_cursor(0);
-                timf3_pd=timf3_pc;
                 corr_afc_count=0;
                 sc[SC_SHOW_CENTER_FQ]++;  
-                skip_nonvalid();
                 return;
                 }
               }
@@ -408,6 +446,9 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
       }
     }
   }
+if(thread_command_flag[THREAD_FFT3] != THRFLAG_ACTIVE ||
+                         mix1_selfreq[0] != old_mix1_selfreq)return;
+  
 // Now fft3_float contains transforms for all enabled channels.
 // In case the main channel is enabled, calculate power spectra
 // and rx channel correlations.
@@ -470,90 +511,143 @@ else
   {
   if(fft1_correlation_flag == 2)
     {
-#define MAX_CORRPOW_CNT 8
-#define MAX_CORRPOW_SKIP 4
-    if(basebcorr_inhibit_count > 1)goto corrpow_x;
-    if(basebcorr_inhibit_count == 1)corrpow_cnt=0;
-    if(!basebcorr_enable_flag)goto corrpow_x;
-    corrpow_cnt++;
-    k=(int)((float)fft3_size*bg_noise_bw/timf3_sampling_speed)/
-                                                         (2*bg.coh_factor);
+    d_z=&d_fft3[fft3_pa];
+    if(corrpow_cnt < 100)corrpow_cnt++;
     ia=fft3_size/2-bg_xpoints;
     if(ia < 0)ia=0;
-    ib=fft3_size/2-k;
+    ib=fft3_size/2-1.2*bg_carr_20db_points;
 // Compute power spectrum within the baseband window while
 // excluding points within the carrier filter. Store in fft3_tmp
     j=0;
     for(i=ia; i<ib; i++)
       {
       im=fft3_size-i;
-      fft3_tmp[4*j  ]=z[4*i  ]*z[4*i  ]+z[4*i+1]*z[4*i+1];
-      fft3_tmp[4*j+1]=z[4*i+2]*z[4*i+2]+z[4*i+3]*z[4*i+3];
-      fft3_tmp[4*j+2]=z[4*im  ]*z[4*im  ]+z[4*im+1]*z[4*im+1];
-      fft3_tmp[4*j+3]=z[4*im+2]*z[4*im+2]+z[4*im+3]*z[4*im+3];
-      j+=4;
+      d_fft3_tmp[2*j  ]=d_z[4*i  ]*d_z[4*i  ]+d_z[4*i+1]*d_z[4*i+1]+
+                        d_z[4*i+2]*d_z[4*i+2]+d_z[4*i+3]*d_z[4*i+3];
+      d_fft3_tmp[2*j+1]=d_z[4*im  ]*d_z[4*im  ]+d_z[4*im+1]*d_z[4*im+1]+
+                        d_z[4*im+2]*d_z[4*im+2]+d_z[4*im+3]*d_z[4*im+3];
+      j++;
       }
-    ib=j/4;
+    ib=j;
     if(corrpow_cnt == 1)
       {
+// Move the first data block to fft3_cleansum 
       for(j=0; j<ib; j++)
         {
-        fft3_cleansum[4*j  ]=fft3_tmp[4*j  ];
-        fft3_cleansum[4*j+1]=fft3_tmp[4*j+1];
-        fft3_cleansum[4*j+2]=fft3_tmp[4*j+2];
-        fft3_cleansum[4*j+3]=fft3_tmp[4*j+3];
+        fft3_cleansum[2*j  ]=d_fft3_tmp[2*j  ];
+        fft3_cleansum[2*j+1]=d_fft3_tmp[2*j+1];
         }
       goto corrpow_x;
       }
-    if(corrpow_cnt < MAX_CORRPOW_CNT)    
+    if(corrpow_cnt <= MAX_CORRPOW_CNT)
       {
+// Accumulate MAX_CORRPOW_CNT spectra in fft3_cleansum.      
       for(j=0; j<ib; j++)
         {
-        fft3_cleansum[4*j  ]+=fft3_tmp[4*j  ];
-        fft3_cleansum[4*j+1]+=fft3_tmp[4*j+1];
-        fft3_cleansum[4*j+2]+=fft3_tmp[4*j+2];
-        fft3_cleansum[4*j+3]+=fft3_tmp[4*j+3];
+        fft3_cleansum[2*j  ]+=d_fft3_tmp[2*j  ];
+        fft3_cleansum[2*j+1]+=d_fft3_tmp[2*j+1];
         }
-      timf3_pd=timf3_pc;
       goto corrpow_x;
       }
-    t1=0;
-    t2=0;
-    r1=0;
-    r2=0;
+// We want to inhibit when there has been impulse noise due to
+// vibrations etc. Find the noise floor of fft_cleansum by first finding
+// the lowest power.
+    ds1=BIGDOUBLE;
+    ds2=BIGDOUBLE;
     for(j=0; j<ib; j++)
       {
-      r1+=fft3_cleansum[4*j  ]/MAX_CORRPOW_CNT;
-      t1+=fft3_tmp[4*j  ]-fft3_cleansum[4*j  ]/MAX_CORRPOW_CNT;
-      r2+=fft3_cleansum[4*j+1]/MAX_CORRPOW_CNT;
-      t2+=fft3_tmp[4*j+1]-fft3_cleansum[4*j+1]/MAX_CORRPOW_CNT;
-      r1+=fft3_cleansum[4*j+2]/MAX_CORRPOW_CNT;
-      t1+=fft3_tmp[4*j+2]-fft3_cleansum[4*j+2]/MAX_CORRPOW_CNT;
-      r2+=fft3_cleansum[4*j+3]/MAX_CORRPOW_CNT;
-      t2+=fft3_tmp[4*j+3]-fft3_cleansum[4*j+3]/MAX_CORRPOW_CNT;
+      if(ds1>fft3_cleansum[2*j  ])ds1=fft3_cleansum[2*j  ];
+      if(ds2>fft3_cleansum[2*j+1])ds2=fft3_cleansum[2*j+1];
       }
-    t1/=r1*ib;
-    t2/=r2*ib;
-    sprintf(fft3_level, "fft3 %6.2f",10*log10(1000*fabs(t1+t2)));
-    if(t1 < 0.01 && t2 < 0.01)
+// Compute the average noise floor as the average of all points
+// within 15 dB above the lowest level
+    ds1*=31.6F/MAX_CORRPOW_CNT;
+    ds2*=31.6F/MAX_CORRPOW_CNT;
+    ds3=0;
+    ds4=0;
+    i=0;
+    for(j=0; j<ib; j++)
       {
-      t1=(float)(MAX_CORRPOW_CNT)/(float)(MAX_CORRPOW_CNT+1);
+      if(fft3_cleansum[2*j  ] < ds1 && fft3_cleansum[2*j+1] < ds2)
+        {
+        ds3+=fft3_cleansum[2*j  ];
+        ds4+=fft3_cleansum[2*j+1];
+        i++;
+        }
+      } 
+    ds3/=i;
+    ds4/=i;
+// Compare the latest spectrum with the average in fft3_cleansum while
+// excluding points (spurs) that are 10 dB or more above the noise
+// power
+    ds3*=10;
+    ds4*=10;
+    dt1=0;
+    dt2=0;
+    dr1=0;
+    dr2=0;
+    i=0;
+    for(j=0; j<ib; j++)
+      {
+      if(fft3_cleansum[2*j  ]<ds3 && fft3_cleansum[2*j+1]<ds4)
+        {
+        i++; 
+        dr1+=fft3_cleansum[2*j  ]/MAX_CORRPOW_CNT;
+        dt1+=d_fft3_tmp[2*j  ]-fft3_cleansum[2*j  ]/MAX_CORRPOW_CNT;
+        dr2+=fft3_cleansum[2*j+1]/MAX_CORRPOW_CNT;
+        dt2+=d_fft3_tmp[2*j+1]-fft3_cleansum[2*j+1]/MAX_CORRPOW_CNT;
+        }
+      }
+    if(dt1 < 0)
+      {
+      dt1=1.e-5;
+      }
+    else
+      {    
+      dt1/=dr1*i;
+      }
+    if(dt2 < 0)
+      {
+      dt2=1.e-5;
+      }
+    else
+      {    
+      dt2/=dr2*i;
+      }
+    sprintf(fft3_level, "fft3 %6.2f",10*log10(1000*(dt1+dt2)));
+//fprintf(dmp1,"\n%s   %f   %f",fft3_level,dt1, dt2);
+// ö When fft3_size is large the entire transform is not much affected
+// when a glitch has occured. A better strategy would be to remove spurs
+// by zeroing the transform on all spurs besed on cleansum and then
+// go back to the time domain and look for peaks there.
+    if(dt1 < 0.005 && dt2 < 0.005)
+      {
+      dt1=(float)(MAX_CORRPOW_CNT)/(float)(MAX_CORRPOW_CNT+1);
       for(j=0; j<ib; j++)
         {
-        fft3_cleansum[4*j  ]=t1*(fft3_cleansum[4*j  ]+fft3_tmp[4*j  ]);
-        fft3_cleansum[4*j+1]=t1*(fft3_cleansum[4*j+1]+fft3_tmp[4*j+1]);
-        fft3_cleansum[4*j+2]=t1*(fft3_cleansum[4*j+2]+fft3_tmp[4*j+2]);
-        fft3_cleansum[4*j+3]=t1*(fft3_cleansum[4*j+3]+fft3_tmp[4*j+3]);
+        fft3_cleansum[2*j  ]=dt1*(fft3_cleansum[2*j  ]+d_fft3_tmp[2*j  ]);
+        fft3_cleansum[2*j+1]=dt1*(fft3_cleansum[2*j+1]+d_fft3_tmp[2*j+1]);
         }
       }
     else
       {
-      sprintf(fft3_skip, "fft3 skip %6.2f",10*log10(1000*fabs(t1+t2)));
-      skip_nonvalid();
-      return;
+      sprintf(fft3_skip, "fft3 skip %6.2f",10*log10(1000*fabs(dt1+dt2)));
+      while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT)
+        {
+        lir_sleep(2000);
+        }
+// the siganal step size is sg_interleave_points at baseband_sampling_speed
+// each step is thus sg_interleave_points/baseband_sampling_speed seconds.
+// The current fft3 transform spans fft3_size/timf3_sampling_speed seconds
+// skip signal analysis for 1.5 times the fft3 transform time.
+      t1=1.5*(float)fft3_size/timf3_sampling_speed;
+      t1/=(float)sg_interleave_points/baseband_sampling_speed;
+      skip_siganal=ceil(t1);
       }
+    sc[SC_SHOW_SIGANAL_INFO ]++;
     }
 corrpow_x:;        
+  if(mix1_selfreq[0] != old_mix1_selfreq)return;
   k=bg_show_pa;
   iw=0;
   i=4*bg_first_xpoint;
@@ -645,6 +739,7 @@ else
   {  
   fft3_slowsum_recalc=0;
   }
+if(thread_command_flag[THREAD_FFT3] != THRFLAG_ACTIVE)return;  
 timf3_px=(timf3_px+2*fft3_new_points*ui.rx_rf_channels)&timf3_mask;
 bg_show_pa+=ui.rx_rf_channels*bg_xpoints;
 if(bg_show_pa >= fft3_show_size)bg_show_pa=0;
@@ -673,7 +768,6 @@ if(bg_waterf_sum_counter >= bg.waterfall_avgnum)
   update_bg_waterf();
   }
 mix0_absent:;
+if(mix1_selfreq[0] != old_mix1_selfreq)return;
 fft3_pa=(fft3_pa+fft3_block)&fft3_mask;
 }
-
-

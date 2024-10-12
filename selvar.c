@@ -25,7 +25,7 @@
 #include "globdef.h"
 #include "seldef.h"
 
-
+int skip_siganal;
 int yieldflag_ndsp_mix1;
 int freq_readout_x1;
 int freq_readout_x2;
@@ -61,6 +61,9 @@ int basebnet_pa;
 char *baseb_netsend_buffer;
 int basebnet_mask;
 int basebnet_size;
+
+int allow_audio;
+int audio_status;
 
 char *basebraw_netsend_buffer;
 int basebrawnet_mask;
@@ -207,6 +210,7 @@ int ag_ss;
 float fftx_points_per_hz;
 double hwfreq;
 double mix1_selfreq[MAX_MIX1];
+double old_mix1_selfreq;
 int mix1_curx[MAX_MIX1];
 int new_mix1_curx[MAX_MIX1];
 int mix1_point[MAX_MIX1]; 

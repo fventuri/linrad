@@ -1,4 +1,3 @@
-
 //
 // Permission is hereby granted, free of charge, to any person 
 // obtaining a copy of this software and associated documentation 
@@ -45,6 +44,7 @@
 #endif
 #if OSNUM == OSNUM_LINUX
 #include "lscreen.h"
+#include "loadalsa.h"
 #endif
 #if OPENCL_PRESENT == 1
 //#include <clFFT.h>
@@ -197,147 +197,6 @@ bufbar_minpos[bufbar_reset_no]=0x8ffffff;
 }
 #endif
 
-void clear_baseb(void)
-{
-int i, n, m;
-float raw_wttim,t1;
-// We have to recalculate timf3 from old transforms.
-// Find out how much time the data waiting before fft1 sums up to.
-make_ad_wttim();
-while(ad_wts > timf1_usebytes)
-  {
-  lir_sleep(3000);
-  make_ad_wttim();
-  }
-raw_wttim=ad_wttim;
-// We need a total delay from input sample to output sample
-// that can accomodate the most unfavourable situation while collecting
-// enough data to make a new transform.
-// Make da_wait_time the desired number of seconds from input sample
-// to output sample.
-// First a safety margin for processing delay and adjusting speed
-// errors in case different soundboards are used for input and output.
-// All delays are not maximum simultaneously. Subtract 10 ms
-// just in case...
-da_wait_time=0.001*genparm[OUTPUT_DELAY_MARGIN];
-// Maximum data waiting in timf3 that is not enough for a new fft3 transform
-// plus the number of 50% interleaved transforms we want to wait.
-da_wait_time+=fft3_size/timf3_sampling_speed;
-t1=da_wait_time-raw_wttim+fft1_size/ui.rx_ad_speed;
-// We use a window for fft3 so we need to recalculate
-// fft3_interleave-points extra to get the first transform output right.
-t1+=fft3_interleave_points/timf3_sampling_speed;
-// make data for 0.1 seconds extra
-t1+=.1;
-if(genparm[SECOND_FFT_ENABLE]!=0)
-  {
-// Add time for data waiting in timf2.
-  make_fft2_wttim();
-  raw_wttim+=timf2_wttim;
-// Maximum data waiting in timf2 that is not enough for a new fft2 transform
-  da_wait_time+=fft2_size/timf1_sampling_speed;
-  sc[SC_HG_FQ_SCALE]++;
-  n=t1/fft2_blocktime;
-  if(fft2_blocktime > 0.25)n++;
-  if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
-    {
-    n+=afct_delay_points;
-    da_wait_time+=afct_delay_points*fft2_blocktime;
-    }
-  if(n > fft2_nm)n=fft2_nm;
-  if(n > max_fft2n-3)n=max_fft2n-3;
-  fft2_nx=(fft2_na-n+max_fft2n)&fft2n_mask;
-  fft2_nc=fft2_nx;
-  new_fft2_averages();
-  }
-else
-  {
-// Maximum raw data waiting that is not enough for a new fft1 transform
-  if(fft_cntrl[FFT1_CURMODE].gpu == 0)
-    {
-    m=fft1_size*(fft_cntrl[FFT1_CURMODE].real2complex+1)*
-                                 fft_cntrl[FFT1_CURMODE].parall_fft;
-    }
-  else  
-    {
-    m=fft1_size*gpu_fft1_batch_size;
-    }
-  m=fft1_size*(fft_cntrl[FFT1_CURMODE].real2complex+1)*
-                                 fft_cntrl[FFT1_CURMODE].parall_fft;
-  da_wait_time+=m/timf1_sampling_speed;
-  n=t1/fft1_blocktime;
-  if(fft1_blocktime > 0.25)n++;
-  if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
-    {
-    n+=afct_delay_points;
-    da_wait_time+=afct_delay_points*fft1_blocktime;
-    }
-  i=fft1_nx;
-  if(n > max_fft1n-3)n=max_fft1n-3;
-  if(n>fft1_nm)n=fft1_nm;
-  fft1_nx=(fft1_na-n+max_fft1n+1)&fft1n_mask;
-  if(fft1_skip_flag !=0 && fft1_nx > max_fft1n/2)
-    {
-    fft1_nx=fft1_na;
-    }
-  if(fft1_nx > 25)fft1_skip_flag=0;  
-  fft1_nc=fft1_nx;
-  fft1_px=fft1_nx*fft1_block;
-  }
-timf3_pa=0;
-timf3_px=0;
-timf3_py=0;
-timf3_ps=0;
-timf3_pn=0;
-timf3_pc=0;
-timf3_pd=0;
-if(fft1_correlation_flag >= 2)
-  {
-//  timf3_pc=(timf3_pc-mix2.new_points*ui.rx_rf_channels+timf3_size)&timf3_mask;
-//  timf3_pd=timf3_pc;
-  baseb_pa=0;
-  baseb_pb=0;
-  baseb_pc=0;
-  baseb_pd=0;
-  baseb_pe=0;
-  baseb_pf=0;
-  baseb_ps=0;
-  baseb_pm=0;
-  baseb_pn=0;
-  baseb_py=0;
-  baseb_px=0;
-// We want to discard all old data in buffers.
-// Une unit of inhibit_count discards one block of size mix2.new_points
-// in the fft3 buffer. The associated time is 
-// 2*mix2.new_points*ui.rx_rf_channels/timf3_sampling_speed
-  basebcorr_inhibit_count=1+rint(0.5+da_wait_time/(
-          (float)(2*mix2.new_points*ui.rx_rf_channels)/timf3_sampling_speed));
-  }
-for(i=0;i<timf3_block;i++)timf3_float[i]=0;
-basebnet_pa=0;
-basebnet_px=0;
-basebrawnet_pa=0;
-basebrawnet_px=0;
-basebraw_test_cnt1=0;
-basebraw_test_cnt2=0;
-basebraw_test_cnt3=0;
-da_resample_ratio=genparm[DA_OUTPUT_SPEED]/baseband_sampling_speed;
-new_da_resample_ratio=da_resample_ratio;
-for(i=0; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
-  {
-  mix1_status[i]=0;
-  }
-old_afct_delay=afct_delay_points;
-poleval_pointer=0;
-clear_coherent();
-if(audio_dump_flag)
-  {
-  fft1_nb=fft1_na;
-  fft1_nx=fft1_na;
-  fft1_pb=fft1_pa;
-  fft1_px=fft1_pa;
-  }
-}
 
 int local_spurcancel_flag;
 int local_spurinit_flag;
@@ -633,19 +492,19 @@ event_no=EVENT_DO_FFT1B1+i;
 while( thread_command_flag[thread_no] == THRFLAG_ACTIVE)
   {
   thread_status_flag[thread_no]=THRFLAG_SEM_WAIT;
-  if(kill_all_flag)goto xx;
+  if(kill_all_flag)goto fft1b_exit;
   lir_await_event(event_no);
-  if(kill_all_flag)goto xx;
+  if(kill_all_flag)goto fft1b_exit;
   thread_status_flag[thread_no]=THRFLAG_ACTIVE;  
   lir_sched_yield();
   fft1_b(inptr_fft1b[i],out_fft1b[i],buf_fft1b[i],i);
   thread_status_flag[thread_no]=THRFLAG_IDLE;
   lir_sched_yield();
-  if(kill_all_flag)goto xx;
+  if(kill_all_flag)goto fft1b_exit;
   lir_set_event(EVENT_TIMF1);
   lir_await_event(event_no);
   }
-xx:;
+fft1b_exit:;
 thread_status_flag[thread_no]=THRFLAG_RETURNED;
 while(thread_command_flag[thread_no] != THRFLAG_NOT_ACTIVE)
   {
@@ -810,7 +669,7 @@ if(thread_command_flag[THREAD_SCREEN]!=THRFLAG_NOT_ACTIVE)
   }
 restart:;
 k=0;
-restart_2:;
+//restart_2:;
 lir_sched_yield();
 timf1p_px=timf1p_pb;
 fft1_pt=fft1_pa;
@@ -824,7 +683,7 @@ if( (ui.network_flag & NET_RXIN_FFT1) == 0)
     if(kill_all_flag)goto wide_error_exit;;
     }
   k++;
-  if(k<3)goto restart_2;
+//  if(k<3)goto restart_2;
   }
 lir_sched_yield();
 timf1p_px=timf1p_pb;
@@ -1331,16 +1190,63 @@ while(thread_command_flag[THREAD_WIDEBAND_DSP] != THRFLAG_NOT_ACTIVE)
   }
 }
 
+void xx(char *ss)
+{
+char s[200];
+double t1;
+int i, j, k, l, m, n, nn;
+int i1, jj, k1, l1,m1, n1;
+lir_sched_yield();
+i=timf1p_pa/snd[RXAD].block_bytes;
+i1=timf1p_pa/snd[RXAD].block_bytes;
+j=fft1_nb;
+jj=fft1_nx;
+k=timf3_pa/(twice_rxchan*fft3_size);
+k1=timf3_px/(twice_rxchan*fft3_size);
+l=fft3_pa/fft3_block;
+l1=fft3_px/fft3_block;
+m=baseb_pa/(4*(int)mix2.size);
+m1=baseb_py/(4*(int)mix2.size);
+if(rx_audio_out == -1)
+  {
+  n=0;
+  n1=0;
+  }
+else
+  {  
+  n=daout_pa/snd[RXDA].block_bytes;
+  n1=daout_px/snd[RXDA].block_bytes;
+  }
+#if(OSNUM == OSNUM_LINUX)
+if(rx_audio_out != -1)
+  {
+  nn=(int)snd_pcm_avail(alsa_handle[RXDA]);
+  }
+else
+  {
+  nn=-1;
+  }  
+#else
+nn=0;
+#endif
+t1=current_time()-q_time;
+sprintf(s,"\n%.4f %4s timf1(%d,%d) fft1(%d,%d) timf3(%d,%d) fft3(%d,%d) baseb(%d,%d) rxout(%d,%d) DA %d",
+        t1,ss,i,i1,j,jj,k,k1,l,l1,m,m1,n,n1,nn );
+fprintf(dmp,"%s",s);
+fflush(dmp);
+}
+
+
 void narrowband_dsp(void)
 {
-int fftx_flag;
 int local_baseb_reset_counter;
 int i, k;
 int idle_flag;
 int local_bg_update_filter;
 double dt1;
-double total_time1, idle_time, baseb_clear_time;
+double idle_time, baseb_clear_time;
 float t1;
+int fft3_ref, timf3_ref, fft1_ref, fft2_ref;
 int fft3_overload_ticks;
 int fft3_overload_count;
 char s[80];
@@ -1351,13 +1257,14 @@ clear_thread_times(THREAD_NARROWBAND_DSP);
 clear_bufbars();
 #endif
 ampinfo_reset=workload_reset_flag;
+fft3_ref=-1;
+timf3_ref=-1;
+fft1_ref=-1;
+fft2_ref=-1;
 fft3_overload_ticks=0;
 fft3_overload_count=0;
 new_baseb_flag=-1;
-total_time1=current_time();
-dt1=total_time1;
-mouse_time_narrow=total_time1;
-idle_time=total_time1;
+mouse_time_narrow=0;
 idle_flag=0;
 local_bg_update_filter=bg_update_filter;
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -1367,12 +1274,12 @@ local_bg_update_filter=bg_update_filter;
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 local_baseb_reset_counter=0;
 baseb_reset_counter=0;
-// � � � � � � � �??init_baseband_sizes();
 baseb_clear_time=0;
-fftx_flag=0;
+thread_command_flag[THREAD_MIX2]=THRFLAG_ACTIVE;
 while(thread_status_flag[THREAD_SCREEN]!=THRFLAG_ACTIVE &&
       thread_status_flag[THREAD_SCREEN]!=THRFLAG_IDLE &&
-      thread_status_flag[THREAD_SCREEN]!=THRFLAG_SEM_WAIT)
+      thread_status_flag[THREAD_SCREEN]!=THRFLAG_SEM_WAIT &&
+      thread_status_flag[THREAD_MIX2]!= THRFLAG_SEM_WAIT)
  {
  if(thread_command_flag[THREAD_NARROWBAND_DSP] ==
                                            THRFLAG_KILL)goto wcw_error_exit;
@@ -1388,10 +1295,14 @@ if(first_keypress == 1 && ui.autostart >= 'A' && ui.autostart <= 'G')
   baseb_reset_counter++;
   first_keypress=2;
   }
-while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
+idle_time=current_time();
+baseb_clear_time=idle_time;
+update_snd(RXDA);
+while(!kill_all_flag &&
+            thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
   {
+  lir_sched_yield();
   dt1=current_time();
-// !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   idle_flag++;
   switch (idle_flag)
     {
@@ -1474,37 +1385,37 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
       }
     break;
     }
-  if( mouse_task==-1 || (mouse_task&GRAPH_MASK) <= MAX_WIDEBAND_GRAPHS)
+  lir_sched_yield();
+  if( genparm[SECOND_FFT_ENABLE] == 0 )
     {
-    thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_SEM_WAIT;
-    lir_await_event(EVENT_FFT1_READY);
-    thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
-    if(kill_all_flag) goto wcw_error_exit;
-    if(thread_command_flag[THREAD_NARROWBAND_DSP]
-                                             !=THRFLAG_ACTIVE)goto narend;
+    if(fft1_nb == fft1_ref)
+      {
+      i=fft1_nb;
+      thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_SEM_WAIT;
+      while(i == fft1_nb)
+        {
+        k++;
+        lir_await_event(EVENT_FFT1_READY);
+        if(kill_all_flag) goto wcw_error_exit;
+        if(thread_command_flag[THREAD_NARROWBAND_DSP] != THRFLAG_ACTIVE)goto narend;
+        }
+      thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
+      }
     }
   else
     {
-    t1=current_time()-mouse_time_narrow;
-    if(t1 <= MOUSE_MIN_TIME)
+    if(fft2_na == fft2_ref)
       {
-      if( ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) >= fft3_block &&
-          ((baseb_py-baseb_pa+baseband_mask)&baseband_mask) > 4*(int)mix2.size)
+      i=fft2_na;
+      thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_SEM_WAIT;
+      while(i == fft2_na)
         {
-        goto more_mix2;
+        k++;
+        lir_await_event(EVENT_FFT1_READY);
+        if(kill_all_flag) goto wcw_error_exit;
+        if(thread_command_flag[THREAD_NARROWBAND_DSP] != THRFLAG_ACTIVE)goto narend;
         }
-      if( ((timf3_pa-timf3_px+timf3_size)&timf3_mask) >=
-                                             twice_rxchan*fft3_size &&
-                      ((fft3_px-fft3_pa+fft3_mask)&fft3_mask) > fft3_block)
-        {
-        goto more_fft3;
-        }
-      if(fftx_flag != 0)
-        {
-        goto more_fftx;
-        }
-      if(t1 > 0.5/snd[RXAD].interrupt_rate)t1=0.5/snd[RXAD].interrupt_rate;
-      lir_sleep(1000000*t1);
+      thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
       }
     }
 // Here we do the mouse actions that affect the narrowband graphs.
@@ -1650,37 +1561,111 @@ while(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_ACTIVE)
         }
 mouse_x:;
       }
+    lir_sched_yield();
     }
   if(local_baseb_reset_counter!=baseb_reset_counter)
     {
 do_baseb_reset:;
-    i=0;
     local_baseb_reset_counter=baseb_reset_counter;
-// We control the rx output thread from here. It should be either
-// active or waiting on the semaphore.
-// Send it to the semaphore if it is not already there.
-    if(thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_SEMCLEAR)goto dasem;
-    if(thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto daidle;
-    if(thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_RETURNED)goto narend;
-    pause_thread(THREAD_RX_OUTPUT); 
-daidle:;    
-    thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_SEMCLEAR;
-    lir_sched_yield();
-    while(thread_status_flag[THREAD_RX_OUTPUT] != THRFLAG_SEMCLEAR)
-      {
-      lir_sleep(1000);
-      if(kill_all_flag) goto wcw_error_exit;
-      }
-dasem:;
+    thread_command_flag[THREAD_FFT3]=THRFLAG_IDLE;
+    thread_command_flag[THREAD_MIX2]=THRFLAG_IDLE;
+    thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_IDLE;
+    if(thread_status_flag[THREAD_FFT3] == THRFLAG_SEM_WAIT)
+                                            lir_set_event(EVENT_FFT3);
+    if(thread_status_flag[THREAD_MIX2] == THRFLAG_SEM_WAIT)
+                                            lir_set_event(EVENT_MIX2);
+    if(thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_SEM_WAIT)
+                                            lir_set_event(EVENT_BASEB);
+    i=0;
+    while(thread_status_flag[THREAD_RX_OUTPUT] != THRFLAG_IDLE ||
+          thread_status_flag[THREAD_MIX2] != THRFLAG_IDLE ||
+          thread_status_flag[THREAD_FFT3] != THRFLAG_IDLE ||
+          (((ui.use_alsa&PORTAUDIO_RX_OUT) == 0) &&
+          thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE))
+     {
+     i++;
+     lir_sleep(500);
+     if(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_KILL)
+                                                         goto wcw_error_exit;
+     }
     if(mix1_selfreq[0] >= 0)
       {
+      old_mix1_selfreq=mix1_selfreq[0];
       new_baseb_flag=3;
+      skip_siganal=0;
       init_baseband_sizes();
       make_baseband_graph(TRUE);
-      clear_baseb();
+      allow_audio=FALSE;
+      if( genparm[SECOND_FFT_ENABLE] == 0 )
+        {
+        fft1_ref=fft1_na;
+        fft1_nb=fft1_na;
+        fft1_nx=fft1_na;
+        fft1_pb=fft1_pa;
+        fft1_px=fft1_pa;
+        }
+      else
+        {  
+        fft2_ref=fft2_na;
+        fft2_nb=fft2_pa;
+        fft2_nc=fft2_na;
+        fft2_nm=fft2_na;
+        fft2_nx=fft2_na;
+        fft2_pt=fft2_pa;
+        }        
+      timf3_pa=0;
+      timf3_px=0;
+      timf3_py=0;
+      timf3_ps=0;
+      timf3_pn=0;
+      timf3_pc=0;
+      fft3_pa=0;
+      fft3_px=0;
+      baseb_pa=0;
+      baseb_pb=0;
+      baseb_pc=0;
+      baseb_pd=0;
+      baseb_pe=0;
+      baseb_pf=0;
+      baseb_ps=0;
+      baseb_pm=0;
+      baseb_pn=0;
+      baseb_py=0;
+      baseb_px=0;
+      baseb_fx=0;
+      daout_pa=0;
+      daout_px=0;
+      daout_py=0;
+      basebnet_pa=0;
+      basebnet_px=0;
+      basebrawnet_pa=0;
+      basebrawnet_px=0;
+      basebraw_test_cnt1=0;
+      basebraw_test_cnt2=0;
+      basebraw_test_cnt3=0;
+      da_resample_ratio=genparm[DA_OUTPUT_SPEED]/baseband_sampling_speed;
+      new_da_resample_ratio=da_resample_ratio;
+      for(i=0; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
+        {
+        mix1_status[i]=0;
+        }
+      old_afct_delay=afct_delay_points;
+      poleval_pointer=0;
+      clear_coherent();
+      for(i=0;i<timf3_block;i++)timf3_float[i]=0;
+      da_wait_time=0.001*genparm[OUTPUT_DELAY_MARGIN];
       baseb_clear_time=current_time();
       local_baseb_reset_counter=baseb_reset_counter;
-      goto narend_chk;
+      thread_command_flag[THREAD_FFT3]=THRFLAG_ACTIVE;
+      thread_command_flag[THREAD_MIX2]=THRFLAG_ACTIVE;
+      i=0;
+      while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT ||
+            thread_status_flag[THREAD_FFT3] != THRFLAG_SEM_WAIT)
+        {
+        i++;
+        lir_sleep(100);
+        }
+      goto narend;
       }
     else
       {
@@ -1691,9 +1676,10 @@ dasem:;
       new_baseb_flag=-1;
       }
     }
-more_fftx:;
+  lir_sched_yield();  
   if(local_baseb_reset_counter!=baseb_reset_counter)goto do_baseb_reset;
-  fftx_flag=0;
+  fft1_ref=fft1_nb;
+  fft2_ref=fft2_na;
   if( genparm[SECOND_FFT_ENABLE] == 0 )
     {
     if(new_baseb_flag >= 0)
@@ -1709,32 +1695,27 @@ more_fftx:;
           {
           if( ((fft1_nc-fft1_nx+max_fft1n)&fft1n_mask) > afct_delay_points
                &&((timf3_px-timf3_pa+timf3_mask)&timf3_mask) >= timf3_block)
-             {
-             fft1_mix1_afc();
-             }
+            {
+            fft1_mix1_afc();
+            }
           }
-        if( ((fft1_nb-fft1_nx+max_fft1n)&fft1n_mask) >
-                                              afct_delay_points )fftx_flag|=1;
-        if( ((timf3_px-timf3_pa+timf3_mask)&timf3_mask) <
-                                                     timf3_block)fftx_flag|=2;
         }
       else
         {
-        if( fft1_nb != fft1_nx &&
+        while( fft1_nb != fft1_nx &&
                 ((timf3_px-timf3_pa+timf3_mask)&timf3_mask) >= timf3_block)
           {
+          if(thread_command_flag[THREAD_NARROWBAND_DSP]
+                                             !=THRFLAG_ACTIVE)goto narend;
+          if(kill_all_flag) goto wcw_error_exit;
           fft1_mix1_fixed();
-          if(fft1_nb != fft1_nx)fftx_flag|=1;
-          if( ((timf3_px-timf3_pa+timf3_mask)&timf3_mask) <
-                                                     timf3_block)fftx_flag|=2;
+          i++;
+          lir_sched_yield();
           }
         }
       }
     else
       {
-      fft1_nx=fft1_nb;
-      fft1_px=fft1_pb;
-      fft1_nc=fft1_nb;
       goto clear_select;
       }
     }
@@ -1754,10 +1735,6 @@ more_fftx:;
           {
           fft2_mix1_afc();
           }
-        if(((fft2_na-fft2_nx+max_fft2n)&fft2n_mask) >
-                                               afct_delay_points)fftx_flag|=1;
-        if( ((timf3_px-timf3_pa+timf3_mask)&timf3_mask) <
-                                                     timf3_block)fftx_flag|=2;
         }
       else
         {
@@ -1766,25 +1743,30 @@ more_fftx:;
           {
           fft2_mix1_fixed();
           }
-        if(fft2_na != fft2_nx)fftx_flag|=1;
-        if( ((timf3_px-timf3_pa+timf3_mask)&timf3_mask) < timf3_block)
-          {
-          fftx_flag|=2;
-          }
         }
       }
     else
       {
 clear_select:;
+      if( genparm[SECOND_FFT_ENABLE] == 0 )
+        {
+        fft1_nx=fft1_nb;
+        fft1_px=fft1_pb;
+        fft1_nc=fft1_nb;
+        }
+      else
+        {  
+        fft2_nb=fft2_na;
+        fft2_nc=fft2_na;
+        fft2_nm=fft2_na;
+        fft2_nx=fft2_na;
+        fft2_pt=fft2_pa;
+        }
       timf3_px=timf3_pa;
       timf3_py=timf3_pa;
       timf3_pn=timf3_pa;
       fft3_px=fft3_pa;
-      baseb_wts=2;
-      baseb_pb=baseb_pa;
-      baseb_py=baseb_pa;
-      baseb_pn=baseb_pa;
-      goto narend_chk;
+      goto narend;
       }
     }
 #if BUFBARS == TRUE
@@ -1795,13 +1777,20 @@ clear_select:;
     show_bufbar(RX_BUFBAR_TIMF3,i);
     }
 #endif
+  lir_sched_yield();
+  if(kill_all_flag)goto wcw_error_exit;
   if(local_baseb_reset_counter!=baseb_reset_counter)goto do_baseb_reset;
-  if( ((timf3_pa-timf3_px+timf3_size)&timf3_mask) >=
-                                             twice_rxchan*fft3_size &&
-                    ((fft3_px-fft3_pa+fft3_mask)&fft3_mask) > fft3_block)
+  if(((timf3_pa-timf3_px+timf3_size)&timf3_mask) >= twice_rxchan*fft3_size &&
+          ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) < fft3_totsiz-2*fft3_block)
     {
-more_fft3:;
-    make_fft3_all();
+    if(thread_status_flag[THREAD_FFT3] == THRFLAG_SEM_WAIT)
+      {
+      if(timf3_ref != timf3_pa-1)
+        {
+        lir_set_event(EVENT_FFT3);
+        timf3_ref=timf3_pa;
+        }
+      }
     }
 #if BUFBARS == TRUE
   if(fft3_handle != NULL && timinfo_flag!=0)
@@ -1811,9 +1800,9 @@ more_fft3:;
     show_bufbar(RX_BUFBAR_FFT3,i);
     }
 #endif
-  k=(fft3_pa-fft3_px+fft3_totsiz)&fft3_mask;
-  k/=fft3_block;
-  if(audio_dump_flag == 0 && k >= 3)
+  k=1+((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask);
+  k=fft3_totsiz/k;
+  if(audio_dump_flag == 0 && k <= 3)
     {
     fft3_overload_ticks++;
     if(fft3_overload_ticks > 5)
@@ -1828,138 +1817,128 @@ more_fft3:;
     {
     fft3_overload_ticks=0;
     }
-  if( ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) >= fft3_block &&
-      ((baseb_py-baseb_pa+baseband_mask)&baseband_mask) > 4*(int)mix2.size)
+  if(new_baseb_flag >= 0 && new_baseb_flag != 3)
     {
-more_mix2:;
-    if(local_baseb_reset_counter!=baseb_reset_counter)goto do_baseb_reset;
-    fft3_mix2();
-    if( ((baseb_pa-baseb_py+baseband_size)&baseband_mask) >= baseb_output_block)
+    if( ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) >= fft3_block &&
+        ((baseb_pa-baseb_py+baseband_size)&baseband_mask) < baseband_size-4*(int)mix2.size)
       {
-      lir_set_event(EVENT_BASEB);
+      if(local_baseb_reset_counter!=baseb_reset_counter)goto do_baseb_reset;
+      if(thread_status_flag[THREAD_MIX2] == THRFLAG_SEM_WAIT)
+        {
+        if(fft3_ref != fft3_pa)
+          {
+          lir_set_event(EVENT_MIX2);
+          fft3_ref=fft3_pa;
+          }
+        }
       }
     if(kill_all_flag) goto wcw_error_exit;
-    if(new_baseb_flag ==0)
-      {
-      if(genparm[CW_DECODE_ENABLE] != 0)
-        {
-        coherent_cw_detect();
-        if(kill_all_flag) goto wcw_error_exit;
-        }
-      if(cg.oscill_on != 0)sc[SC_CG_REDRAW]++;
-      }
-    }
 #if BUFBARS == TRUE
-  if(baseband_handle != NULL && timinfo_flag!=0)
-    {
-    i=(baseb_pa+fft3_block+2-baseb_py+baseband_mask+1)&baseband_mask;
-    i/=baseb_indicator_block;
-    show_bufbar(6,i);
-    }
+    if(baseband_handle != NULL && timinfo_flag!=0)
+      {
+      i=(baseb_pa+/*fft3_block+2*/-baseb_py+baseband_mask+1)&baseband_mask;
+      i/=baseb_indicator_block;
+      show_bufbar(RX_BUFBAR_BASEB,i);
+      }
 #endif
-  if(new_baseb_flag > 0)
+    }
+  if(new_baseb_flag ==0)
     {
-    lir_sched_yield();
+    if(genparm[CW_DECODE_ENABLE] != 0)
+      {
+      coherent_cw_detect();
+      if(kill_all_flag) goto wcw_error_exit;
+      }
+    if(cg.oscill_on != 0)sc[SC_CG_REDRAW]++;
+    goto narend;
+    }
+  if(new_baseb_flag == 3)
+    {
+    if(fft1_correlation_flag >=2)
+      {
+      new_baseb_flag=0;
+      goto narend;
+      }
+    if(audio_status || thread_status_flag[THREAD_MIX2] != 
+                                                  THRFLAG_SEM_WAIT)goto narend;
+// Clear pointers and allow data to accumulate.
+    if(audio_dump_flag)
+      {
+      baseb_py=baseb_pa;
+      }
+    else
+      {
+      new_baseb_flag=2;
+      }
+    goto narend;
+    }
+  if(new_baseb_flag == 2)
+    {
+// we want the data in buffers to be about 200 ms less than the desired
+// da_wait_time to allow for the time it takes to wake up the soundcard.
+// This may be too early, the user can compensate for that by setting a larger
+// "Output delay margin"
     make_timing_info();
-    update_snd(RXDA);
     if(kill_all_flag) goto wcw_error_exit;
-    t1=total_wttim-da_wait_time-da_wttim;
-    if(!audio_dump_flag && new_baseb_flag == 3)
+    t1=total_wttim-da_wait_time-min_wttim;
+    if(!audio_dump_flag && fft1_correlation_flag <= 1)
       {
-      if(t1 > 0.01 )
+      if(t1 > -0.2)
         {
-        new_baseb_flag=2;
-        }
-      goto narend_chk;
-      }
-    if(baseb_clear_time+3+2*da_wait_time < current_time())lirerr(1058);
-// new_baseb_flag == 1 or 2
-// We want data in buffers corresponding to da_wait_time.
-// We arrive here when there is more than that, move pointers
-// to discard data corresponding to total_wttim-da_wait_time
-// If there is too much data in memory, move the baseb pointer
-// to discard more data.
-    if(new_baseb_flag == 2)
-      {
-      if(t1*baseband_sampling_speed > 4)
-        {
-        i=t1*baseband_sampling_speed;
-        if(i > baseb_wts-1)
+        if(!audio_dump_flag)
           {
-          baseb_py=(baseb_py+(int)(baseb_wts)-1+baseband_size)&baseband_mask;
-          goto narend_chk;
+          thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_ACTIVE;
+          lir_sched_yield();
+          lir_set_event(EVENT_RX_START_DA);
           }
-        baseb_py=(baseb_py+i-1+baseband_size)&baseband_mask;
+        new_baseb_flag=1;
         }
-      new_baseb_flag=1;
-      goto narend_chk;
       }
-    lir_sched_yield();
-    if( (ui.network_flag & NET_RXIN_FFT1) == 0)
+    else
       {
-      i=timf1p_pb;
-      thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_INPUT_WAIT;
-      while(i == timf1p_pb)
-        {
-        if(thread_command_flag[THREAD_NARROWBAND_DSP] != THRFLAG_ACTIVE)
-          {
-          thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
-          goto narend_chk;
-          }
-        lir_sleep(1000);
-        if(kill_all_flag) goto wcw_error_exit;
-        }
-      thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
+      new_baseb_flag = 1;
       }
-    if(cg.meter_graph_on != 0)sc[SC_MG_REDRAW]++;
-    workload_reset_flag++;
-    if( (ui.network_flag & NET_RX_INPUT) != 0)
-      {
-      net_send_slaves_freq();
-      }
-    new_baseb_flag=0;
-    timf2_blockpower_px=-1;
-    timf2_pb=timf2_pn2;
-    sc[SC_BG_WATERF_REDRAW]+=3;
-    thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_ACTIVE;
-    lir_set_event(EVENT_RX_START_DA);
-    goto more_fftx;
+    if(baseb_clear_time+2*min_wttim+da_wait_time < current_time())lirerr(1058);
+    goto narend;
     }
-narend_chk:;
-  if(kill_all_flag)goto wcw_error_exit;
-  if( ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) >= fft3_block &&
-      ((baseb_py-baseb_pa+baseband_mask)&baseband_mask) > 4*(int)mix2.size)
+// Here new_baseb_flag must be 1.
+  lir_sched_yield();
+  if( (ui.network_flag & NET_RXIN_FFT1) == 0)
     {
-    lir_sched_yield();
-    goto more_mix2;
-    }
-  if( ((timf3_pa-timf3_px+timf3_size)&timf3_mask) >=
-                                             twice_rxchan*fft3_size &&
-                    ((fft3_px-fft3_pa+fft3_mask)&fft3_mask) > fft3_block)
-    {
-    lir_sched_yield();
-    goto more_fft3;
-    }
-  if(fftx_flag != 0)
-    {
-    if(new_baseb_flag == 0)
+    i=timf1p_pb;
+    thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_INPUT_WAIT;
+    while(i == timf1p_pb)
       {
-      if( (fftx_flag&2) == 0)
+      if(thread_command_flag[THREAD_NARROWBAND_DSP] != THRFLAG_ACTIVE)
         {
-        lir_sched_yield();
+        thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
+        goto narend;
         }
-      else
-        {
-        lir_sleep(5000);
-        }
+      lir_sleep(1000);
+      if(kill_all_flag) goto wcw_error_exit;
       }
-    if(!kill_all_flag && thread_command_flag[THREAD_NARROWBAND_DSP] ==
-                                                THRFLAG_ACTIVE)
-      {
-      goto more_fftx;
-      }
+    thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
     }
+  if(cg.meter_graph_on != 0)sc[SC_MG_REDRAW]++;
+  workload_reset_flag++;
+  if( (ui.network_flag & NET_RX_INPUT) != 0)
+    {
+    net_send_slaves_freq();
+    }
+  new_baseb_flag=0;
+  timf2_blockpower_px=-1;
+  timf2_pb=timf2_pn2;
+  sc[SC_BG_WATERF_REDRAW]+=3;
 narend:;
+  if(fft1_correlation_flag == 2)
+    {
+    baseb_py=baseb_pa;
+    if(new_baseb_flag > 0)
+      {
+      corrpow_cnt=0;
+      corr_afc_count=MAX_CORR_AFC_COUNT-1;
+      }
+    }
   }
 wcw_error_exit:;
 thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_RETURNED;

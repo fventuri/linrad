@@ -35,7 +35,7 @@
 #include <unistd.h>
 #include "loadalsa.h"
 #include "lscreen.h"
-extern snd_pcm_t *rx_ad_handle, *rx_da_handle;
+extern snd_pcm_t  *rx_da_handle;
 extern snd_pcm_t *tx_ad_handle, *tx_da_handle;
 int alsaread(snd_pcm_t *handle, char *buf, int type);
 
@@ -155,7 +155,7 @@ while(!kill_all_flag && soundcard_test_cmd_flag[RXAD] == THRFLAG_ACTIVE)
       {
       if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
         {
-        err=alsaread(rx_ad_handle, timf1_char,RXAD);
+        err=alsaread(alsa_handle[RXAD], timf1_char,RXAD);
         if(err != TRUE)
           {
           lir_text(0,screen_last_line-1,"ERROR");

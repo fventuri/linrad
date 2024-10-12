@@ -172,6 +172,7 @@ unsigned char morsascii6[64]={
 
 char fft3_level[12]="           ";
 char fft3_skip[32]="            ";
+
 unsigned char *morsascii[6]={morsascii1, morsascii2, morsascii3, 
                morsascii4, morsascii5, morsascii6};               
 
@@ -189,8 +190,6 @@ int basebraw_test_cnt3;
 int baseb_min_block;
 int baseb_output_block;
 int corr_afc_count;
-int basebcorr_inhibit_count;
-int basebcorr_enable_flag;
 
 float keying_spectrum_pos[KEYING_SPECTRUM_MAX];
 float keying_spectrum_ampl[KEYING_SPECTRUM_MAX];
@@ -211,6 +210,7 @@ float rds_phase;
 float rds_power;
 
 int min_daout_samps;
+
 float fm0_ph1;
 float fm0_ph2;
 float fm1_ph1;
@@ -470,6 +470,10 @@ char *daout;
 float *cg_map;
 short int *cg_traces;
 float *mix2_tmp;
+float *carr_tmp;
+double *d_carr_tmp;
+float *mi2_tmp;
+double d_mi2_tmp;
 float *mix2_pwr;
 D_COSIN_TABLE *d_mix2_table;
 float *fftn_tmp;
@@ -478,7 +482,8 @@ MORSE_DECODE_DATA *cw;
 float *cw_carrier_window;
 char *bg_volbuf;
 float *bg_binshape;
-float *bg_ytmp;
+double *d_bg_binshape;
+double *bg_ytmp;
 float *dash_waveform;
 
 float *dash_wb_waveform;
@@ -546,6 +551,7 @@ int new_daout_upsamp;
 int daout_upsamp_n;
 int daout_pa;
 int daout_px;
+int daout_py;
 int daout_bufmask;
 int flat_xpixel;
 int curv_xpixel;
@@ -572,6 +578,7 @@ int bg_expand;
 int bg_coherent;
 int bg_delay;
 int bg_twopol;
+int bg_ypixels;
 float bg_expand_a;
 float bg_expand_b;
 float bg_amplimit;

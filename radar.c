@@ -425,7 +425,6 @@ gt_pulse2:;
       timf3_px=timf3_pa;
       timf3_py=timf3_pa;
       fft3_px=fft3_pa;
-      baseb_wts=2;
       baseb_fx=(baseb_pa-2+baseband_size)&baseband_mask;
       baseb_py=baseb_pa;
       }

@@ -1,0 +1,32 @@
+To install Linrad under Linux, run the command:
+
+./configure
+
+This will give the commands required to install the required packages for
+all hardware currently supported by Linrad.
+
+Instructions have been updated for Debian, Fedora and openSUSE.
+
+Derivatives such as Ubuntu work with the commands for the distribution they
+are based on. 
+
+Commands for Mageia, PCLinuxOS, Mandriva, Sabayon and others are
+VERY old and many are probably outdated.
+
+You may look up your Linux distibution here:
+https://distrowatch.com/dwres.php?resource=popularity
+Click on it's name to see what it is based on.
+
+Most popular 2024:
+MX Linux based on Debian
+Linux Mint based on Debian
+EndeavourOS based on Arch
+Manjaro Linux based on Arch
+Pop!_OS based on Debian
+Zorin based on Debian
+Nobara based on Fedora
+KDE neon based on Debian
+antiX based on Debian
+etc.
+
+There are 269 distributions listed August 2024.

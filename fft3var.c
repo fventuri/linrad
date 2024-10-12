@@ -25,6 +25,7 @@
 #include "globdef.h"
 #include "fft3def.h"
 
+int timf3_tmp_size;
 double fft3_show_time;
 int yieldflag_ndsp_fft3;
 int yieldflag_ndsp_mix2;
@@ -34,11 +35,13 @@ double *d_fft3;
 COSIN_TABLE *fft3_tab;
 D_COSIN_TABLE *d_fft3_tab;
 unsigned short int *fft3_permute;
-unsigned int *d_fft3_permute;
+unsigned int *fft3_bigpermute;
 float *fft3_window;
 double *d_fft3_window;
 float *fft3_tmp;
 double *d_fft3_tmp;
+float *timf3_tmp;
+double *d_timf3_tmp;
 float *fft3_power;
 float *fft3_fqwin_inv;
 double *d_fft3_fqwin_inv;
@@ -70,6 +73,7 @@ float fft3_interleave_ratio;
 int fft3_interleave_points;
 int fft3_new_points;
 float *basebraw_fir;
+double *d_basebraw_fir;
 int basebraw_fir_pts;
 float *basebwbraw_fir;
 int basebwbraw_fir_pts;
@@ -85,7 +89,8 @@ int timf3_y0[8];
 float timf3_wttim;
 float fft3_wttim;
 float timf3_sampling_speed;
-int timf3_osc_interval;
+double timf3_osc_interval;
+double timf3_osc_time;
 int timf3_block;
 int timf3_pa;
 int timf3_px;
@@ -93,7 +98,6 @@ int timf3_py;
 int timf3_ps;
 int timf3_pn;
 int timf3_pc;
-int timf3_pd;
 int timf3_wts;
 float fft3_wtb;
 

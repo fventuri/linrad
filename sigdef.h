@@ -96,7 +96,6 @@ float im;
 extern char fft3_level[12];
 extern char fft3_skip[32];
 
-
 void mg_compute_stonavg(void);
 void skip_nonvalid(void);
 
@@ -106,9 +105,8 @@ extern int bg_carrfilter_points;
 extern int baseb_min_block;
 extern int baseb_output_block;
 #define MAX_CORR_AFC_COUNT 15
+#define MAX_CORRPOW_CNT 4
 extern int corr_afc_count;
-extern int basebcorr_inhibit_count;
-extern int basebcorr_enable_flag;
 extern int basebraw_test_cnt1;
 extern int basebraw_test_cnt2;
 extern int basebraw_test_cnt3;
@@ -453,6 +451,10 @@ extern short int *sg_pn1spectrum;
 extern short int *sg_pn2spectrum;
 
 extern float *mix2_tmp;
+extern float *carr_tmp;
+extern double *d_carr_tmp;
+extern float *mi2_tmp;
+extern double d_mi2_tmp;
 extern float *mix2_pwr;
 extern D_COSIN_TABLE *d_mix2_table;
 extern char *daout;
@@ -468,6 +470,7 @@ extern int new_daout_upsamp;
 extern int daout_upsamp_n;
 extern int daout_pa;
 extern int daout_px;
+extern int daout_py;
 extern int daout_bufmask;
 extern int flat_xpixel;
 extern int curv_xpixel;
@@ -485,7 +488,8 @@ extern float daout_gain;
 extern int daout_gain_y;
 extern char *bg_volbuf;
 extern float *bg_binshape;
-extern float *bg_ytmp;
+extern double *d_bg_binshape;
+extern double *bg_ytmp;
 extern int baseb_channels;
 extern float baseb_wts;
 extern float da_wttim;  
@@ -499,6 +503,7 @@ extern int bg_expand;
 extern int bg_coherent;
 extern int bg_delay;
 extern int bg_twopol;
+extern int bg_ypixels;
 extern float bg_expand_a;
 extern float bg_expand_b;
 extern float bg_agc_amplimit;
@@ -590,3 +595,5 @@ void make_allanfreq_graph(int flag1, int flag2);
 void make_siganal_graph(int flag1, int flag2);
 void allansave_start(void);
 void allansave_stop(void);
+void update_squelch_buttons(void);
+void make_daout_gain(void);

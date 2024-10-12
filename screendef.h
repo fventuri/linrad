@@ -49,7 +49,9 @@
 #define SC_VG_UPDATE 38
 #define SC_VGF_REDRAW 39
 #define SC_VGF_UPDATE 40
-#define MAX_SC 41
+#define SC_FFT3_SCALE 41
+#define SC_SHOW_SIGANAL_INFO 42
+#define MAX_SC 43
 
 extern unsigned int sc[MAX_SC];
 extern unsigned int sd[MAX_SC];
@@ -131,6 +133,9 @@ extern unsigned int sd[MAX_SC];
 #define DISKSAVE_X_SIZE 48*text_width
 #define DISKSAVE_Y_SIZE 7*text_height    
 #define DISKSAVE_SCREEN_SIZE (DISKSAVE_X_SIZE*DISKSAVE_Y_SIZE)
+
+#define DA_GAIN_RANGE 10.
+#define DA_GAIN_REF 1.
 
 extern char *graphtype_names[MAX_GRAPHTYPES];
 extern char *graphtype_parptr[MAX_GRAPHTYPES];
@@ -222,6 +227,7 @@ extern unsigned char *bg_background;
 extern int bg_flatpoints;
 extern int bg_curvpoints;
 extern float bg_noise_bw;
+extern int bg_carr_20db_points;
 extern int bg_6db_points;
 extern int bg_60db_points;
 extern int bg_120db_points;

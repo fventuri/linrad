@@ -1126,12 +1126,15 @@ if(new_y != old_y || sw!=0)
     }
   else
     {
-    for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
+    if(MAX_MIX1 > 1)
       {
-      if(xpix == mix1_curx[i])
+      for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
         {
-        bkg_color=MIX1_SUBCUR_COLOR;
-        }
+        if(xpix == mix1_curx[i])
+          {
+          bkg_color=MIX1_SUBCUR_COLOR;
+          }
+        }  
       }  
     }
   lir_setpixel(xpix,old_y,bkg_color);
@@ -1168,13 +1171,16 @@ if(new_y!=old_y)
     }
   else
     {
-    for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
+    if(MAX_MIX1 > 1)
       {
-      if(xpix == mix1_curx[i])
+      for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
         {
-        bkg_color=MIX1_SUBCUR_COLOR;
-        }
-      }  
+        if(xpix == mix1_curx[i])
+          {
+          bkg_color=MIX1_SUBCUR_COLOR;
+          }
+        }  
+      }
     }
   lir_setpixel(xpix,old_y,bkg_color);
   lir_setpixel(xpix,new_y,14);
@@ -1207,12 +1213,15 @@ if(xpix == mix1_curx[0])
   }
 else
   {
-  for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
+  if(MAX_MIX1 > 1)
     {
-    if(xpix == mix1_curx[i])
+    for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
       {
-      bkg_color=MIX1_SUBCUR_COLOR;
-      }
+      if(xpix == mix1_curx[i])
+        {
+        bkg_color=MIX1_SUBCUR_COLOR;
+        }
+      }  
     }  
   }
 lir_setpixel(xpix,old_y,bkg_color);
@@ -1544,63 +1553,38 @@ if(fft1_correlation_flag == 1)
 
 void timf3_oscilloscope(void)
 {
-int i,j,k,m,mm,pa,pb,mask;
-float t1,t2;
+int i,j,k,mm,pa;
 hide_mouse(0,screen_width>>1,0,screen_height);
 mm=twice_rxchan;
-mask=timf3_mask;
-pa=timf3_ps;        
-pb=(pa+timf3_osc_interval)&mask;
-t1=0;
-m=-1;
-while(pa != pb)
-  {
-  t2=timf3_float[pa  ]*timf3_float[pa  ];
-  for(j=1;j<mm; j++)
+for(j=0; j<mm; j++)
+  {  
+  for(i=1; i<screen_width/2; i++)
     {
-    t2+=timf3_float[pa+j]*timf3_float[pa+j]; 
-    } 
-  if(t1<t2)
-    {
-    t1=t2;
-    m=pa;
-    }
-  pa=(pa+mm)&mask;
-  }
-if(m >= 0)
-  {
-  pa=(m-ui.rx_rf_channels*screen_width/4)&timf3_mask;
-  pa&=-mm;
-  for(j=0; j<mm; j++)
-    {  
-    for(i=1; i<screen_width/2; i++)
-      {
-      lir_line(i-1,timf3_graph[mm*(i-1)+j],i,timf3_graph[mm*i+j],0);
-      if(kill_all_flag) return;
-      }
-    }
-  for(i=0; i<screen_width/2; i++)
-    {
-    for(j=0; j<mm; j++)
-      {  
-      k=timf3_y0[mm-j]-timf3_float[pa+j]*bg.oscill_gain;
-      if(k<0)k=0;
-      if(k>=screen_height)k=screen_height-1;
-      timf3_graph[mm*i+j]=k;
-      }
-    pa=(pa+mm)&timf3_mask;
-    }
-  for(j=0; j<mm; j++)
-    {  
-    if(  (j&1)==0 )k=10; else k=13;
-    for(i=1; i<screen_width/2; i++)
-      {
-      lir_line(i-1,timf3_graph[mm*(i-1)+j],i,timf3_graph[mm*i+j],k);
-      if(kill_all_flag) return;
-      }
+    lir_line(i-1,timf3_graph[mm*(i-1)+j],i,timf3_graph[mm*i+j],0);
+    if(kill_all_flag) return;
     }
   }
-timf3_ps=(timf3_ps+timf3_osc_interval)&timf3_mask;
+pa=(timf3_pa-mm*screen_width/2+timf3_size)&timf3_mask;        
+for(i=0; i<screen_width/2; i++)
+  {
+  for(j=0; j<mm; j++)
+    {  
+    k=timf3_y0[mm-j]-timf3_float[pa+j]*bg.oscill_gain;
+    if(k<screen_height/4)k=screen_height/4;
+    if(k>=screen_height)k=screen_height-1;
+    timf3_graph[mm*i+j]=k;
+    }
+  pa=(pa+mm)&timf3_mask;
+  }
+for(j=0; j<mm; j++)
+  {  
+  if(  (j&1)==0 )k=10; else k=13;
+  for(i=1; i<screen_width/2; i++)
+    {
+    lir_line(i-1,timf3_graph[mm*(i-1)+j],i,timf3_graph[mm*i+j],k);
+    if(kill_all_flag) return;
+    }
+  }
 }
 
 void hg_cursor(void)

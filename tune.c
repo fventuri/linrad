@@ -420,7 +420,6 @@ nrm_x:;
   store_xtal_data(unit,i);
 // All the data we have in memory now is invalid.
 // Read and skip data for this time plus 10 milliseconds.
-  update_snd(RXDA);
   make_timing_info();
   t1=0.01+ad_wttim+fft1_wttim;
   i=1+t1*96000*sizeof(int)/snd[RXAD].framesize;
@@ -444,7 +443,7 @@ nrm_x:;
 // Now read the data that we will process!
   mm=0;
   k=0;
-  timf1p_px=(timf1p_pa-timf1_usebytes-2*snd[RXAD].block_bytes+
+  timf1p_px=(timf1p_pa-2*(timf1_usebytes+snd[RXAD].block_bytes)+
                                                  timf1_bytes)&timf1_bytemask;
   while(mm < tune_bytes)
     {

@@ -50,7 +50,7 @@ int thread_waitsem[THREAD_MAX]={
                     -1,              //2 = THREAD_RX_FFT1_NETINPUT
                     -1,              //3 = THREAD_RX_FILE_INPUT
                     -1,              //4 = THREAD_SDR14_INPUT
-             EVENT_RX_START_DA,      //5 = THREAD_RX_OUTPUT
+             EVENT_BASEB,            //5 = THREAD_RX_OUTPUT
              EVENT_SCREEN,           //6 = THREAD_SCREEN
                     -1,              //7 = THREAD_TX_INPUT
              EVENT_TX_INPUT,         //8 = THREAD_TX_OUTPUT
@@ -100,6 +100,8 @@ int thread_waitsem[THREAD_MAX]={
              EVENT_HWARE1_RXREADY,   //52 = THREAD_AIRSPYHF_INPUT
              EVENT_HWARE1_RXREADY,   //53 = THREAD_SDRPLAY2_INPUT
              EVENT_HWARE1_RXREADY,   //54 = THREAD_SDRPLAY3_INPUT
+             EVENT_MIX2,             //55 = THREAD_MIX2
+             EVENT_FFT3              //56 = THREAD_FFT3
                      };
 
 
@@ -158,4 +160,6 @@ char *thread_names[THREAD_MAX]={"RxAD",  //0 = THREAD_RX_ADINPUT
                                 "AHFP",  //52 = THREAD_AIRSPYHF_INPUT
                                 "SP2i",  //53 = THREAD_SDRPLAY2_INPUT
                                 "SP3i",  //54 = THREAD_SDRPLAY3_INPUT
+                                "mix2",  //55 = THREAD_MIX2
+                                "fft3"   //56 = THREAD_FFT3
                                  };

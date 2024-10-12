@@ -1,4 +1,3 @@
-
 //
 // Permission is hereby granted, free of charge, to any person 
 // obtaining a copy of this software and associated documentation 
@@ -102,8 +101,6 @@ void fix_prio(int no);
 #include "loadalsa.h"
 
 #define MAX_ALSADEV 24
-snd_pcm_t *rx_ad_handle, *rx_da_handle;
-snd_pcm_t *tx_ad_handle, *tx_da_handle;
 
 int  alsa_dev_seq_nmbr;
 char alsa_dev_soundcard_name [256];
@@ -1015,7 +1012,7 @@ char s[40];
 int nread;
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
-  err=alsaread(tx_ad_handle, buf, TXAD);
+  err=alsaread(alsa_handle[TXAD], buf, TXAD);
   if(err == FALSE)
     {
     no_of_tx_overrun_errors++;
@@ -1089,7 +1086,7 @@ while(!kill_all_flag &&
       {
       if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
         {
-        err=alsaread(rx_ad_handle, (char*)rxin_isho, RXAD);
+        err=alsaread(alsa_handle[RXAD], (char*)rxin_isho, RXAD);
         if(kill_all_flag) goto rxadin_error_exit;
         if(err == FALSE)
           {
@@ -1183,7 +1180,7 @@ snd_pcm_sframes_t frame_avail;
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
 //Try to synchronize stream position with hardware
-  err=snd_pcm_hwsync(tx_da_handle);
+  err=snd_pcm_hwsync(alsa_handle[TXDA]);
   if(err != 0)
     {
     if(err == -EPIPE)       // underrun, try to recover
@@ -1191,8 +1188,8 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
       no_of_tx_underrun_errors++;
       sprintf(s,"TX%s%d",underrun_error_msg,no_of_tx_underrun_errors);
       wg_error(s,WGERR_TXOUT);
-      snd_pcm_prepare(tx_da_handle);
-      err=snd_pcm_hwsync(tx_da_handle);
+      snd_pcm_prepare(alsa_handle[TXDA]);
+      err=snd_pcm_hwsync(alsa_handle[TXDA]);
       if(err < 0)
         {
 //      lirerr(872315);  // accept error, we have to live with less accurate data in frame_avail
@@ -1203,7 +1200,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 //    lirerr(872316);  // accept error, we have to live with less accurate data in frame_avail
       }
     }
-  frame_avail= snd_pcm_avail_update(tx_da_handle);
+  frame_avail= snd_pcm_avail(alsa_handle[TXDA]);
   if(frame_avail < 0)
           {
 //          lirerr(872317);
@@ -1231,15 +1228,15 @@ snd_pcm_sframes_t frame_avail;
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
 //Synchronize stream position with hardware
-  err=snd_pcm_hwsync(tx_ad_handle);
+  err=snd_pcm_hwsync(alsa_handle[TXAD]);
     {
     if(err == -EPIPE)       // underrun, try to recover
       {
       no_of_tx_overrun_errors++;
       sprintf(s,"TX%s%d",overrun_error_msg,no_of_tx_overrun_errors);
       wg_error(s,WGERR_TXIN);
-      snd_pcm_prepare(tx_ad_handle);
-      err=snd_pcm_hwsync(tx_ad_handle);
+      snd_pcm_prepare(alsa_handle[TXAD]);
+      err=snd_pcm_hwsync(alsa_handle[TXAD]);
       if(err < 0)
         {
 //        lirerr(872318);   // recovery failed, we have to live with less accurate data in frame_avail
@@ -1250,7 +1247,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 //      lirerr(872319);     // snd_pcm_hwsync failed with unknown error, we have to live with less accurate data in frame_avail
       }
     }
-frame_avail= snd_pcm_avail_update(tx_ad_handle);
+frame_avail= snd_pcm_avail(alsa_handle[TXAD]);
 if(frame_avail < 0)
           {
 //          lirerr(872314); //accept a lesser optimal solution
@@ -1282,8 +1279,8 @@ if(rx_audio_in == rx_audio_out &&
 if(tx_audio_in == rx_audio_out)return;
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
-  snd_pcm_drop(rx_da_handle);
-  snd_pcm_prepare(rx_da_handle);
+  snd_pcm_drop(alsa_handle[RXDA]);
+  snd_pcm_prepare(alsa_handle[RXDA]);
   }
 else
   {
@@ -1318,7 +1315,7 @@ if( (ui.use_alsa&PORTAUDIO_TX_OUT) != 0)
   }
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
-  err=snd_pcm_writei(tx_da_handle, buf,
+  err=snd_pcm_writei(alsa_handle[TXDA], buf,
                                  (snd_pcm_uframes_t)snd[TXDA].block_frames);
   if(err != snd[TXDA].block_frames)
     {
@@ -1327,7 +1324,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
       no_of_tx_underrun_errors++;
       sprintf(s,"TX%s%d",underrun_error_msg,no_of_tx_underrun_errors);
       wg_error(s,WGERR_TXOUT);
-      err= snd_pcm_recover(tx_da_handle, err, 0);
+      err= snd_pcm_recover(alsa_handle[TXDA], err, 0);
       if(err < 0)
         {
         lirerr(1140);              // recovery failed
@@ -1386,7 +1383,7 @@ while(bytes_to_write > 0)
   if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     {
     i=wrbytes/snd[RXDA].framesize;
-    err=snd_pcm_writei(rx_da_handle, &daout[daout_px],(snd_pcm_uframes_t)i);
+    err=snd_pcm_writei(alsa_handle[RXDA], &daout[daout_px],(snd_pcm_uframes_t)i);
     if(err == i)
       {
       bytes_written=wrbytes;
@@ -1405,7 +1402,7 @@ while(bytes_to_write > 0)
             wg_error(s,WGERR_RXOUT);
             }
 recover:;
-          err= snd_pcm_recover(rx_da_handle, err, 0);
+          err= snd_pcm_recover(alsa_handle[RXDA], err, 0);
           }
         if(err == -EBUSY)
           {
@@ -1419,6 +1416,7 @@ recover:;
         if(err == -EBADFD)
           {
           close_rx_sndout();
+          lir_sched_yield();
           open_rx_sndout();
           if(kill_all_flag) return;
           snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
@@ -1527,7 +1525,7 @@ if(rx_audio_in != -1)
     }
   if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     {
-    err=snd_pcm_close(rx_ad_handle);
+    err=snd_pcm_close(alsa_handle[RXAD]);
     if(err < 0)
       {
       lirerr(1005);
@@ -1610,7 +1608,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
       }
 //get plughw_pcm_name corresponding with ui definition
   alsar_get_dev_pcm_names(ui.tx_addev_no,tx_input_plughw_pcm_name,tx_input_hw_pcm_name);
-  err=snd_pcm_open(&tx_ad_handle, tx_input_plughw_pcm_name,
+  err=snd_pcm_open(&alsa_handle[TXAD], tx_input_plughw_pcm_name,
                                                      SND_PCM_STREAM_CAPTURE,0);
   if(err < 0)
     {
@@ -1627,14 +1625,14 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     lirerr(1272);
     return;
     }
-  err=snd_pcm_hw_params_any(tx_ad_handle, hw_ad_params);
+  err=snd_pcm_hw_params_any(alsa_handle[TXAD], hw_ad_params);
   if(err < 0)
     {
     lirerr(1282);
     return;
     }
 // Interleaved mode
-  err=snd_pcm_hw_params_set_access(tx_ad_handle, hw_ad_params,
+  err=snd_pcm_hw_params_set_access(alsa_handle[TXAD], hw_ad_params,
                                              SND_PCM_ACCESS_RW_INTERLEAVED);
   if(err< 0)
     {
@@ -1650,14 +1648,14 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     {
     format=SND_PCM_FORMAT_S32_LE;
     }
-  err=snd_pcm_hw_params_set_format(tx_ad_handle, hw_ad_params,format);
+  err=snd_pcm_hw_params_set_format(alsa_handle[TXAD], hw_ad_params,format);
   if(err < 0)
     {
     lirerr(1295);
     return;
     }
 // Set number of ad_channels
-  err=snd_pcm_hw_params_set_channels(tx_ad_handle,
+  err=snd_pcm_hw_params_set_channels(alsa_handle[TXAD],
                        hw_ad_params, (unsigned int)ui.tx_ad_channels);
   if(err < 0)
     {
@@ -1667,7 +1665,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 // Set sample rate
 // first set hardware resample
   resample=1;
-  err=snd_pcm_hw_params_set_rate_resample(tx_ad_handle,
+  err=snd_pcm_hw_params_set_rate_resample(alsa_handle[TXAD],
                    hw_ad_params, (unsigned int)resample);
   if(err < 0)
     {
@@ -1676,7 +1674,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     }
 // now set sample rate
   val=(unsigned int)ui.tx_ad_speed;
-  err=snd_pcm_hw_params_set_rate_near(tx_ad_handle,hw_ad_params, &val, 0);
+  err=snd_pcm_hw_params_set_rate_near(alsa_handle[TXAD],hw_ad_params, &val, 0);
   if(err < 0)
     {
     lirerr(1299);
@@ -1694,7 +1692,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   i=snd[TXAD].block_frames;
   j=0;
 periodset:;
-  err=snd_pcm_hw_params_set_period_size(tx_ad_handle,hw_ad_params,
+  err=snd_pcm_hw_params_set_period_size(alsa_handle[TXAD],hw_ad_params,
                           (snd_pcm_uframes_t)snd[TXAD].block_frames, 0);
   if(err < 0)
     {
@@ -1711,7 +1709,7 @@ periodset:;
     return;
     }
 //  Write all the parameters to the driver
-  err=snd_pcm_hw_params(tx_ad_handle, hw_ad_params);
+  err=snd_pcm_hw_params(alsa_handle[TXAD], hw_ad_params);
   if(err < 0)
     {
     lirerr(1301);
@@ -1834,7 +1832,7 @@ if(ui.tx_addev_no == ui.rx_dadev_no && ui.rx_damode == O_RDWR)
   }
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
-  err=snd_pcm_close(tx_ad_handle);
+  err=snd_pcm_close(alsa_handle[TXAD]);
   if(err < 0)
     {
     lirerr(1005);
@@ -1906,7 +1904,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
       }
 //get plughw_pcm_name corresponding with ui definition
   alsar_get_dev_pcm_names(ui.tx_dadev_no,tx_out_plughw_pcm_name,tx_out_hw_pcm_name);
-  if((err=snd_pcm_open(&tx_da_handle, tx_out_plughw_pcm_name,
+  if((err=snd_pcm_open(&alsa_handle[TXDA], tx_out_plughw_pcm_name,
                                          SND_PCM_STREAM_PLAYBACK, 0)) < 0)
     {
     lirerr(1304);
@@ -1924,14 +1922,14 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     lirerr(1305);
     return;
     }
-  err=snd_pcm_hw_params_any(tx_da_handle, hw_da_params);
+  err=snd_pcm_hw_params_any(alsa_handle[TXDA], hw_da_params);
   if(err < 0)
     {
     lirerr(1306);
     return;
     }
 // Interleaved mode
-  err=snd_pcm_hw_params_set_access(tx_da_handle, hw_da_params,
+  err=snd_pcm_hw_params_set_access(alsa_handle[TXDA], hw_da_params,
                                          SND_PCM_ACCESS_RW_INTERLEAVED);
   if(err < 0)
     {
@@ -1947,14 +1945,14 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     {
     format=SND_PCM_FORMAT_S32_LE;
     }
-  err=snd_pcm_hw_params_set_format(tx_da_handle, hw_da_params,format);
+  err=snd_pcm_hw_params_set_format(alsa_handle[TXDA], hw_da_params,format);
   if(err < 0)
     {
     lirerr(1308);
     return;
     }
 // Set number of da_channels
-  err=snd_pcm_hw_params_set_channels(tx_da_handle, 
+  err=snd_pcm_hw_params_set_channels(alsa_handle[TXDA], 
                               hw_da_params, (unsigned int)ui.tx_da_channels);
   if(err <0)
     {
@@ -1964,7 +1962,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 // Set sample rate
 // first enable  hardware resample
   resample=1;
-  err=snd_pcm_hw_params_set_rate_resample(tx_da_handle, 
+  err=snd_pcm_hw_params_set_rate_resample(alsa_handle[TXDA], 
                                          hw_da_params, (unsigned int)resample);
   if(err < 0)
     {
@@ -1974,7 +1972,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 // now set sample rate
   val=(unsigned int)ui.tx_da_speed;
   if((err =snd_pcm_hw_params_set_rate_near(
-                                   tx_da_handle,hw_da_params, &val, 0)<0))
+                                   alsa_handle[TXDA],hw_da_params, &val, 0)<0))
     {
     lirerr(1311);
     return;
@@ -1989,7 +1987,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   dir=0;
   block_frames=snd[TXDA].block_frames;
 // obtained value is <,=,> target-value, according value of  dir (-1,0,1)
-  err=snd_pcm_hw_params_set_period_size_near(tx_da_handle, hw_da_params,
+  err=snd_pcm_hw_params_set_period_size_near(alsa_handle[TXDA], hw_da_params,
                                                         &block_frames, &dir);
   if(err < 0)
     {
@@ -2010,7 +2008,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   snd[TXDA].block_bytes=snd[TXDA].block_frames*snd[TXDA].framesize;
   snd[TXDA].interrupt_rate=(float)(ui.tx_da_speed)/(float)snd[TXDA].block_frames;
 // set the hw parameters
-  err=snd_pcm_hw_params(tx_da_handle, hw_da_params);
+  err=snd_pcm_hw_params(alsa_handle[TXDA], hw_da_params);
   if(err < 0)
     {
     lirerr(1313);
@@ -2022,7 +2020,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   block_frames=snd[TXDA].block_frames;
   tot_frames=snd[TXDA].tot_frames;
 // get buffersize
-  err=snd_pcm_get_params ( tx_da_handle, &tot_frames, &block_frames);
+  err=snd_pcm_get_params ( alsa_handle[TXDA], &tot_frames, &block_frames);
   if(err < 0)
       {
       lirerr(1313);
@@ -2150,8 +2148,8 @@ if(ui.tx_dadev_no == ui.rx_addev_no && ui.rx_admode == O_RDWR)
   }
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
-  snd_pcm_drop(tx_da_handle);
-  err= snd_pcm_close(tx_da_handle);
+  snd_pcm_drop(alsa_handle[TXDA]);
+  err= snd_pcm_close(alsa_handle[TXDA]);
   if(err < 0)lirerr(1006);
   }
 else
@@ -2182,8 +2180,8 @@ if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)
   }
 if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   {
-  snd_pcm_drop(rx_da_handle);
-  err= snd_pcm_close(rx_da_handle);
+  snd_pcm_drop(alsa_handle[RXDA]);
+  err= snd_pcm_close(alsa_handle[RXDA]);
   if(err < 0)lirerr(1006);
   }
 else
@@ -2253,7 +2251,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     }
 //get plughw_pcm_name corresponding with ui definition
   alsar_get_dev_pcm_names(ui.rx_addev_no,rx_sndin_plughw_pcm_name,rx_sndin_hw_pcm_name );
-  err=snd_pcm_open(&rx_ad_handle, rx_sndin_plughw_pcm_name,
+  err=snd_pcm_open(&alsa_handle[RXAD], rx_sndin_plughw_pcm_name,
                                                  SND_PCM_STREAM_CAPTURE, 0);
   if(err < 0)
     {
@@ -2269,14 +2267,14 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     lirerr(1272);
     return 0;
     }
-  err=snd_pcm_hw_params_any(rx_ad_handle, hw_ad_params);
+  err=snd_pcm_hw_params_any(alsa_handle[RXAD], hw_ad_params);
   if(err < 0)
     {
     lirerr(1282);
     return 0;
     }
 // Interleaved mode
-  err=snd_pcm_hw_params_set_access(rx_ad_handle, hw_ad_params,
+  err=snd_pcm_hw_params_set_access(alsa_handle[RXAD], hw_ad_params,
                                               SND_PCM_ACCESS_RW_INTERLEAVED);
   if(err < 0)
     {
@@ -2286,14 +2284,14 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 // Set sample format
   format=SND_PCM_FORMAT_S16_LE;
   if( (ui.rx_input_mode&DWORD_INPUT) != 0) format=SND_PCM_FORMAT_S32_LE;
-  err=snd_pcm_hw_params_set_format (rx_ad_handle, hw_ad_params,format);
+  err=snd_pcm_hw_params_set_format (alsa_handle[RXAD], hw_ad_params,format);
   if(err < 0)
     {
     lirerr(1295);
     return 0;
     }
 // Set number of ad_channels
-  err=snd_pcm_hw_params_set_channels(rx_ad_handle, hw_ad_params, 
+  err=snd_pcm_hw_params_set_channels(alsa_handle[RXAD], hw_ad_params, 
                                           (unsigned int)ui.rx_ad_channels);
   if(err < 0)
     {
@@ -2303,7 +2301,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
 // Set sample rate
 // first disable  hardware resample
   resample=0;
-  err=snd_pcm_hw_params_set_rate_resample(rx_ad_handle,
+  err=snd_pcm_hw_params_set_rate_resample(alsa_handle[RXAD],
                                           hw_ad_params,
                                           (unsigned int)resample);
   if(err < 0)
@@ -2313,7 +2311,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
     }
 // now set sample rate
   val=(unsigned int)ui.rx_ad_speed;
-  err=snd_pcm_hw_params_set_rate_near(rx_ad_handle,hw_ad_params, &val, 0);
+  err=snd_pcm_hw_params_set_rate_near(alsa_handle[RXAD],hw_ad_params, &val, 0);
   if(err<0)
     {
     lirerr(1299);
@@ -2331,7 +2329,7 @@ if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
   val=(unsigned int)snd[RXAD].block_frames;
   k=1;
 periodset:;
-  err=snd_pcm_hw_params_set_period_size(rx_ad_handle,hw_ad_params, val, 0);
+  err=snd_pcm_hw_params_set_period_size(alsa_handle[RXAD],hw_ad_params, val, 0);
   if(err<0)
     {
     if(k==1)
@@ -2346,7 +2344,7 @@ periodset:;
     return 0;
     }
 //  Write all the parameters to the driver
-  if((err=snd_pcm_hw_params(rx_ad_handle, hw_ad_params))< 0)
+  if((err=snd_pcm_hw_params(alsa_handle[RXAD], hw_ad_params))< 0)
     {
     lirerr(1301);
     return 0;
@@ -2633,7 +2631,7 @@ retry_alsa:;
     err=alsa_get_dev_names (ui.rx_dadev_no);
 //get plughw_pcm_name corresponding with ui definition
     alsar_get_dev_pcm_names(ui.rx_dadev_no,rx_out_plughw_pcm_name,rx_out_hw_pcm_name );
-    err=snd_pcm_open(&rx_da_handle, rx_out_plughw_pcm_name,
+    err=snd_pcm_open(&alsa_handle[RXDA], rx_out_plughw_pcm_name,
                                                  SND_PCM_STREAM_PLAYBACK, 0);
     if(err < 0)
       {
@@ -2641,7 +2639,7 @@ retry_alsa:;
       return;
       }
 // use rx_audio_out as switch for compatibility reasons with the existing OSS logic
-    rx_audio_out=1; //(int)rx_da_handle;
+    rx_audio_out=1; //(int)alsa_handle[RXDA];
     }
   else
     {
@@ -2674,14 +2672,14 @@ retry_alsa:;
       lirerr(1305);
       return;
       }
-    err=snd_pcm_hw_params_any(rx_da_handle, hw_da_params);
+    err=snd_pcm_hw_params_any(alsa_handle[RXDA], hw_da_params);
     if(err < 0)
       {
       lirerr(1306);
       return;
       }
 // Interleaved mode
-    err=snd_pcm_hw_params_set_access(rx_da_handle, hw_da_params,
+    err=snd_pcm_hw_params_set_access(alsa_handle[RXDA], hw_da_params,
                                            SND_PCM_ACCESS_RW_INTERLEAVED);
     if(err < 0)
       {
@@ -2697,14 +2695,14 @@ retry_alsa:;
       {
       format=SND_PCM_FORMAT_S16_LE;
       }
-    err=snd_pcm_hw_params_set_format(rx_da_handle, hw_da_params,format);
+    err=snd_pcm_hw_params_set_format(alsa_handle[RXDA], hw_da_params,format);
     if(err < 0)
       {
       lirerr(1308);
       return;
       }
 // Set number of da_channels
-    err=snd_pcm_hw_params_set_channels(rx_da_handle, 
+    err=snd_pcm_hw_params_set_channels(alsa_handle[RXDA], 
                                        hw_da_params, 
                                        (unsigned int)rx_daout_channels);
     if(err <0 )
@@ -2716,7 +2714,7 @@ retry_alsa:;
 // first disable  hardware resample
     resample=0;
     err=snd_pcm_hw_params_set_rate_resample(
-                                   rx_da_handle,
+                                   alsa_handle[RXDA],
                                    hw_da_params, 
                                    (unsigned int)resample);
     if(err < 0)
@@ -2726,7 +2724,7 @@ retry_alsa:;
       }
 // now set sample rate
     val=(unsigned int)genparm[DA_OUTPUT_SPEED];
-    err=snd_pcm_hw_params_set_rate_near(rx_da_handle,hw_da_params, &val, 0);
+    err=snd_pcm_hw_params_set_rate_near(alsa_handle[RXDA],hw_da_params, &val, 0);
     if(err < 0)
       {
       lirerr(1311);
@@ -2742,7 +2740,7 @@ retry_alsa:;
     dir=0;
 // obtained value is <,=,> target-value, according value of  dir (-1,0,1)
     block_frames=snd[RXDA].block_frames;
-    err=snd_pcm_hw_params_set_period_size_near(rx_da_handle, hw_da_params,
+    err=snd_pcm_hw_params_set_period_size_near(alsa_handle[RXDA], hw_da_params,
                                     &block_frames, &dir);
     if(err < 0)
       {
@@ -2759,7 +2757,7 @@ retry_alsa:;
       return;
       }
 // set the hw parameters
-    err=snd_pcm_hw_params(rx_da_handle, hw_da_params);
+    err=snd_pcm_hw_params(alsa_handle[RXDA], hw_da_params);
     if(err < 0)
       {
       lirerr(1313);
@@ -2769,7 +2767,7 @@ retry_alsa:;
     snd_pcm_hw_params_free(hw_da_params);
 // get buffersize
     tot_frames=snd[RXDA].tot_frames;
-    err=snd_pcm_get_params ( rx_da_handle, &tot_frames, &block_frames);
+    err=snd_pcm_get_params ( alsa_handle[RXDA], &tot_frames, &block_frames);
     snd[RXDA].tot_frames=tot_frames;
     snd[RXDA].tot_bytes=snd[RXDA].tot_frames*snd[RXDA].framesize;
     snd[RXDA].no_of_blocks=snd[RXDA].tot_frames/snd[RXDA].framesize;
@@ -2805,8 +2803,8 @@ retry_alsa:;
         }
       block_frames=snd[RXDA].block_frames;
       lir_sleep(100000);
-      snd_pcm_drop(rx_da_handle);
-      err= snd_pcm_close(rx_da_handle);
+      snd_pcm_drop(alsa_handle[RXDA]);
+      err= snd_pcm_close(alsa_handle[RXDA]);
       if(err < 0)lirerr(5961006);
       if(alsa_retries == 0)goto retry_alsa;
       }
@@ -2914,6 +2912,8 @@ snd[RXDA].interrupt_rate=(float)
                       (float)(snd[RXDA].block_bytes);
 DEB"  Actual %f  \n",snd[RXDA].interrupt_rate);
 snd[RXDA].no_of_blocks=snd[RXDA].tot_bytes/snd[RXDA].block_bytes;
+lir_sched_yield();
+//lir_sleep(5000000);
 }
 
 #define SDI_COL 78

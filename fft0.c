@@ -1159,7 +1159,7 @@ else
   n=(unsigned int)nz;
   size=(unsigned int)sz;
   }
-if(!fft1_use_gpu)
+if(!fft1_use_gpu && fft1_correlation_flag <= 1)
   {
   if(size > 65536)
     {

@@ -7,7 +7,7 @@
 #define STON_YFAC 5*text_height
 #define MAX_BASEBFILTER_WIDTH 0.85F
 
-
+extern int skip_siganal;
 extern int yieldflag_ndsp_mix1;
 extern int freq_readout_x1;
 extern int freq_readout_x2;
@@ -42,6 +42,8 @@ extern int basebnet_size;
 extern int basebnet_pa;
 extern int basebnet_px;
 
+extern int allow_audio;
+extern int audio_status;
 extern char *basebraw_netsend_buffer;
 extern int basebrawnet_mask;
 extern int basebrawnet_size;
@@ -201,6 +203,7 @@ extern float *mix1_eval_noise;
 extern float *mix1_fitted_fq;
 
 extern double mix1_selfreq[MAX_MIX1];
+extern double old_mix1_selfreq;
 extern int mix1_curx[MAX_MIX1];
 extern int new_mix1_curx[MAX_MIX1];
 extern int mix1_point[MAX_MIX1]; 

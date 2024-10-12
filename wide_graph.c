@@ -89,7 +89,6 @@ if(k>0 && i0==0)return -BIGFLOAT;
 return t1;
 }
 
-
 void wide_graph_selfreq(void)
 {
 int post;
@@ -121,7 +120,7 @@ if(post)
   awake_screen();
   }
 leftpressed=BUTTON_IDLE;  
-baseb_reset_counter++;
+if(new_baseb_flag == -1)baseb_reset_counter++;
 mouse_active_flag=0;
 }
 
@@ -194,10 +193,6 @@ if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
     mix1_selfreq[0]=t1;
     add_mix1_cursor(0);
     sc[SC_SHOW_CENTER_FQ]++;
-    if(fft1_correlation_flag > 1)
-      {
-      skip_nonvalid();
-      }
     break;
     
     case 1:
@@ -404,14 +399,17 @@ if(rightpressed==BUTTON_RELEASED)
       }
     goto addx; 
     } 
-  for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
+  if(MAX_MIX1 > 1)
     {
-    if(mix1_selfreq[i]<0)
+    for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
       {
-      make_new_signal(i,t1);
-      goto addx;
-      }
-    }  
+      if(mix1_selfreq[i]<0)
+        {
+        make_new_signal(i,t1);
+        goto addx;
+        }
+      }  
+    }
 addx:;
   if(rightpressed==BUTTON_RELEASED)
     {
@@ -1588,7 +1586,7 @@ if( (ui.network_flag&NET_RX_OUTPUT) != 0)
     }
   }
 wg_timestamp_counter=0;
-baseb_reset_counter++;
+if(new_baseb_flag == -1)baseb_reset_counter++;
 wg_refresh_time=current_time();
 wg_refresh_flag=0;
 if(rx_mode == MODE_TXTEST)txtest_init();

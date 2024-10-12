@@ -33,6 +33,7 @@
 #include "fft3def.h"
 #include "screendef.h"
 #include "sigdef.h"
+#include "thrdef.h"
 
 #define BWFAC 0.03  // 3% of the bandwidth for AFC 2nd/3rd order modulation.
 
@@ -43,7 +44,6 @@
 // We do that with a reduced transform size and get the reduced
 // sampling rate that we want at the reduced bandwidth automatically.
 
-double old_mix1_selfreq=0;
 float phrot_step_save=0;
 double d_mix1_phase=0;
 double d_mix1_phase_rot=0;
@@ -51,8 +51,6 @@ double d_mix1_old_phase=0;
 double d_mix1_phase_step=0;
 int d_mix1_point;
 int d_mix1_old_point;
-
-extern void clear_baseb(void);
 
 void do_mix1(int ss, float dfq)
 {
@@ -235,7 +233,7 @@ if(sw_onechan)
   }
 else
   {  
-  if(fft1_correlation_flag != 0)
+  if(fft1_correlation_flag >= 2)
     {
     dt1=d_mix1_fqwin[n];
     d_fftn_tmp[4*i  ]=fftn_tmp[4*i  ]*dt1;      
@@ -768,7 +766,7 @@ fftx_pnt=t1+0.5;
 // whatever frequency shift that originates in the decimals
 // of t1.
 k=fftx_pnt%mix1.size;
-if(fft1_correlation_flag !=0 && ss == 0)
+if(fft1_correlation_flag >= 2 && ss == 0)
   {
 // When we do the back transformation there will be a phase shift
 // from sample to sample (frequency shift) that depends on
@@ -959,14 +957,12 @@ void fft1_mix1_fixed(void)
 {
 // Use fft1 with a constant frequency shift given by mix1_point[]
 int i,n,n2,ss,mm;
-int skip_timf3;
 float *x;
 int kk,ib;
 float t1;
 n=mix1.size*ui.rx_rf_channels;
 n2=2*n;
 mm=twice_rxchan;
-skip_timf3=FALSE;
 for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
   {
   t1=mix1_selfreq[ss];
@@ -998,7 +994,35 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
       if(mix1_selfreq[ss] != old_mix1_selfreq)
         {
         old_mix1_selfreq=mix1_selfreq[ss];
-        skip_timf3=TRUE;
+// Wait for fft3 and mix2 threads to wait at the semaphores.
+        while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT || 
+              thread_status_flag[THREAD_FFT3] != THRFLAG_SEM_WAIT)
+          {
+          lir_sleep(10000);
+          }    
+// Clear pointers
+        timf3_pa=0;
+        timf3_px=0;
+        timf3_py=0;
+        timf3_ps=0;
+        timf3_pn=0;
+        timf3_pc=0;
+        fft3_pa=0;
+        fft3_px=0;
+        baseb_pa=0;
+        baseb_pb=0;
+        baseb_pc=0;
+        baseb_pd=0;
+        baseb_pe=0;
+        baseb_pf=0;
+        baseb_ps=0;
+        baseb_pm=0;
+        baseb_pn=0;
+        baseb_py=0;
+        baseb_px=0;
+        baseb_fx=0;
+        skip_siganal=1;
+        sc[SC_SHOW_SIGANAL_INFO ]++;
         }
       }  
     do_mix1(ss,0);
@@ -1009,10 +1033,6 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
     }
   }
 timf3_pa=(timf3_pa+timf3_block)&timf3_mask;
-if(skip_timf3)
-  {
-  timf3_pd=timf3_pc;
-  }
 fft1_nx=(fft1_nx+1)&fft1n_mask;  
 fft1_px=(fft1_px+fft1_block)&fft1_mask;  
 }

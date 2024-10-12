@@ -772,13 +772,16 @@ t1=(float)hg_first_fq+(float)(mouse_x-hg_first_xpixel)*hg_hz_per_pixel;
 new_mix1_curx[0]=-1;
 if(t1 <  mix1_lowest_fq)t1=mix1_lowest_fq;
 if(t1 > mix1_highest_fq)t1=mix1_highest_fq;
-for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
+if(MAX_MIX1 > 1)
   {
-  if( fabs(t1-mix1_selfreq[i]) < 3*wg_hz_per_pixel)
+  for(i=1; i<genparm[MIX1_NO_OF_CHANNELS]; i++)
     {
-    new_mix1_curx[i]=-1;
-    mix1_selfreq[i]=-1;
-    mix1_point[i]=-1;
+    if( fabs(t1-mix1_selfreq[i]) < 3*wg_hz_per_pixel)
+      {
+      new_mix1_curx[i]=-1;
+      mix1_selfreq[i]=-1;
+      mix1_point[i]=-1;
+      }
     }
   }
 make_new_signal(0, t1);

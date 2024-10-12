@@ -616,13 +616,12 @@ else
   timf1_blockbytes*=fft_cntrl[FFT1_CURMODE].parall_fft;
   timf1_blockbytes*=(fft_cntrl[FFT1_CURMODE].real2complex+1);
   }
-timf1_usebytes=timf1_blockbytes;
+timf1_usebytes=timf1_blockbytes/2;
 if(timf1_usebytes < (int)snd[RXAD].block_bytes)timf1_usebytes=snd[RXAD].block_bytes;
 i=genparm[FIRST_FFT_NO_OF_THREADS];
 // In case the oscilloscope for timf3 is enabled we want to
 // update the screen at about TIMF3_OSCILLOSCOPE_RATE Hz.
-timf3_osc_interval=twice_rxchan*(int)(timf3_sampling_speed/
-                                                      TIMF3_OSCILLOSCOPE_RATE);
+timf3_osc_interval=1.0/TIMF3_OSCILLOSCOPE_RATE;
 m=1+twice_rxchan;
 t1=screen_height/(2*m);
 for(i=0; i<8; i++)timf3_y0[i]=screen_height-(i+1)*t1;
@@ -662,9 +661,6 @@ timf3_py=0;
 timf3_ps=0;
 timf3_pn=0;
 timf3_pc=0;
-
-timf3_oscilloscope_limit=timf3_osc_interval+
-                                    twice_rxchan*(mix1.new_points+screen_width/2);
 // ***********************************************************
 // In case second fft is not enabled we need a buffer that can hold 
 // transforms during the time we average over in the AFC process
@@ -1236,7 +1232,7 @@ if(fft1_correlation_flag == 1)
   mem(8104,&fft1_slowcorr_tot,2*fft1_size*sizeof(double),0);
   mem(8105,&fft1_corr_spectrum_tot,screen_width*sizeof(short int),0);
   }
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
   mem(8109,&d_mix1_fqwin,(mix1.size/2+16)*sizeof(double),0);
   mem(8111,&d_mix1_table,mix1.size*sizeof(D_COSIN_TABLE)/2,0);
@@ -1474,7 +1470,7 @@ memset(liminfo_wait,0,fft1_size*sizeof(unsigned char));
 memset(fft1_slowsum,0,fft1_size*sizeof(float));
 fft1corr_reset_flag=0;
 if(fft1_correlation_flag == 1)clear_fft1_correlation();
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
   make_d_window(5,mix1.size, 4, d_mix1_fqwin);
   make_d_sincos(0, mix1.size, d_mix1_table);
@@ -2124,6 +2120,7 @@ if(diskwrite_flag == 1)
   lir_sync();
   diskwrite_flag = 0;
   }
+
 fft1_handle=chk_free(fft1_handle);
 wg_waterf=chk_free(wg_waterf);
 fft3_handle=chk_free(fft3_handle);

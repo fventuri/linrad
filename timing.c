@@ -50,40 +50,25 @@ for(i=0; i<2*MAX_RX_CHANNELS; i++)
 for(i=0; i<MAX_RX_CHANNELS; i++)fft2_maxamp[i]=0;
 }
 
-void make_ad_wttim(void)
+
+
+void make_timing_info(void)
 {
+int i, db_wts;
+lir_sched_yield(); 
 if(diskread_flag >= 2)
   {
+  i=0;
   ad_wts=0;
   }
 else
   {  
   ad_wts=(timf1p_pa-timf1p_px+timf1_bytes)&timf1_bytemask;
   ad_wts/=snd[RXAD].framesize;
+  i=snd[RXAD].block_frames;
   }
 ad_wttim=(float)(ad_wts)/ui.rx_ad_speed;
-}
-
-void make_fft2_wttim(void)
-{
-// ***********************************************
-// In case second fft is enabled we have:
-// timf2_wtb back transformed fft1 blocks waiting in timf2 and
-// fft2_wtb completed fft2 transforms waiting to be back transformed
-// fft2_wtb should be small or zero unless AFC is operating on delayed signal.
-// Back transformed fft1 transforms waiting in timf2.
-timf2_wtb=(float)((timf2_pa-timf2_px+timf2_mask+1)&timf2_mask)
-                                                        /timf2_input_block;
-timf2_wttim=timf2_wtb*fft1_blocktime;   
-// fft2 transforms waiting for back transformation.
-fft2_wtb=(fft2_na-fft2_nx+max_fft2n)&fft2n_mask;  
-fft2_wttim=fft2_wtb*fft2_blocktime;    
-}
-
-void make_timing_info(void)
-{
-int db_wts;
-make_ad_wttim();
+min_wttim=(float)(i)/ui.rx_ad_speed;
 total_wttim=ad_wttim;
 if( genparm[SECOND_FFT_ENABLE] != 0 )
   {
@@ -97,7 +82,27 @@ if( genparm[SECOND_FFT_ENABLE] != 0 )
   total_wttim+=fft1_wttim;
   if(mix1_selfreq[0] >=0 )
     {
-    make_fft2_wttim();
+// ***********************************************
+// In case second fft is enabled we have:
+// timf2_wtb back transformed fft1 blocks waiting in timf2 and
+// fft2_wtb completed fft2 transforms waiting to be back transformed
+// fft2_wtb should be small or zero unless AFC is operating on delayed signal.
+// Back transformed fft1 transforms waiting in timf2.
+    timf2_wtb=(float)((timf2_pa-timf2_px+timf2_mask+1)&timf2_mask)
+                                                        /timf2_input_block;
+    timf2_wttim=timf2_wtb*fft1_blocktime;   
+    min_wttim+=fft1_blocktime;
+// fft2 transforms waiting for back transformation.
+    if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
+      {
+      min_wttim+=afct_delay_points*fft2_blocktime;
+      }
+    else
+      {
+      min_wttim+=fft2_blocktime;
+      }
+    fft2_wtb=(fft2_na-fft2_nx+max_fft2n)&fft2n_mask;  
+    fft2_wttim=fft2_wtb*fft2_blocktime;    
     total_wttim+=timf2_wttim;
     total_wttim+=fft2_wttim;
     }
@@ -116,14 +121,15 @@ else
 // ***********************************************
 // fft1_wtb completed fft1 transforms waiting to be 
 // transformed to the baseband by mix1.
-    if(genparm[AFC_ENABLE] == 0 || genparm[AFC_LOCK_RANGE] == 0)
+    if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
       {
-      fft1_wtb=(float)((fft1_pa-fft1_px+fft1_mask+1)&fft1_mask)/fft1_block;
+      min_wttim+=afct_delay_points*fft1_blocktime;
       }
     else
       {
-      fft1_wtb=(fft1_na-fft1_nx+max_fft1n)&fft1n_mask;
+      min_wttim+=fft1_blocktime;
       }
+    fft1_wtb=(fft1_na-fft1_nx+max_fft1n)&fft1n_mask;
     fft1_wttim=fft1_wtb*fft1_blocktime;
     total_wttim+=fft1_wttim;
     }
@@ -140,6 +146,7 @@ if(mix1_selfreq[0] >=0 )
   timf3_wts=((timf3_pa-timf3_px+timf3_size)&timf3_mask)/twice_rxchan;
   timf3_wttim=timf3_wts/timf3_sampling_speed;
   total_wttim+=timf3_wttim;
+  min_wttim+=fft3_size/timf3_sampling_speed;
 // Blocks waiting as finished transforms. 
   fft3_wtb=(fft3_pa-fft3_px+fft3_totsiz)&fft3_mask;
   fft3_wtb/=fft3_block;
@@ -147,18 +154,19 @@ if(mix1_selfreq[0] >=0 )
   fft3_wttim=fft3_wtb*fft3_new_points/timf3_sampling_speed;
   total_wttim+=fft3_wttim;
 // Samples waiting in the baseband 
-  baseb_wts=baseb_pa-baseb_py;
-  if(baseb_wts<0)baseb_wts+=baseband_size;
+  baseb_wts=(baseb_pa-baseb_py+baseband_size)&baseband_mask;
   baseb_wttim=baseb_wts/baseband_sampling_speed;
   total_wttim+=baseb_wttim;
 // Data waiting for output 
   db_wts=(daout_pa-daout_px+daout_size)&daout_bufmask;
-  db_wts/=(rx_daout_channels*rx_daout_bytes);
+  db_wts/=snd[RXDA].framesize;
   db_wttim=(float)(db_wts)/genparm[DA_OUTPUT_SPEED];
   total_wttim+=db_wttim;
-  if( thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_ACTIVE)
+  if( thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_ACTIVE)
     {
+    update_snd(RXDA);
     da_wttim=(float)(snd[RXDA].valid_frames)/genparm[DA_OUTPUT_SPEED];
+    min_wttim+=(float)(snd[RXAD].block_frames)/genparm[DA_OUTPUT_SPEED];
     }
   else
     {  
@@ -172,9 +180,8 @@ else
   db_wttim=0;
   da_wttim=0;
   }
+lir_sched_yield();  
 }
-
-
 
 void show_amp_info(void)
 {
@@ -356,6 +363,7 @@ void show_timing_info(void)
 char s[80];
 int k, n, line;
 float t1;
+update_snd(RXDA);
 k=(screen_last_line+1)*text_height;
 n=k-7*text_height;
 if(!audio_dump_flag && ui.rx_addev_no != NETWORK_DEVICE_CODE)
@@ -439,12 +447,14 @@ t1/=genparm[DA_OUTPUT_SPEED];
 sprintf(s,"%1.3f ",t1);
 s[5]=0;
 lir_text(19,line,s);
-if(ui.network_flag & NET_RX_OUTPUT)
+if(ui.network_flag & NET_RX_OUTPUT &&
+   max_netwait_time > 0.001 &&
+   net_error_time > 0.001)
   {
   sprintf(s,"NetWT  %1.3f",max_netwait_time);
   lir_text(28,line,s);
   sprintf(s,"NetERR %1.3f",net_error_time);
-  lir_text(28,line+1,s);
+  lir_text(28,line-1,s);
   }
 if(measured_da_speed > 0)
   {
@@ -517,12 +527,17 @@ void deb_timing_info(char *txt)
 #define FCT 1000
 if(dmp == NULL)return;
 make_timing_info();
-DEB"\n%.0f%s|%dAD %.0f ft1 %.0f tf2 %.0f ft2 %.0f",
+DEB"\n%.0f %s|%d AD=%.0f ft1=%.0f tf2=%.0f ft2=%.0f",
           FCT*total_wttim,txt,new_baseb_flag,
       FCT*ad_wttim,FCT*fft1_wttim,FCT*timf2_wttim,FCT*fft2_wttim);
-DEB" tf3 %.0f ft3 %.0f bas %.0f db %.0f da %.0f",
+DEB" tf3=%.0f ft3=%.0f bas=%.0f db=%.0f da=%.0f time=%f",
       FCT*timf3_wttim,FCT*fft3_wttim,FCT*baseb_wttim,
-                                        FCT*db_wttim,FCT*da_wttim);
+                            FCT*db_wttim,FCT*da_wttim,zt());
 }
-
-
+// ft1=fft1_pa-fft1_px
+// tf2=timf2_pa-timf2_px
+// ft2=fft2_na-fft2_nx
+// tf3=timf3_pa-timf3_px
+// ft3=fft3_pa-fft3_px
+// bas=baseb_pa-baseb_py
+// db=daout_pa-daout_px

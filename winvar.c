@@ -163,7 +163,9 @@ LPTHREAD_START_ROUTINE thread_routines[THREAD_MAX]=
                     winthread_network_send,      //51
                     winthread_airspyhf_input,    //52
                     winthread_sdrplay2_input,    //53
-                    winthread_sdrplay3_input     //54
+                    winthread_sdrplay3_input,    //54
+                    winthread_mix2,              //55
+                    winthread_fft3               //56
                     };
 
 HANDLE thread_identifier[THREAD_MAX];

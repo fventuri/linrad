@@ -479,12 +479,17 @@ for(i=0; i<MAX_LIRMUTEX; i++)
 
 void lir_mutex_lock(int no)
 {
+lir_sched_yield();
+
 pthread_mutex_lock(&linux_mutex[no]);
+lir_sched_yield();
 }
 
 void lir_mutex_unlock(int no)
 {
+lir_sched_yield();
 pthread_mutex_unlock(&linux_mutex[no]);
+lir_sched_yield();
 }
 
 void lirerr(int errcod)
@@ -495,6 +500,7 @@ DEB"\nlirerr(%d)",errcod);
 if(dmp != 0)fflush(dmp);
 lir_errcod=errcod;
 lir_set_event(EVENT_KILL_ALL);
+fflush(NULL);
 while(!kill_all_flag)lir_sleep(10000);
 }
 
@@ -770,7 +776,7 @@ void thread_rx_output(void)
 {
 fix_prio(THREAD_RX_OUTPUT);
 rx_output();
-thread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_RETURNED;
+//öÖthread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_RETURNED;
 }
 
 void thread_kill_all(void)
@@ -1378,6 +1384,19 @@ void thread_blocking_rxout(void)
 {
 fix_prio(THREAD_BLOCKING_RXOUT);
 blocking_rxout();
+thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_RETURNED;
+}
+
+void thread_mix2(void)
+{
+fix_prio(THREAD_MIX2);
+do_mix2();
+}
+
+void thread_fft3(void)
+{
+fix_prio(THREAD_FFT3);
+do_fft3();
 }
 
 void thread_write_raw_file(void)

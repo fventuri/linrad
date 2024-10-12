@@ -36,6 +36,7 @@
 #include "txdef.h"
 #include "options.h"
 
+extern double q_time;
 double iir3_gain[9]={6.0,
                     31.55634919,
                     188.6646578,
@@ -76,89 +77,116 @@ double iir3_c2[9]={ 0.0,
                    2.9754564614,
                    2.9877281729};
 
-
 void blocking_rxout(void)
 {
-int k, initial_n, sleep_cnt;
+int max_wrbytes;
+int i, wrnum, sleep_cnt;
 int local_workload_reset;
-char s[80];
-char cc;
-float sleep_time, short_sleep_time;
 float t1;
+float sleep_time, short_sleep_time;
+max_wrbytes=0;
+mailbox[12]=max_wrbytes;
 #if OSNUM == OSNUM_LINUX
 clear_thread_times(THREAD_BLOCKING_RXOUT);
 #endif
 local_workload_reset=workload_reset_flag;
-sleep_time=2000000./snd[RXDA].interrupt_rate;
+sleep_time=1000000./snd[RXDA].interrupt_rate;
 if(sleep_time < 1010)sleep_time=1010;
 if(sleep_time > 100000)sleep_time=100000;
 short_sleep_time=0.2*sleep_time;
 if(short_sleep_time > 10000)short_sleep_time=10000;
 if(short_sleep_time < 1010)short_sleep_time=1010;
-if(rx_daout_bytes == 1)
+if(thread_status_flag[THREAD_BLOCKING_RXOUT]==THRFLAG_INIT)
   {
-  cc=0x80;
+  thread_command_flag[THREAD_BLOCKING_RXOUT] = THRFLAG_IDLE;
+  lir_sched_yield();
+  goto idle;
   }
-else
-  {
-  cc=0;
-  }
+restart_blo:;
+thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_BLOCKING;
 lir_await_event(EVENT_BLOCKING_RXOUT);
-daout_px=(daout_px-snd[RXDA].block_bytes+daout_size)&daout_bufmask;
-memset(&daout[daout_px],cc,snd[RXDA].block_bytes);
-// It may take a long time to return from the first write.
-// 4Front OSS may require 0.1 second to set up the output
-// Write data that will fill the soundcard with data for about
-// 20 milliseconds (or more).
-lir_rx_dawrite();
-t1=0.5+.02*genparm[DA_OUTPUT_SPEED]/snd[RXDA].block_frames;
-k=t1-1;
-while(k>0)
-  {
-  daout_px=(daout_px-snd[RXDA].block_bytes+daout_size)&daout_bufmask;
-  lir_rx_dawrite();
-  k--;
-  }
-update_snd(RXDA);
+if(kill_all_flag) goto exit2;
+if(thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_ACTIVE)goto exit;
+lir_sched_yield();
+sys_func(THRFLAG_OPEN_RX_SNDOUT);
+lir_empty_da_device_buffer();
 thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_ACTIVE;
+snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
+if(rxda_status != LIR_OK)
+  {
+  lirerr(1477);
+  goto exit2;
+  } 
+make_timing_info();
+t1=total_wttim-da_wait_time-min_wttim;
+if(t1 < 0)
+  {
+  lir_sleep(-1000000.*t1);
+  make_timing_info();
+  t1=total_wttim-da_wait_time-min_wttim;
+  }
+if(t1 > 0.02  && allow_audio==FALSE)
+  {
+// We have too much data in the buffers. Move pointers.
+  if(baseb_pa != baseb_py)
+    {
+    i=(baseb_pa-baseb_py+baseband_size)&baseband_mask;      
+    baseb_wttim=(float)i/baseband_sampling_speed;
+    if(baseb_wttim < t1)
+      {
+      baseb_py=baseb_pa;
+      }
+    else
+      {
+      i=t1*baseband_sampling_speed;
+      baseb_py=(baseb_py+i+baseband_size)&baseband_mask;
+      }
+    }
+  } 
+allow_audio=TRUE;
+lir_sched_yield();
+t1=total_wttim-da_wait_time-min_wttim;
+lir_sched_yield();
+min_daout_samps=daout_bufmask;
 sleep_cnt=0;
-initial_n=2;
+wrnum=0;
 while(!kill_all_flag && 
          thread_command_flag[THREAD_BLOCKING_RXOUT]==THRFLAG_ACTIVE)
   {
 // *******************************************************
+  update_snd(RXDA);
+  if(wrnum == 100)
+    {
+    snd[RXDA].min_valid_frames=snd[RXDA].tot_frames;
+    wrnum++;
+    }
   if(local_workload_reset!=workload_reset_flag)
     {
-    update_snd(RXDA);
     snd[RXDA].min_valid_frames=snd[RXDA].tot_frames;
     local_workload_reset=workload_reset_flag;
     }
-  if( ((daout_pa-daout_px+daout_size)&daout_bufmask) > 
-                                       initial_n*snd[RXDA].block_bytes)
+  if( ((daout_pa-daout_px+daout_size)&daout_bufmask) > snd[RXDA].block_bytes)
     {
     sleep_cnt=0;
     if(audio_dump_flag==0 && rx_audio_out != -1)
       {
-      while(initial_n > 1)
-        {
-        lir_rx_dawrite();
-        initial_n--;
-        }
       while( ((daout_pa-daout_px+daout_size)&daout_bufmask) > 
-                                                snd[RXDA].block_bytes)
+                                            snd[RXDA].block_bytes)
         {
+        lir_sched_yield();
+        if(kill_all_flag)goto exit; 
+        if(thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_ACTIVE)goto exit;
         lir_rx_dawrite();
-        }
-      lir_sched_yield();
-      while( ((daout_pa-daout_px+daout_size)&daout_bufmask) > 
-                                                snd[RXDA].block_bytes)
-        {
-        lir_rx_dawrite();
+        if(wrnum < 1000)wrnum++;;
         }
       }
     else
       {
-      daout_px=(daout_px+snd[RXDA].block_bytes)&daout_bufmask;
+      while( ((daout_pa-daout_px+daout_bufmask)&daout_bufmask) > 
+                                                   snd[RXDA].block_bytes)
+        {
+        daout_px=(daout_px+snd[RXDA].block_bytes)&daout_bufmask;
+        }
       }
     }
   else
@@ -169,36 +197,60 @@ while(!kill_all_flag &&
       }
     else
       {
-      update_snd(RXDA);
       if(snd[RXDA].valid_bytes > 8*snd[RXDA].block_bytes)
         {
         lir_sleep(sleep_time);
         goto loop_end;;   
         }
-      if(snd[RXDA].valid_bytes < snd[RXDA].block_bytes/4)
-        {
-        if(count_rx_underrun_flag)
-          {
-          no_of_rx_underrun_errors++;
-          sprintf(s,"RX%s%d",underrun_error_msg,no_of_rx_underrun_errors);
-          wg_error(s,WGERR_RXOUT);
-          }
-// clear the buffer
-        daout_px=(daout_px-snd[RXDA].block_bytes+daout_size)&daout_bufmask;
-        memset(&daout[daout_px],cc,snd[RXDA].block_bytes);
-        lir_rx_dawrite();
-        lir_sleep(short_sleep_time);
-        }
       else
         {
         sleep_cnt++;
-        if(sleep_cnt > 2)lir_sleep(short_sleep_time);
+        if(sleep_cnt > 4)
+          {
+          lir_sleep(short_sleep_time);
+          }
         }
       }
     }
 loop_end:;
+  lir_sched_yield();
   }
+exit:;
+if(thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE)
+  {
+  goto exit2;
+  }
+/*
+    if( (ui.use_alsa&(PORTAUDIO_TX_IN+PORTAUDIO_RX_OUT)) == 0)
+      {
+      while( rx_audio_out == tx_audio_in)lir_sleep(10000);
+      }
+// Perhaps when using OSS in RDWR mode???
+*/
+idle:;
+if(rx_audio_out != -1)
+  {
+  sys_func(THRFLAG_CLOSE_RX_SNDOUT);
+  while(rx_audio_out != -1)
+    {
+    lir_sleep(100);
+    }
+  }
+thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_IDLE;
+while(thread_command_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_IDLE)
+  {
+  lir_await_event(EVENT_BLOCKING_RXOUT);
+  if(kill_all_flag)goto exit2;
+  }
+if(thread_command_flag[THREAD_BLOCKING_RXOUT] == 
+                                             THRFLAG_ACTIVE)goto restart_blo;
+
+exit2:;  
 thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_RETURNED;
+if(rx_audio_out != -1)
+  {
+  sys_func(THRFLAG_CLOSE_RX_SNDOUT);
+  }
 while(!kill_all_flag &&
             thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_NOT_ACTIVE)
   {
@@ -206,24 +258,18 @@ while(!kill_all_flag &&
   }
 }
 
-#define MAXMAIL 5
-
 void rx_output(void)
 {
 char delay_margin_flag;
-char cc, blocking;
 float dasync_time_interval;
 int da_start_bytes;
 int dasync_errors;
-int daout_py;
-int i, k;
+int i;
 int speed_cnt_maxval;
 char s[80];
 double dt1;
-int local_channels, local_bytes;
 int local_workload_reset;
-int speed_cnt;
-float local_fft3_blocktime;
+int speed_cnt, blocking;
 float t1, t2;
 float sleep_time;
 double total_time2;
@@ -232,51 +278,34 @@ double daspeed_time;
 clear_thread_times(THREAD_RX_OUTPUT);
 #endif
 blocking=TRUE;
-if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)
+#if(OSNUM == OSNUM_WINDOWS)
+blocking=FALSE;
+#endif
+if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)blocking=FALSE;
+if(thread_status_flag[THREAD_RX_OUTPUT]==THRFLAG_INIT)
   {
-  blocking=FALSE;
+  thread_command_flag[THREAD_RX_OUTPUT] = THRFLAG_IDLE;
+  goto idle;
   }
-thread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_ACTIVE;
-local_channels=rx_daout_channels;
-local_bytes=rx_daout_bytes;
-local_fft3_blocktime=fft3_blocktime;
-daout_pa=0;
-daout_px=0;
-count_rx_underrun_flag=FALSE;
-sys_func(THRFLAG_OPEN_RX_SNDOUT);
-snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
-if(rx_audio_out == -1)blocking=FALSE;
-if(kill_all_flag)goto da_output_error;
-if(blocking && audio_dump_flag == 0 && rx_audio_out >= 0)
+else
   {
-  lir_rx_dawrite();
-  daout_pa=0;
-  daout_px=0;
+  lirerr(765897);
+  }  
+resume:;
+if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE) goto idle;
+if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
+if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)
+  {
+  lirerr(639762);
   }
 dasync_errors=0;
+da_start_bytes=-1;
 baseb_output_block=128;
 da_start_bytes=-1;
-thread_command_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_NOT_ACTIVE;
-if(blocking)
-  {
-  lir_init_event(EVENT_BLOCKING_RXOUT);
-  lir_sched_yield();
-  linrad_thread_create(THREAD_BLOCKING_RXOUT);
-  }
-while(!kill_all_flag && 
-          thread_command_flag[THREAD_RX_OUTPUT]==THRFLAG_ACTIVE)
-  {
-  lir_sleep(3000);
-  }
 speed_cnt_maxval=0.2*snd[RXDA].interrupt_rate;
-goto stop_output;
-resume:;
-if(blocking)
-  {
-  lir_init_event(EVENT_BLOCKING_RXOUT);
-  lir_sched_yield();
-  linrad_thread_create(THREAD_BLOCKING_RXOUT);
-  }
+count_rx_underrun_flag=FALSE;
+if(kill_all_flag) goto exit2;
+lir_sched_yield();
 if(rxda_status != LIR_OK) 
   {
   wg_error("Output soundcard disabled",WGERR_SOUNDCARD);
@@ -289,11 +318,11 @@ if(sleep_time < 1010)sleep_time=1010;
 if(sleep_time > 100000)sleep_time=100000;
 dasync_time_interval=(float)(7*fft3_size)/timf3_sampling_speed;
 if(dasync_time_interval < (float)(7*fft1_size)/timf1_sampling_speed)
-                 dasync_time_interval = (float)(7*fft1_size)/timf1_sampling_speed;
+             dasync_time_interval = (float)(7*fft1_size)/timf1_sampling_speed;
 if(genparm[SECOND_FFT_ENABLE]!=0)
   {
   if(dasync_time_interval < (float)(7*fft2_size)/timf1_sampling_speed)
-                  dasync_time_interval = (float)(7*fft2_size)/timf1_sampling_speed;
+             dasync_time_interval = (float)(7*fft2_size)/timf1_sampling_speed;
   }
 if(dasync_time_interval < 0.5)dasync_time_interval=0.5;
 local_workload_reset=workload_reset_flag;
@@ -305,57 +334,53 @@ if(baseb_min_block < baseb_output_block/16)
   {
   baseb_min_block=baseb_output_block/16;
   }
-k=0;
 dasync_time=current_time();
 daspeed_time=dasync_time;
+if(!blocking)
+  {
+  allow_audio=TRUE;
+  daout_px=0;
+  daout_pa=0;
+  daout_py=0;
 await_narrowband_processing:;
-if(kill_all_flag) goto da_output_error;
-if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
-lir_sleep(2000);
-update_snd(RXDA);
-make_timing_info();
-if(kill_all_flag) goto da_output_error;
-if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
-t1=total_wttim-da_wait_time;
-if(t1 < 0)
-  {
-  goto await_narrowband_processing;
-  }
-if(k == 0 && blocking)
-  {
-  lir_set_event(EVENT_BLOCKING_RXOUT);
-  lir_sched_yield();
-  update_snd(RXDA);
+  if(kill_all_flag) goto exit2;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
   make_timing_info();
-  }
-k++;
-if(t1*baseband_sampling_speed > 3*baseb_output_block)
-  {
-  i=t1*baseband_sampling_speed;
-  if(i > baseb_wts)i=baseb_wts;
-  baseb_py=(baseb_py+i+baseband_size)&baseband_mask;
-  baseb_wts-=i;
-  }
-lir_sched_yield();
-update_snd(RXDA);
-make_timing_info();
-if(kill_all_flag) goto da_output_error;
-if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
-t1=total_wttim-da_wait_time;
-if(t1*baseband_sampling_speed > 3*baseb_output_block )//|| k<2)
-  {
-  if(recent_time-dasync_time > 2)
+  t1=total_wttim-da_wait_time-min_wttim;
+  if(t1 < 0)
     {
-    lirerr(1199);
-    goto da_output_error;
+    lir_sleep(3000);
+    goto await_narrowband_processing;
     }
-  goto await_narrowband_processing;
+  make_timing_info();
+  t1=total_wttim-da_wait_time-min_wttim;
+  if(kill_all_flag) goto exit2;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
+  if(t1*baseband_sampling_speed > 3*baseb_output_block )//|| k<2)
+    {
+    if(recent_time-dasync_time > 2)
+      {
+      lirerr(1199);
+      goto exit2;
+      }
+    goto await_narrowband_processing;
+    }
+  baseb_fx=0;
+  daout_pa=0;
+  daout_px=0;
+  daout_py=0;
+  snd[RXDA].min_valid_frames=snd[RXDA].tot_frames;
+  min_daout_samps=baseband_size;
+  lir_sleep(3000);
+  make_timing_info();
+  t1=total_wttim-da_wait_time-min_wttim;
+  if(t1*baseband_sampling_speed > 3*baseb_output_block )//|| k<2)
+    {
+    goto await_narrowband_processing;
+    }
   }
-if(blocking && thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_ACTIVE)
-  {
-  goto await_narrowband_processing;
-  }
-baseb_fx=(baseb_py-2+baseband_size)&baseband_mask;
 if(da_start_bytes == -1)
   {
   dasync_counter=0;
@@ -367,26 +392,17 @@ if(da_start_bytes == -1)
   dasync_avgtime=dasync_time;
   daspeed_time=dasync_time+1;
   }
-daout_pa=0;
-daout_px=0;
-daout_py=0;
-snd[RXDA].min_valid_frames=snd[RXDA].tot_frames;
-min_daout_samps=baseband_size;
 delay_margin_flag=TRUE;
 lir_sleep(1000);
-make_timing_info();
-update_snd(RXDA);
-if(kill_all_flag) goto da_output_error;
-if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
-t1=total_wttim-da_wait_time;
-if(t1*baseband_sampling_speed > 3*baseb_output_block )//|| k<2)
-  {
-  goto await_narrowband_processing;
-  }
+if(kill_all_flag) goto exit2;
+if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
 while(!kill_all_flag &&
                    thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_ACTIVE)
   {
 // We use speed_cnt to avoid using a lot of CPU time on this code section.
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
   if(audio_dump_flag==0)speed_cnt--;
   if(speed_cnt==0)
     {
@@ -436,9 +452,8 @@ while(!kill_all_flag &&
            rx_audio_out != -1)
         {
         dasync_avgtime=dt1;
-        lir_sched_yield();
         make_timing_info();
-        if(kill_all_flag) goto da_output_error;
+        if(kill_all_flag) goto exit2;
         if(timinfo_flag != 0)
           {
           sprintf(s,"sync:%f ",total_wttim-dasync_avg3);
@@ -449,7 +464,7 @@ while(!kill_all_flag &&
           dasync_errors++;
           sprintf(s,"DA SYNC ERRORS %d",dasync_errors);
           wg_error(s,WGERR_DASYNC);
-          baseb_reset_counter++;
+//öö??          baseb_reset_counter++;
           da_start_bytes=-1;
           dasync_counter=0; 
           }
@@ -490,15 +505,15 @@ while(!kill_all_flag &&
             }
           }
         }
-      if(thread_command_flag[THREAD_RX_OUTPUT] != 
-                                            THRFLAG_ACTIVE)goto stop_output;
+      if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+      if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
       }
     }
 // ***********************************************************
   lir_sched_yield();
   if( ((baseb_pa-baseb_py+baseband_size)&baseband_mask) > baseb_output_block )
     {
-    if( ((daout_px-snd[RXDA].block_bytes-daout_pa+daout_size)&daout_bufmask) > (daout_size>>1) )
+    if( ((daout_px-snd[RXDA].block_bytes-daout_pa+daout_bufmask)&daout_bufmask) > (daout_size>>1) )
       {
       make_audio_signal();
       }
@@ -508,9 +523,16 @@ while(!kill_all_flag &&
       }
     }
   lir_sched_yield();  
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
+  if(kill_all_flag)goto exit2;
   if( ((baseb_pa-baseb_py+baseband_size)&baseband_mask) <= baseb_output_block )
     {
+    thread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_SEM_WAIT;
     lir_await_event(EVENT_BASEB);
+    thread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_ACTIVE;
+    if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+    if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
     }
   if( (ui.network_flag&NET_RXOUT_BASEBRAW) != 0)
     {
@@ -767,21 +789,18 @@ while(!kill_all_flag &&
       }
 #endif
     }  
-  if(kill_all_flag) goto da_output_error;
-  if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
   if(audio_dump_flag == 1 || rx_audio_out == -1)
     {
     while( ((daout_pa-daout_px+daout_size)&daout_bufmask) > 
                                                  snd[RXDA].block_bytes)
       {
       daout_px=(daout_px+snd[RXDA].block_bytes)&daout_bufmask;
-      if(kill_all_flag) goto da_output_error;
-      if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
       }
-    lir_sched_yield();
-    if(kill_all_flag) goto da_output_error;
-    if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
     }
+  lir_sched_yield();
+  if(kill_all_flag) goto exit2;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
+  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
   while(daout_px != daout_py)
     {
     if(wav_write_flag != 0)
@@ -794,8 +813,6 @@ while(!kill_all_flag &&
       }
     da_block_counter+=1;
     daout_py=(daout_py+snd[RXDA].block_bytes)&daout_bufmask;
-    if(kill_all_flag) goto da_output_error;
-    if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stop_output;
     }
 #if BUFBARS == TRUE
   if(baseband_handle != NULL && timinfo_flag!=0)
@@ -806,90 +823,160 @@ while(!kill_all_flag &&
     }
 #endif
   }
-stop_output:;
-if(blocking)
+if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
+idle:;
+if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_IDLE)
   {
-  lir_set_event(EVENT_BLOCKING_RXOUT);
-  linrad_thread_stop_and_join(THREAD_BLOCKING_RXOUT);
-  lir_close_event(EVENT_BLOCKING_RXOUT);
+  lirerr(333412);
+  goto exit2;
   }
-daout_px=0;
-daout_pa=0;
-daout_py=0;
-if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)
+thread_status_flag[THREAD_RX_OUTPUT] = THRFLAG_IDLE;
+if(!blocking)
   {
-  if(rx_audio_out >= 0)lir_empty_da_device_buffer();
-  thread_status_flag[THREAD_RX_OUTPUT] = THRFLAG_IDLE;
-  lir_sleep(10000);
-  while(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)
+  if(rx_audio_out != -1)
     {
-    lir_sleep(5000);
-    if(kill_all_flag) goto da_output_error;
-    }
-  daout_px=0;
-  daout_pa=0;
-  while(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_SEMCLEAR)
-    {
-    thread_status_flag[THREAD_RX_OUTPUT] = THRFLAG_SEMCLEAR;
-    lir_await_event(EVENT_RX_START_DA);
-    if(kill_all_flag) goto da_output_error;
-    }
-  if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_ACTIVE)
-    {
-    if( rx_audio_out != -1 && (local_channels != rx_daout_channels ||
-                               local_bytes != rx_daout_bytes ||
-                               local_fft3_blocktime != fft3_blocktime))
+    sys_func(THRFLAG_CLOSE_RX_SNDOUT);
+    while(rx_audio_out != -1)
       {
-      sys_func(THRFLAG_CLOSE_RX_SNDOUT);
-      lir_sched_yield();
-      if(rx_daout_bytes == 1)
-        {
-        cc=0x80;
-        }
-      else
-        {
-        cc=0;
-        }  
-      daout_px=0;
-      daout_pa=0;
-      memset(&daout[daout_px],cc,snd[RXDA].block_bytes);
-      sys_func(THRFLAG_OPEN_RX_SNDOUT);
-      if(kill_all_flag || rxda_status != LIR_OK) goto da_output_error;
-      lir_empty_da_device_buffer();
-      snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
-      da_start_bytes=-1;
-      local_channels=rx_daout_channels;
-      local_bytes=rx_daout_bytes;
-      local_fft3_blocktime=fft3_blocktime;
+      lir_sleep(100);
       }
-    if(kill_all_flag) goto da_output_error;
+    }
+  }    
+else
+  {
+  while(thread_status_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_INIT)
+    {
+    lir_sched_yield();
+    lir_sleep(100);
+    }
+  if(thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE)
+    {
+    thread_command_flag[THREAD_BLOCKING_RXOUT] = THRFLAG_IDLE;
+    i=0;
+    if(thread_status_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_BLOCKING)
+      {
+      lir_set_event(EVENT_BLOCKING_RXOUT);
+      }
+    while(thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE)
+      {
+      i++;
+      lir_sched_yield();
+      lir_sleep(3000);
+      if(kill_all_flag)goto exit2;
+      if(i>500)
+        {
+        lirerr(776123);
+        goto exit2;
+        }
+      }  
+    }
+  }
+while(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)
+  {
+  lir_sleep(10000);
+  if(kill_all_flag ||
+            thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
+  }
+if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto exit2;
+if(!blocking)
+  {
+  sys_func(THRFLAG_OPEN_RX_SNDOUT);
+  i=0;
+  while(rx_audio_out == -1)
+    {
+    if(kill_all_flag || 
+         thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
+    if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)
+      {
+      lirerr(679375);
+      goto exit2;
+      }
+    lir_sleep(20);
+    i++;
+    if(i>100000)
+      {
+      lirerr(1017);
+      goto exit2;
+      }
+    }
+  snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
+  if(kill_all_flag)goto exit2;
+  daout_pa=0;
+  daout_px=0;
+  daout_py=0;
+  if(rx_audio_out >= 0)lir_empty_da_device_buffer();  
+  thread_status_flag[THREAD_RX_OUTPUT] = THRFLAG_ACTIVE;
+  goto resume;
+  }  
+else 
+  {
+  if(thread_status_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_BLOCKING)goto run;
+  if(thread_status_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_IDLE)
+    {
+    thread_command_flag[THREAD_BLOCKING_RXOUT] = THRFLAG_ACTIVE;
+    lir_set_event(EVENT_BLOCKING_RXOUT);
+    i=0;
+    while(thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_BLOCKING)
+      {
+      i++;
+      lir_sleep(10);
+      if(i>1000)
+        {
+        lirerr(388421);
+        goto exit2;
+        }
+      }
+    lir_set_event(EVENT_BLOCKING_RXOUT);
+    i=0;
+    while(thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_ACTIVE)
+      {
+      i++;
+      lir_sleep(3000);
+      if(i>300)
+        {
+        lirerr(388421);
+        goto exit2;
+        }
+      }
+run:;
+    daout_pa=0;
+    daout_px=0;
+    daout_py=0;
+    lir_set_event(EVENT_BLOCKING_RXOUT);
+    thread_status_flag[THREAD_RX_OUTPUT] = THRFLAG_ACTIVE;
     goto resume;
     }
-  }
-da_output_error:;
-count_rx_underrun_flag=FALSE;
-if(blocking && thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_NOT_ACTIVE)
-  {
-  linrad_thread_stop_and_join(THREAD_BLOCKING_RXOUT);
-  }
-if(rx_audio_out >= 0)
-  {
-/*
-  if( (ui.use_alsa&(PORTAUDIO_TX_IN+PORTAUDIO_RX_OUT)) == 0)
+  else
     {
-    while( rx_audio_out == tx_audio_in)lir_sleep(10000);
+    lirerr(683327);
+    goto exit2;
     }
-// Perhaps when using OSS in RDWR mode???
-*/    
-  sys_func(THRFLAG_CLOSE_RX_SNDOUT);
   }
+exit2:;
+if(!blocking)
+  {
+  if(rx_audio_out != -1)
+    {
+    sys_func(THRFLAG_CLOSE_RX_SNDOUT);
+    while(rx_audio_out != -1)
+      {
+      lir_sleep(100);
+      }
+    }
+  }    
+
 thread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_RETURNED;
 while(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_NOT_ACTIVE &&
       thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_KILL)
   {
-  lir_sleep(1000);
+  lir_sleep(10000);
   }
 }
+// MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
+//
+//                     make audio_signal
+//
+// MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM
 
 void make_audio_signal(void)
 {
@@ -903,6 +990,9 @@ double r1,r2,r3,r4;
 double rdiff, final_gain1, final_gain2;
 double baseb_r1, baseb_r2;
 int loop_counter;
+if(!allow_audio)return;
+audio_status=TRUE;
+lir_sched_yield();
 if(ui.tx_enable != 0)
   {
   dt1=(2*PI_L*(double)txcw.sidetone_freq)/genparm[DA_OUTPUT_SPEED]; 
@@ -936,6 +1026,7 @@ mm=snd[RXDA].framesize;
 nn=2*baseb_channels;
 baseb_r1=daout_pa/(mm*da_resample_ratio);
 loop_counter=0;
+//**************************************************************
 resamp:;
 baseb_r2=(daout_pa+mm)/(mm*da_resample_ratio);
 i2=baseb_fx+baseb_r1+.5;
@@ -972,13 +1063,12 @@ else
 i4=(i3+1)&baseband_mask;
 baseb_py=i4;
 i1=(i2+baseband_mask)&baseband_mask;
-baseb_wts=baseb_pa-baseb_r2-baseb_fx;
-if(baseb_wts<0)baseb_wts+=baseband_size;
 loop_counter++;
 if(loop_counter > 2*baseb_output_block)lir_sched_yield();
 if( ((daout_pa-daout_px+daout_size)&daout_bufmask) > (daout_size>>1) ||
-     ((baseb_pa-baseb_py+baseband_size)&baseband_mask) < baseb_min_block)
+     ((baseb_pa-baseb_py+baseband_size)&baseband_mask) <= baseb_min_block)
   {
+  audio_status=FALSE;
   return;  
   }
 rdiff=baseb_r1+baseb_fx-i2;
@@ -1551,6 +1641,10 @@ if(daout_pa == 0)
     rx_daout_phstep_sin=sin(t1);
     }
   }
-if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)return;
+if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)
+  {
+  audio_status=FALSE;
+  return;
+  }
 goto resamp;  
 }

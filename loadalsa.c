@@ -12,7 +12,7 @@ p_snd_pcm_hw_params snd_pcm_hw_params;
 p_snd_pcm_prepare snd_pcm_prepare;
 p_snd_pcm_drop snd_pcm_drop;
 p_snd_pcm_hwsync snd_pcm_hwsync;
-p_snd_pcm_avail_update snd_pcm_avail_update;
+p_snd_pcm_avail snd_pcm_avail;
 p_snd_pcm_writei snd_pcm_writei;
 p_snd_pcm_readi snd_pcm_readi;
 p_snd_pcm_recover snd_pcm_recover;
@@ -55,6 +55,8 @@ p_snd_ctl_card_info_get_name snd_ctl_card_info_get_name;
 p_snd_ctl_card_info_get_longname snd_ctl_card_info_get_longname;
 
 void *alsa_libhandle;
+snd_pcm_t *alsa_handle[4];
+
 
 void load_alsa_library(void)
 {
@@ -78,8 +80,8 @@ snd_pcm_drop=(p_snd_pcm_drop)dlsym(alsa_libhandle, "snd_pcm_drop");
 if(snd_pcm_drop == NULL)goto alsa_sym_error;
 snd_pcm_hwsync=(p_snd_pcm_hwsync)dlsym(alsa_libhandle, "snd_pcm_hwsync");
 if(snd_pcm_hwsync == NULL)goto alsa_sym_error;
-snd_pcm_avail_update=(p_snd_pcm_avail_update)dlsym(alsa_libhandle, "snd_pcm_avail_update");
-if(snd_pcm_avail_update == NULL)goto alsa_sym_error;
+snd_pcm_avail=(p_snd_pcm_avail)dlsym(alsa_libhandle, "snd_pcm_avail");
+if(snd_pcm_avail == NULL)goto alsa_sym_error;
 snd_pcm_writei=(p_snd_pcm_writei)dlsym(alsa_libhandle, "snd_pcm_writei");
 if(snd_pcm_writei == NULL)goto alsa_sym_error;
 snd_pcm_readi=(p_snd_pcm_readi)dlsym(alsa_libhandle, "snd_pcm_readi");

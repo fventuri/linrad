@@ -91,6 +91,8 @@ void thread_lir_server(void);
 void thread_perseus_input(void);
 void thread_radar(void);
 void thread_blocking_rxout(void);
+void thread_mix2(void);
+void thread_fft3(void);
 void thread_syscall(void);
 void thread_sdrip_input(void);
 void thread_cloudiq_input(void);

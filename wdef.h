@@ -132,6 +132,8 @@ DWORD WINAPI winthread_lir_server(PVOID arg);
 DWORD WINAPI winthread_perseus_input(PVOID arg);
 DWORD WINAPI winthread_radar(PVOID arg);
 DWORD WINAPI winthread_blocking_rxout(PVOID arg);
+DWORD WINAPI winthread_mix2(PVOID arg);
+DWORD WINAPI winthread_fft3(PVOID arg);
 DWORD WINAPI winthread_syscall(PVOID arg);
 DWORD WINAPI winthread_sdrip_input(PVOID arg);
 DWORD WINAPI winthread_cloudiq_input(PVOID arg);

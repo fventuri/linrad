@@ -637,7 +637,6 @@ baseb_ps=baseb_pa;
 baseb_pm=baseb_pa;
 baseb_px=baseb_pa;
 nn=0.5+daout_pa/(rx_daout_channels*rx_daout_bytes*da_resample_ratio);
-baseb_wts=2;
 baseb_fx=(baseb_pa-2-nn+baseband_size)&baseband_mask;
 // *********** Clear basblock. Used for S-meter averaging ************ 
 basblock_pa=2*baseb_pa/mix2.size;

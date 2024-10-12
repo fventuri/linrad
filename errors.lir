@@ -218,9 +218,9 @@ call to ioctl failed. (SNDCTL_DSP_GETFMTS)
 call to ioctl failed. (SNDCTL_DSP_SPEED)
 [1073]routine:set_analog_io      file:lsetad.c                      
 call to ioctl failed. (SNDCTL_DSP_SPEED)
-[1074]routine:xz                 file:ui.c                      
-Trying to write to debug file (dmp) but file is not open.
-(See define of DUMPFILE in vernr.h)
+[1074]
+ö not used any more
+
 [1075]routine:read_eme_database      file:eme.c                      
 Failed to get scratch memory.
 [1076]The timing for the rise time or for the pilot tone
@@ -775,7 +775,7 @@ no configurations available.
 [1310]open_rx_sndout:resampling setup failed.
 [1311]open_rx_sndout:Could not set sampling speed.
 [1312]open_rx_sndout:Unable to set period size for playback.
-[1313]open_rx_sndout/snd_pcm_get_params.
+[1313[open_rx_sndout/snd_pcm_get_params.
 Can't recover from underrun - prepare failed.
 [1314]routine:make_radar_graph    file:radar.c
 Failed to allocate memory for radar.
@@ -804,7 +804,7 @@ input in the "N = Network setup" menu.
 [1329]lir_tx_dawrite/ writei/ catch all error
 [1330]Sampling rate in par_sdrip not compatible with SDR-IP setup.
 Rerun "U=A/D and D/A setup for RX" from the main menu.
-[1331]Error in the initioalization of soundcard output.
+[1331]Error in the initialization of soundcard output.
 [1332]lir_rx_dawrite/ writei/ catch all error
 [1333]Could not find the serial number file for Excalibur.
 par_excalibur_sernum
@@ -1146,6 +1146,7 @@ FM low pass filter filter.
 FM low pass filter filter.
 [1477]Too low samplingrate in the baseband to initialize
 FM low pass filter filter.
+[1478]Failed to open soundcard for RX input.
 [2600]The file par_sdrplay3 is corrupted or not consistent
 with other parameters. Use the U menu to set up your RSP device
 and do not forget to press W to save data in the main menu

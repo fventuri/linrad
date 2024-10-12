@@ -137,7 +137,7 @@ if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
   init_afc_graph();
   if(kill_all_flag || lir_status != LIR_OK) goto radar_x;
   }
-if(ui.rx_rf_channels == 2 && fft1_correlation_flag ==0)
+if(ui.rx_rf_channels == 2)
   {
   init_pol_graph();
   if(kill_all_flag || lir_status != LIR_OK) goto radar_x;
@@ -350,7 +350,6 @@ tune_x:;
 free_semaphores();
 }
 
-
 void rx_adtest_routine(void)
 {
 usercontrol_mode=USR_ADTEST;
@@ -499,10 +498,8 @@ if(lir_status == LIR_POWTIM)
   fft1_waterfall_flag=0;
   init_semaphores();
   linrad_thread_create(rx_input_thread);
-  i=0;
   while(i<200 && lir_status != LIR_OK)
     {
-    i++;
     lir_sleep(50000);
     }
   if(lir_status != LIR_OK)
@@ -541,7 +538,6 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   }
 free_semaphores();
 }
-
 
 void normal_rx_routine(void)
 {
@@ -601,7 +597,7 @@ if(genparm[AFC_ENABLE] != 0 && genparm[AFC_LOCK_RANGE] != 0)
   init_afc_graph();
   if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
   }
-if(ui.rx_rf_channels == 2 && fft1_correlation_flag ==0)
+if(ui.rx_rf_channels == 2)
   {
   init_pol_graph();
   if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
@@ -657,15 +653,27 @@ show_name_and_size();
 lir_refresh_screen();
 fft3_show_time=current_time();
 fft1_show_time=fft3_show_time;
+if(kill_all_flag) goto normal_rx_x;
 sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_USER_COMMAND);
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_NARROWBAND_DSP);
 if(kill_all_flag) goto normal_rx_x;
+linrad_thread_create(THREAD_MIX2);
+if(kill_all_flag) goto normal_rx_x;
+linrad_thread_create(THREAD_FFT3);
+if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_WIDEBAND_DSP);
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_SCREEN);
+if(kill_all_flag) goto normal_rx_x;
+if((ui.use_alsa&PORTAUDIO_RX_OUT) == 0)
+  {
+  linrad_thread_create(THREAD_BLOCKING_RXOUT);
+  if(kill_all_flag) goto normal_rx_x;
+  }
+linrad_thread_create(THREAD_RX_OUTPUT);
 if(kill_all_flag) goto normal_rx_x;
 if((ui.network_flag&NET_RX_OUTPUT)!=0)
   {
@@ -676,24 +684,36 @@ if((ui.network_flag&NET_RX_OUTPUT)!=0)
 // opening inputs in order to avoid overrun errors.
 // Some system calls they might do could cause overrun
 // errors if the input were open.
-while(thread_status_flag[THREAD_RX_OUTPUT]!=THRFLAG_SEMCLEAR &&
-          thread_status_flag[THREAD_USER_COMMAND]!=THRFLAG_ACTIVE &&
-          thread_status_flag[THREAD_NARROWBAND_DSP]!=THRFLAG_SEM_WAIT &&
-          thread_status_flag[THREAD_WIDEBAND_DSP]!=THRFLAG_ACTIVE )
+
+i=0;
+while(thread_status_flag[THREAD_RX_OUTPUT]!=THRFLAG_IDLE ||
+      thread_status_flag[THREAD_USER_COMMAND]!=THRFLAG_ACTIVE ||
+      thread_status_flag[THREAD_NARROWBAND_DSP]!=THRFLAG_SEM_WAIT ||
+      thread_status_flag[THREAD_WIDEBAND_DSP]!=THRFLAG_ACTIVE ||
+      thread_status_flag[THREAD_MIX2]!=THRFLAG_SEM_WAIT ||
+      thread_status_flag[THREAD_FFT3]!=THRFLAG_SEM_WAIT ||
+      ( (ui.use_alsa&PORTAUDIO_RX_OUT) == 0 &&
+      thread_status_flag[THREAD_BLOCKING_RXOUT]!=THRFLAG_IDLE))
   {
-  if(kill_all_flag) goto normal_rx_x;
-  lir_sleep(3000);
+  if(kill_all_flag)
+    {
+    goto normal_rx_x;
+    }
+  i++;
+  if(i>200)
+    {
+    lirerr(116711);
+    goto normal_rx_x;
+    }
+  lir_sleep(5000);
+  lir_sched_yield();
   }
-mailbox[0]=0;
-mailbox[1]=0;
-mailbox[2]=0;
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(rx_input_thread);
-i=0;
 while(!kill_all_flag && 
               thread_status_flag[rx_input_thread] != THRFLAG_ACTIVE)
   {
-  lir_sleep(10000);
+  lir_sleep(3000);
   i++;
   if(i>1000)
     {
@@ -704,44 +724,19 @@ while(!kill_all_flag &&
 if(kill_all_flag) goto normal_rx_x;
 if((ui.network_flag&NET_RX_OUTPUT)!=0)linrad_thread_create(THREAD_NETWORK_SEND);
 display_rx_input_source(s);
-linrad_thread_create(THREAD_RX_OUTPUT);
-i=0;
-while(!kill_all_flag && 
-              thread_status_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)
-  {
-  lir_sleep(3000);
-  i++;
-  if(i>1000)
-    {
-    lirerr(116711);
-    }
-  }
 if(kill_all_flag) goto normal_rx_x;
-thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_IDLE;
-i=0;
-while(!kill_all_flag && thread_status_flag[THREAD_RX_OUTPUT] != THRFLAG_IDLE)
-  {
-  lir_sleep(20000);
-  i++;
-  if(i>2000)
-    {
-    lirerr(1167);
-    goto normal_rx_x;
-    }
-  }
-if(kill_all_flag) goto normal_rx_x;
-thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_SEMCLEAR;
-while(thread_status_flag[THREAD_RX_OUTPUT]!=THRFLAG_SEMCLEAR)
-  {
-  if(kill_all_flag) goto normal_rx_x;
-  lir_sleep(3000);
-  }
 #if SHOW_HARDWARE == TRUE
 lir_text(25,screen_last_line,s);
 #endif
+i=0;
 lir_sleep(100000);
 if(lir_status != LIR_OK)
   {
+  while(i<100 && lir_status != LIR_OK)
+    {
+    lir_sleep(1000);
+    i++;
+    }
   linrad_thread_stop_and_join(THREAD_USER_COMMAND);
   goto normal_rx_join;
   }
@@ -789,6 +784,7 @@ if(ui.timer_resolution > 0)timeBeginPeriod(ui.timer_resolution);
 fft1_waterfall_flag=1;
 setup_thread_affinities();
 lir_sleep(50000);
+
 if(kill_all_flag) goto normal_rx_x;
 lir_refresh_screen();
 all_threads_started=TRUE; 
@@ -814,6 +810,7 @@ for(i=0; i<THREAD_MAX; i++)
 #endif
 local_block_cnt=0;
 no_input_flag=FALSE;
+
 while( !kill_all_flag &&
                thread_status_flag[THREAD_USER_COMMAND]==THRFLAG_ACTIVE &&
                thread_status_flag[rx_input_thread] != THRFLAG_RETURNED)
@@ -918,12 +915,19 @@ if(use_tx != 0)
   lir_close_event(EVENT_TX_INPUT);
   }
 normal_rx_join:;
+fflush(NULL);
+if((ui.use_alsa&PORTAUDIO_RX_OUT) == 0)
+  {
+  linrad_thread_stop_and_join(THREAD_BLOCKING_RXOUT);
+  }
 linrad_thread_stop_and_join(THREAD_RX_OUTPUT);
 if((ui.network_flag&NET_RX_OUTPUT)!=0)
                           linrad_thread_stop_and_join(THREAD_NETWORK_SEND);
 linrad_thread_stop_and_join(rx_input_thread);
 linrad_thread_stop_and_join(THREAD_SCREEN);      
 linrad_thread_stop_and_join(THREAD_NARROWBAND_DSP);
+linrad_thread_stop_and_join(THREAD_MIX2);
+linrad_thread_stop_and_join(THREAD_FFT3);
 if((ui.network_flag&NET_RX_OUTPUT)!=0)
   {
   linrad_thread_stop_and_join(THREAD_LIR_SERVER);
@@ -937,6 +941,7 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   }
 if(!kill_all_flag)disable_extio();
 free_semaphores();
+sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
 }
 
 void prompt_reason(char *s)
@@ -2367,7 +2372,6 @@ if(diskread_flag != 0)
   }
 }
 
-
 void main_menu(void)
 {
 int rx_rf_channels;
@@ -2633,6 +2637,7 @@ else
     if(kill_all_flag) goto menu_x;
     }
   }
+qt0();  
 first_keypress=1;
 savefile_parname[0]=0;
 calibrate_flag=0;
@@ -2696,9 +2701,7 @@ else
                                        rx_input_thread=THREAD_CLOUDIQ_INPUT;
   }
 if(kill_all_flag)goto menu_x;
-lir_status=LIR_OK;
-sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
-if(kill_all_flag) goto menu_x;
+//öö??lir_status=LIR_OK;
 if(lir_status != LIR_OK)
   {
   clear_screen();
@@ -2864,11 +2867,13 @@ switch ( lir_inkey )
 
   case 'U':
 setad:;
+  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
   sys_func(THRFLAG_SET_RX_IO);
   if(kill_all_flag) goto menu_x;
   verify_network(FALSE);
   save_uiparm();
   uiparm_change_flag=TRUE;
+  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
   break; 
 
   case 'V':
@@ -2942,12 +2947,12 @@ setad:;
 #if(OSNUM == OSNUM_WINDOWS)
   case 6:
     // ctrl-F: Font selection
-	win_selectfont();
+  win_selectfont();
   break;
 #endif /* OS is Windows */
 
   case 'W':
-write_parms:;  
+  write_parms:;  
   file = fopen(userint_filename, "w");
   if (file == NULL)
     {
@@ -3127,6 +3132,7 @@ do_normal_rx:;
     save_rd_file=NULL;
     }
 txtest_exit:;
+
   free_buffers();
 // *******************************************************************
 // ******************* main exit from processing modes ***************
@@ -3271,10 +3277,10 @@ if(!kill_all_flag)goto menu_loop;
 menu_x:;
 if(mg_meter_file != NULL)fclose(mg_meter_file);
 close_mouse();
-free_buffers();
 close_network_sockets();
 if(portaudio_active_flag)sys_func(THRFLAG_PORTAUDIO_STOP);
 linrad_thread_stop_and_join(THREAD_SYSCALL);
+free_buffers();
 lir_mutex_destroy();
 show_errmsg(1);
 if(lir_errcod != 0)

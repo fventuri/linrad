@@ -7338,18 +7338,13 @@ if test "$SHOW32" = "1"; then
         echo "The purpose of installing Portaudio is to be able to use Jack."
       fi
       if test "$BITS" = "32"; then
-        echo "-------------------------Debian----------------------"
-        echo "apt-get install libportaudio2"
-        echo "ln -s -f /usr/lib/i386-linux-gnu/libportaudio.so.2.0.0 /usr/lib/i386-linux-gnu/libportaudio.so"
-        echo "-----------------------------------------------------"
+        echo "Debian: apt-get install portaudio19-dev"
         echo "Fedora: dnf install portaudio-devel"
         echo "openSUSE: zypper install portaudio-devel"
         echo "Mageia: urpmi libportaudio-devel"
       else
         debian_i386
-        echo "apt-get install libportaudio2:i386"
-        echo "ln -s -f /usr/lib/i386-linux-gnu/libportaudio.so.2.0.0 /usr/lib/i386-linux-gnu/libportaudio.so"
-        echo "-----------------------------------------------------"
+        echo "Debian: apt-get install portaudio19-dev:i386"
         echo "Fedora: dnf install portaudio-devel.i686"
         echo " "
         echo "---------------------openSUSE--------------------------------"
@@ -7460,10 +7455,19 @@ if test "$SHOW32" = "1"; then
               echo "  cd librtlsdr"
               echo "  mkdir -p build"
               echo "  cd build"
-              echo "  cmake .."
+              echo "  cmake ../ -DINSTALL_UDEV_RULES=ON"
               echo "  make"
               echo "  make install"
+              echo "  ldconfig"
               echo "Go back to the linrad directory and run ./configure again."
+              echo "At runtime you may have to remove dvb_usb_rtl28xxu with"
+              echo "this command before starting Linrad:"
+              echo "  rmmod dvb_usb_rtl28xxu"
+              echo "Or blacklist the module with these commands:"
+              echo "  echo blacklist dvb_usb_rtl28xxu /etc/modprobe.d/rtl2832.conf"
+              echo "  depmod -ae"
+              echo "  update-initramfs  -u"
+              echo " "
             fi
           fi
         fi
@@ -8059,11 +8063,7 @@ if test "$BITS" = "64"; then
           if test ${OS} != "Darwin"; then
             echo "The purpose of installing Portaudio is to be able to use Jack."
           fi
-        echo "-------------------------Debian----------------------"
-        echo "apt-get install libportaudio2"
-        echo "ln -s -f /usr/lib/x86_64-linux-gnu/libportaudio.so.2.0.0 /usr/lib/x86_64-linux-gnu/libportaudio.so"
-        echo "-----------------------------------------------------"
-        echo " "
+        echo "Debian: apt-get install portaudio19-dev"
         echo "Fedora: dnf install portaudio-devel"
         echo "openSUSE: zypper install portaudio-devel"
         echo "Gentoo: emerge portaudio"

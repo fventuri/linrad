@@ -579,15 +579,21 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_ELEKTOR && diskread_flag < 2)
   update_elektor_rx_frequency();
   }
 hwfreq+=0.001F*fg_truncation_error;
-
-if(bg_hz_per_pixel < 0.1)
+if(fft1_correlation_flag <= 1)
   {
-  sprintf(s,"%.6f     ",hwfreq);
+  if(bg_hz_per_pixel < 0.1)
+    {
+    sprintf(s,"%.6f",hwfreq);
+    }
+  else
+    {
+    sprintf(s,"%.4f",hwfreq);
+    }
   }
 else
   {
-  sprintf(s,"%.4f     ",hwfreq);
-  }
+  sprintf(s,"%.9f",hwfreq);
+  }    
 k=0;
 while(s[k]!='.')k++;
 j=k;
@@ -597,7 +603,7 @@ ib=freq_readout_x2;
 n=(ib-ia)/text_width;
 if(n >= k)
   {
-  lir_fillbox(ia-1,freq_readout_y1,ib-ia+2,text_height+1,0);
+  lir_fillbox(ia-1,freq_readout_y1,ib-ia+2,text_height+1,3);
   if(j > n)j=n;
   s[j]=0;
   ia+=text_width*(n-j)/2;
@@ -890,6 +896,7 @@ else
     i++;
     }
   }
+frequency_readout();
 }
 
 
@@ -1620,7 +1627,7 @@ else
 // Logarithmic scale
 // The lowest frequency we want to display is bin #8 in the sg transform
 // or 3/4 of the total width of the carrier filter whichever largest.
-  sg_first_logfreq=(float)bg_carrfilter_points/(2*fft3_size);
+  sg_first_logfreq=0.8*(float)bg_carr_20db_points/(fft3_size);
   t1=8.0/sg_siz;
   if(t1 > sg_first_logfreq)sg_first_logfreq=t1;
   sg_first_logpoint=0.5+sg_first_logfreq*sg_siz;;
@@ -1716,8 +1723,6 @@ if(sg.xscale == 0)
     sg_line(i,sg.ybottom-2,sg_last_xpixel,sg.ybottom-2,2);
     }
   }
-lir_pixwrite(sg_last_xpixel-12*text_width,sg_ytop2+15*text_height/2,fft3_level);
-lir_pixwrite(sg_last_xpixel-17*text_width,sg_ytop2+17*text_height/2,fft3_skip);
 sprintf(s, "%6d",sg_corrnum);
 lir_pixwrite(sg_last_xpixel-10*text_width,sg_ytop2+9*text_height/2,s);
 i=recent_time-sg_reset_time;
@@ -1959,7 +1964,7 @@ zz:;
     }
   sprintf(s,"Avg %6.2f",-10*logsum_pn/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
-  fprintf(stderr,"\n%d PN= %.2f",sg_corrnum,-10*logsum_pn/logsum_n);
+  fprintf( stderr,"\n%d PN= %.2f",sg_corrnum,-10*logsum_pn/logsum_n);
   break;
 
   case 2:
@@ -2060,7 +2065,7 @@ zz:;
     }
   sprintf(s,"Avg %6.2f",-10*logsum_an/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
-  fprintf(stderr,"\n%d AN= %.2f",sg_corrnum,-10*logsum_an/logsum_n);
+  fprintf( stderr,"\n%d AN= %.2f",sg_corrnum,-10*logsum_an/logsum_n);
   break;
 
   case 3:
@@ -2741,63 +2746,67 @@ if(all)
   show_button(&bgbutt[BG_HORIZ_ARROW_MODE],s);
   s[0]='0'+bg.mixer_mode;
   show_button(&bgbutt[BG_MIXER_MODE],s);
-  if(bg.mixer_mode == 1)
+  if(fft1_correlation_flag == 0)
     {
-    s[0]='0'+bg_current_notch;
-    show_button(&bgbutt[BG_NOTCH_NO],s);
+    if(bg.mixer_mode == 1)
+      {
+      s[0]='0'+bg_current_notch;
+      show_button(&bgbutt[BG_NOTCH_NO],s);
+      }
+    if(rx_mode == MODE_AM  && bg.mixer_mode == 1)
+      {
+      sprintf(s,"Sh%4d",bg.filter_shift);
+      show_button(&bgbutt[BG_FILTER_SHIFT],s);
+      }
+    if(bg_no_of_notches > 0 && bg_current_notch > 0 && bg.mixer_mode == 1)
+      {
+      sprintf(s,"w%3d",bg_notch_width[bg_current_notch-1]);
+      show_button(&bgbutt[BG_NOTCH_WIDTH],s);
+      sprintf(s,"Pos%4d",bg_notch_pos[bg_current_notch-1]);
+      show_button(&bgbutt[BG_NOTCH_POS],s);
+      }
+    else
+      {
+      lir_fillbox(bgbutt[BG_NOTCH_WIDTH].x1,bgbutt[BG_NOTCH_WIDTH].y1,
+          bgbutt[BG_NOTCH_WIDTH].x2-bgbutt[BG_NOTCH_WIDTH].x1+1, text_height+2,0);
+      lir_fillbox(bgbutt[BG_NOTCH_POS].x1,bgbutt[BG_NOTCH_POS].y1,
+          bgbutt[BG_NOTCH_POS].x2-bgbutt[BG_NOTCH_POS].x1+1, text_height+2,0);
+      }
+    if(rx_daout_bytes==1)
+      {
+      s[0]=' ';
+      s[1]='8';
+      }
+    else
+      {
+      s[0]='1';
+      s[1]='6';
+      }
+    s[2]=0; 
+    show_button(&bgbutt[BG_TOGGLE_BYTES],s);
+    if(kill_all_flag) return;
     }
-  if(rx_mode == MODE_AM  && bg.mixer_mode == 1)
-    {
-    sprintf(s,"Sh%4d",bg.filter_shift);
-    show_button(&bgbutt[BG_FILTER_SHIFT],s);
-    }
-  if(bg_no_of_notches > 0 && bg_current_notch > 0 && bg.mixer_mode == 1)
-    {
-    sprintf(s,"w%3d",bg_notch_width[bg_current_notch-1]);
-    show_button(&bgbutt[BG_NOTCH_WIDTH],s);
-    sprintf(s,"Pos%4d",bg_notch_pos[bg_current_notch-1]);
-    show_button(&bgbutt[BG_NOTCH_POS],s);
-    }
-  else
-    {
-    lir_fillbox(bgbutt[BG_NOTCH_WIDTH].x1,bgbutt[BG_NOTCH_WIDTH].y1,
-        bgbutt[BG_NOTCH_WIDTH].x2-bgbutt[BG_NOTCH_WIDTH].x1+1, text_height+2,0);
-    lir_fillbox(bgbutt[BG_NOTCH_POS].x1,bgbutt[BG_NOTCH_POS].y1,
-        bgbutt[BG_NOTCH_POS].x2-bgbutt[BG_NOTCH_POS].x1+1, text_height+2,0);
-    }
-  if(rx_daout_bytes==1)
-    {
-    s[0]=' ';
-    s[1]='8';
-    }
-  else
-    {
-    s[0]='1';
-    s[1]='6';
-    }
-  s[2]=0; 
-  show_button(&bgbutt[BG_TOGGLE_BYTES],s);
-  if(kill_all_flag) return;
 // **************************************  
   sprintf(s,"Rat%3d",bg.coh_factor);
   show_button(&bgbutt[BG_SEL_COHFAC],s);
   if(kill_all_flag) return;
 // **************************************  
-  if(rx_mode == MODE_FM)
+
+  if(fft1_correlation_flag == 0)
     {
-    sprintf(s,"FM%d",bg.fm_mode);
-    show_button(&bgbutt[BG_TOGGLE_FM_MODE],s);
-    s[0]=fmsubtr[bg.fm_subtract];
-    s[1]=0;
-    show_button(&bgbutt[BG_TOGGLE_FM_SUBTRACT],s);
-    sprintf(s,"Bw%2d",bg.fm_audio_bw);
-    show_button(&bgbutt[BG_SEL_FM_AUDIO_BW],s);
-    }
-  else  
-    {
-// Buttons that change colour when something is enabled
-    if(fft1_correlation_flag <= 1)
+   if(rx_mode == MODE_FM)
       {
+      sprintf(s,"FM%d",bg.fm_mode);
+      show_button(&bgbutt[BG_TOGGLE_FM_MODE],s);
+      s[0]=fmsubtr[bg.fm_subtract];
+      s[1]=0;
+      show_button(&bgbutt[BG_TOGGLE_FM_SUBTRACT],s);
+      sprintf(s,"Bw%2d",bg.fm_audio_bw);
+      show_button(&bgbutt[BG_SEL_FM_AUDIO_BW],s);
+      }
+    else  
+      {
+// Buttons that change colour when something is enabled
       if( bg.agc_flag == 0 )
         {
         button_color=BG_INACTIVE_BUTTON_COLOR;
@@ -2834,6 +2843,7 @@ if(all)
             }
           }          
         }
+
       show_button(&bgbutt[BG_TOGGLE_AGC],s);
       if(kill_all_flag) return;
       if( bg_expand == 0 )
@@ -2857,57 +2867,11 @@ if(all)
         {
         show_button(&bgbutt[BG_TOGGLE_EXPANDER],s);
         if(kill_all_flag) return;
-      }
-    }
+        }
 // ***************************************
-    if( bg_coherent == 0 )
-      {
-      button_color=BG_INACTIVE_BUTTON_COLOR;
-      }
-    else
-      {
-      button_color=BG_ACTIVE_BUTTON_COLOR;
-      }
-    settextcolor(button_color);
-    if(button_color == BG_INACTIVE_BUTTON_COLOR)
-      {
-      sprintf(s,"Off");
-      }
-    else
-      {
-      sprintf(s,"Coh%d",bg_coherent);
-      }
-    show_button(&bgbutt[BG_TOGGLE_COHERENT],s);
-    if(kill_all_flag) return;
-// **************************************  
-    if( bg_delay == 0 )
-      {
-      button_color=BG_INACTIVE_BUTTON_COLOR;
-      }
-    else
-      {
-      button_color=BG_ACTIVE_BUTTON_COLOR;
-      }
-    settextcolor(button_color);
-    if(button_color == BG_INACTIVE_BUTTON_COLOR)
-      {
-      sprintf(s,"Off");
-      }
-    else
-      {
-      sprintf(s,"Del");
-      }
-    show_button(&bgbutt[BG_TOGGLE_PHASING],s);
-    if(kill_all_flag) return;
-    sprintf(s,"%3d",bg.delay_points);
-    show_button(&bgbutt[BG_SEL_DELPNTS],s);
-    if(kill_all_flag) return;
-// **************************************  
-    if(ui.rx_rf_channels == 2)
-      {
-      if( bg_twopol == 0 )
+      if( bg_coherent == 0 )
         {
-        button_color=BG_INACTIVE_BUTTON_COLOR; 
+        button_color=BG_INACTIVE_BUTTON_COLOR;
         }
       else
         {
@@ -2920,14 +2884,60 @@ if(all)
         }
       else
         {
-        sprintf(s,"X+Y");
-        }
-      show_button(&bgbutt[BG_TOGGLE_TWOPOL],s);
-      if(kill_all_flag) return;
+      sprintf(s,"Coh%d",bg_coherent);
       }
-    button_color = 7;
-    settextcolor(button_color);
-    }
+      show_button(&bgbutt[BG_TOGGLE_COHERENT],s);
+      if(kill_all_flag) return;
+// **************************************  
+      if( bg_delay == 0 )
+        {
+        button_color=BG_INACTIVE_BUTTON_COLOR;
+        }
+      else
+        {
+        button_color=BG_ACTIVE_BUTTON_COLOR;
+        }
+      settextcolor(button_color);
+      if(button_color == BG_INACTIVE_BUTTON_COLOR)
+        {
+        sprintf(s,"Off");
+        }
+      else
+        {
+      sprintf(s,"Del");
+      }
+      show_button(&bgbutt[BG_TOGGLE_PHASING],s);
+      if(kill_all_flag) return;
+      sprintf(s,"%3d",bg.delay_points);
+      show_button(&bgbutt[BG_SEL_DELPNTS],s);
+      if(kill_all_flag) return;
+// **************************************  
+      if(ui.rx_rf_channels == 2)
+        {
+        if( bg_twopol == 0 )
+          {
+          button_color=BG_INACTIVE_BUTTON_COLOR; 
+          }
+        else
+          {
+          button_color=BG_ACTIVE_BUTTON_COLOR;
+          }
+        settextcolor(button_color);
+        if(button_color == BG_INACTIVE_BUTTON_COLOR)
+          {
+          sprintf(s,"Off");
+          }
+        else
+          {
+          sprintf(s,"X+Y");
+          }
+        show_button(&bgbutt[BG_TOGGLE_TWOPOL],s);
+        if(kill_all_flag) return;
+        }
+      button_color = 7;
+      settextcolor(button_color);
+      }
+    }  
   }  
 iw=0;
 if(bg.yborder-bg.ytop > 2.5*text_height+2)
@@ -3559,6 +3569,122 @@ else
   }
 }
 
+void make_fft3_scale(void)
+{
+int i, j, ix1;
+int old;
+float t1, scale_value, scale_y;
+double db_scalestep;
+char s[80];
+lir_fillbox(bg.xleft+1,bg.yborder+1,bg.xright-bg.xleft-1,
+                                                   bg.ybottom-bg.yborder-1,0);
+for(i=0; i<screen_width*ui.rx_rf_channels; i++)fft3_spectrum[i]=bg_y0;
+// Show the fft size in the upper right corner.
+sprintf(s,"%2d",fft3_n);
+lir_pixwrite(bg.xright-2*text_width,bg.yborder+3*text_height/2,s);
+show_bg_buttons(1);
+s[1]=0;
+s[0]=CHAR_ARROW_UP;
+show_button(&bgbutt[BG_YSCALE_EXPAND],s);
+show_button(&bgbutt[BG_YZERO_DECREASE],s);
+s[0]=CHAR_ARROW_DOWN;
+show_button(&bgbutt[BG_YSCALE_CONTRACT],s);
+show_button(&bgbutt[BG_YZERO_INCREASE],s);
+if(ui.operator_skil == OPERATOR_SKIL_EXPERT)
+  {
+  s[0]='o';
+  show_button(&bgbutt[BG_OSCILLOSCOPE],s); 
+  }
+if(bg.oscill_on != 0)
+  {
+  s[0]='+';
+  show_button(&bgbutt[BG_OSC_INCREASE],s); 
+  s[0]='-';
+  show_button(&bgbutt[BG_OSC_DECREASE],s); 
+  }
+if(fft1_correlation_flag <= 1)
+  {
+  if(baseb_channels == 1  && 
+     rx_daout_channels == 2  &&
+     bg_delay == 0 &&
+     bg_twopol == 0)
+    {
+    s[0]=ch2_phase_symbol[bg.ch2_phase];
+    show_button(&bgbutt[BG_TOGGLE_CH2_PHASE],s);
+    }
+  s[0]='0'+rx_daout_channels;
+  show_button(&bgbutt[BG_TOGGLE_CHANNELS],s);
+  }
+update_squelch_buttons();
+sprintf(s,"Reserved for blanker");
+i=(bg.xright-bg.xleft)/text_width-12;
+if(i<0)i=0;
+s[i]=0;
+lir_pixwrite(bg.xleft+6*text_width,bg.ybottom-text_height-2,s);
+old=daout_gain_y;
+t1=log10(bg.output_gain*DA_GAIN_REF)/DA_GAIN_RANGE;
+daout_gain_y=(bg_y0+bg_ymax)/2-t1*(bg_y0-bg_ymax);
+make_daout_gain();
+update_bar(bg_vol_x1,bg_vol_x2,bg_y0,daout_gain_y,old,
+                                                 BG_GAIN_COLOR,bg_volbuf);
+ix1=bgbutt[BG_SQUELCH_LEVEL].x1;
+for(i=0; i<screen_height; i++)bg_background[i]=0;
+db_scalestep=1.3*bg.db_per_pixel*text_height;
+adjust_scale(&db_scalestep);
+if(db_scalestep < 1)
+  {
+  db_scalestep=1;
+  bg.db_per_pixel=0.5/text_height;
+  bg.yrange=pow(10.,bg_ypixels*bg.db_per_pixel/20);
+  }
+t1=20*log10( bg.yzero);
+i=(t1+0.5*db_scalestep)/db_scalestep;
+scale_value=i*db_scalestep;
+scale_y=bg_y0+(t1-scale_value)/bg.db_per_pixel;
+while( scale_y > bg_ymax)
+  {
+  if(scale_y+text_height/2+1 < bg_y0)
+    {
+    i=(int)(scale_value);
+    sprintf(s,"%3d",i);
+    lir_pixwrite(bg.xleft+text_width/2,(int)scale_y-text_height/2+2,s);
+    }
+  if(scale_y+1 < bg_y0)
+    {
+    i=scale_y;
+    bg_background[i]=BG_DBSCALE_COLOR;    
+    if(i > bgbutt[BG_SQUELCH_LEVEL].y2)
+      {
+      j=bg_last_xpixel;
+      }
+    else
+      {
+      j= bgbutt[BG_SQUELCH_LEVEL].x1-1;
+      }
+    lir_hline(bg_first_xpixel,i,j,BG_DBSCALE_COLOR);
+    if(kill_all_flag) return;
+    }
+  scale_y-=db_scalestep/bg.db_per_pixel;
+  scale_value+=db_scalestep;
+  freq_readout_x2=ix1-text_width;  
+  }
+for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
+  {
+  if(bg_carrfilter_y[i] > 0)lir_setpixel(i,bg_carrfilter_y[i],58);
+  if(fft1_correlation_flag <= 1)
+    {
+    if(bg_filterfunc_y[i] > 0)lir_setpixel(i,bg_filterfunc_y[i],14);
+    }
+  }
+lir_line(bfo100_xpixel, bg_y0,bfo100_xpixel,bg_y1,12);
+lir_line(bfo10_xpixel, bg_y1-1,bfo10_xpixel,bg_y2,12);
+lir_line(bfo_xpixel, bg_y2-1,bfo_xpixel,bg_y3,12);
+lir_line(bfo100_xpixel, bg_y0,bfo100_xpixel,bg_y1,12);
+lir_line(flat_xpixel, bg_ymax,flat_xpixel,bg_y4-1,14);
+lir_line(curv_xpixel, bg_y4,curv_xpixel,bg_y3-1,14);
+frequency_readout();
+}
+
 void screen_routine(void)
 {
 char s[80];
@@ -3943,9 +4069,9 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     {
     if(bg.oscill_on != 0)
       {
-      if( ((timf3_pa-timf3_ps+timf3_mask) & timf3_mask) > 
-                                             timf3_oscilloscope_limit)
-        {
+      if(timf3_osc_time < recent_time)
+        {  
+        timf3_osc_time=recent_time+timf3_osc_interval;
         timf3_oscilloscope();
         if(kill_all_flag) goto screen_exit;
         }
@@ -4040,6 +4166,30 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     {
     sd[SC_VGF_UPDATE]=sc[SC_VGF_UPDATE];
     update_allanfreq_graph();
+    }
+  if(sd[SC_FFT3_SCALE]!=sc[SC_FFT3_SCALE])
+    {
+    sd[SC_FFT3_SCALE]=sc[SC_FFT3_SCALE];
+    make_fft3_scale();
+    }
+  if(sd[SC_SHOW_SIGANAL_INFO]!=sc[SC_SHOW_SIGANAL_INFO])
+    {
+    sd[SC_SHOW_SIGANAL_INFO]=sc[SC_SHOW_SIGANAL_INFO];
+
+    if(skip_siganal)
+      {
+      settextcolor(12);
+      i=1;
+      }
+    else
+      {
+      i=0;
+      }  
+    lir_pixwrite(sg_last_xpixel-12*text_width,sg_ytop2+15*text_height/2,
+                                                                fft3_level);
+    lir_pixwrite(sg_last_xpixel-17*text_width,sg_ytop2+17*text_height/2,
+                                                                 fft3_skip);
+    if(i==1)settextcolor(7);
     }
   if(fft1_correlation_flag == 0)
     {

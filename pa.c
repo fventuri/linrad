@@ -428,9 +428,6 @@ if(pa_libhandle != NULL)
   pa_libhandle=NULL;
   }
 }
-
-
-
 #endif
 
 
@@ -511,13 +508,11 @@ return -1;
 
 void unload_pa_library(void)
 {
-/* This causes a crash leave the lib open...
 if(pa_libhandle != NULL)
   {
   dlclose(pa_libhandle);
   pa_libhandle=NULL;
   }
-*/
 }
 #endif
 
@@ -859,7 +854,7 @@ snd[RXAD].open_flag=CALLBACK_CMD_START;
 if(portaudio_active_flag == FALSE)
   {
   rxad_status=LIR_PA_FLAG_ERROR;
-  lirerr(701402);
+  lirerr(701401);
   return;
   }
 // Set sample format
@@ -2031,12 +2026,9 @@ if( (ui.use_alsa&PORTAUDIO_RX_IN) != 0 ||
       {
       DEB"\nOld PortAudio no support for version info\n");
       }
-  portaudio_active_flag=TRUE;
+    portaudio_active_flag=TRUE;
     }
-  }
-else
-  {
-  if(portaudio_active_flag == TRUE)
+  else
     {
     err=Pa_Terminate();
     if(err != paNoError)

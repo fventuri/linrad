@@ -10,15 +10,20 @@
 #define THRFLAG_RESET 5
 // A thread is waiting on a semaphore.
 #define THRFLAG_SEM_WAIT 7
-// A thread is waiting on a semaphore and some caller has acquired the semaphore to set it.
+// A thread is waiting on a semaphore and some caller has acquired
+// the semaphore to set it.
 #define THRFLAG_SEM_SET 8
 #define THRFLAG_AWAIT_INPUT 10
-// A thread finished processing associated with its semaphore. Now the caller knows the task has been processed.
+// A thread finished processing associated with its semaphore.
+// Now the caller knows the task has been processed.
 #define THRFLAG_SEMCLEAR 11
 #define THRFLAG_RETURNED 12
 #define THRFLAG_INPUT_WAIT 13
-// A thread finished processing associated with its semaphore, informed the caller about it and the caller acknowledged it.
+// A thread finished processing associated with its semaphore, 
+// informed the caller about it and the caller acknowledged it.
 #define THRFLAG_SEMFINISHED 14
+#define THRFLAG_AWAIT_DASTART 15
+#define THRFLAG_BLOCKING 16
 
 #define THRFLAG_PORTAUDIO_STARTSTOP 100
 #define THRFLAG_OPEN_RX_SNDIN 101
@@ -96,7 +101,9 @@
 #define THREAD_AIRSPYHF_INPUT 52
 #define THREAD_SDRPLAY2_INPUT 53
 #define THREAD_SDRPLAY3_INPUT 54
-#define THREAD_MAX 55
+#define THREAD_MIX2 55
+#define THREAD_FFT3 56
+#define THREAD_MAX 57
 
 #define MAX_FFT1_THREADS (THREAD_FFT1B6-THREAD_FFT1B1+1)
 
@@ -134,8 +141,8 @@ extern int ampinfo_reset;
 #define EVENT_DO_FFT1B6 14
 #define EVENT_FDMS1_INPUT 15
 #define EVENT_NETWORK_SEND 16
-//  - - - - - - - - - - - - -
 #define EVENT_BLOCKING_RXOUT 17
+//----------------------------------------------
 #define EVENT_PORTAUDIO_RXAD_READY 18
 #define EVENT_WRITE_RAW_FILE 19
 #define EVENT_SYSCALL 20
@@ -148,15 +155,18 @@ extern int ampinfo_reset;
 #define EVENT_HWARE1_RXREADY 27
 #define EVENT_MANAGE_EXTIO 28
 #define EVENT_PORTAUDIO_TXAD_READY 29
-#define MAX_LIREVENT 30
-#define EVENT_AUTOINIT_MAX EVENT_BLOCKING_RXOUT
+#define EVENT_MIX2 30
+#define EVENT_FFT3 31
+#define MAX_LIREVENT 32
+#define EVENT_AUTOINIT_MAX EVENT_PORTAUDIO_RXAD_READY
 
 
 #define MUTEX_PARPORT 0
 #define MUTEX_FFT1SLOWSUM 1
 #define MUTEX_LIBUSB 2
 #define MUTEX_METER_GRAPH 3
-#define MAX_LIRMUTEX 4
+#define MUTEX_DMP 4
+#define MAX_LIRMUTEX 5
 
 void linrad_thread_create(int no);
 void linrad_thread_stop_and_join(int no);

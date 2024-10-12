@@ -730,21 +730,9 @@ if(fft1_correlation_flag != 0)
      pg.ch2_phase != 0)
     {
     lir_status=LIR_NEW_POL;
-    pg.startpol=0;
-    pg.c1=1;
-    pg.c2=0;
-    pg.c3=0;
-    pg.ch2_phase=0;
-    }
-  if(fft1_correlation_flag == 1)
-    {
-    pg_ch2_c1=pow( 10, (-0.05 * dpg.ch2_amp ));
-    }
-  else
-    {  
-    pg_ch2_c1=1;
-    }
-  pg_ch2_c2=0;
+    } 
+  pg_ch2_c1=1.0F;
+  pg_ch2_c2=0.F;
   return;
   }
 else

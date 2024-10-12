@@ -122,22 +122,22 @@ int open_flag;
 
 
 
-#define MODE_WCW 0
-#define MODE_NCW 1
-#define MODE_HSMS 2
-#define MODE_SSB 3
-#define MODE_FM 4
-#define MODE_AM 5
-#define MODE_QRSS 6
+#define MODE_WCW 0      //A
+#define MODE_NCW 1      //B
+#define MODE_HSMS 2     //C
+#define MODE_SSB 3      //D
+#define MODE_FM 4       //E
+#define MODE_AM 5       //F
+#define MODE_QRSS 6     //G
 // Note that modes below MODE_TXTEST are allowed to call
 // users tx routines, but that MODE_TXTEST and higher may
 // call users_init_mode, but users_hwaredriver is responsible
 // for checking rx_mode < MODE_TXTEST and not do any tx
 // activities or screen writes.
-#define MODE_TXTEST 7
-#define MODE_RX_ADTEST 8
-#define MODE_TUNE 9
-#define MODE_RADAR 10
+#define MODE_TXTEST 7    //H
+#define MODE_RX_ADTEST 8 //I
+#define MODE_TUNE 9      //J
+#define MODE_RADAR 10    //K
 // Note that MAX_RX_MODES can be up to 12. 'L' is reserved
 // for an new mode that might be desireable to add.  
 #define MAX_RX_MODE 11
@@ -166,7 +166,7 @@ int open_flag;
 #define MAX_SCRO 50
 #define LLSQ_MAXPAR 25
 #define MAX_ADCHAN 4
-#define MAX_MIX1 8           // No of different signals to process simultaneously
+#define MAX_MIX1 1           // No of different signals to process simultaneously
 #define MAX_AD_CHANNELS 4
 #define MAX_RX_CHANNELS 2
 #define DAOUT_MAXTIME 1.
@@ -174,8 +174,8 @@ int open_flag;
 #define SPUR_SIZE (1<<SPUR_N)
 #define NO_OF_SPUR_SPECTRA 256
 #define MAX_FFT1_ARRAYS 85
-#define MAX_FFT3_ARRAYS 35
-#define MAX_BASEB_ARRAYS 40
+#define MAX_FFT3_ARRAYS 50
+#define MAX_BASEB_ARRAYS 50
 #define CG_MAXTRACE 24
 #define MAX_HIRES_ARRAYS  8
 #define MAX_AFC_ARRAYS 20

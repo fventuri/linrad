@@ -131,104 +131,107 @@ CFLOCL64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 # Define dependencies for routines used both in Linux and Windows
 
 ADTEST=Makefile adtest.c globdef.h uidef.h fft1def.h screendef.h osnum.h \
-	thrdef.h powtdef.h lscreen.h wscreen.h
+	thrdef.h powtdef.h lscreen.h wscreen.h loadalsa.h
 AFC_GRAPH=Makefile afc_graph.c globdef.h uidef.h fft1def.h fft2def.h vernr.h \
 	seldef.h llsqdef.h sigdef.h screendef.h thrdef.h wscreen.h \
 	osnum.h lscreen.h
-AFCSUB=Makefile afcsub.c globdef.h uidef.h fft1def.h fft2def.h screendef.h vernr.h \
-	seldef.h llsqdef.h osnum.h 
-AFEDRI=Makefile afedri.c globdef.h uidef.h fft1def.h sdrdef.h vernr.h screendef.h \
-	osnum.h hidapi.h options.h bufbars.h wscreen.h lscreen.h
+AFCSUB=Makefile afcsub.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	vernr.h seldef.h llsqdef.h osnum.h 
+AFEDRI=Makefile afedri.c globdef.h uidef.h fft1def.h sdrdef.h vernr.h \
+	screendef.h 	osnum.h hidapi.h options.h bufbars.h wscreen.h \
+	lscreen.h
 AFFINITY=Makefile affinity.c globdef.h uidef.h thrdef.h osnum.h 
-AIRSPY=Makefile airspy.c timing_setup.c input_speed.c globdef.h uidef.h screendef.h \
-	usbdefs.h hwaredef.h options.h bufbars.h wscreen.h lscreen.h \
-	osnum.h fft1def.h
+AIRSPY=Makefile airspy.c timing_setup.c input_speed.c globdef.h uidef.h \
+	screendef.h usbdefs.h hwaredef.h options.h bufbars.h wscreen.h \
+	lscreen.h osnum.h fft1def.h
 AIRSPYHF=Makefile airspyhf.c timing_setup.c input_speed.c globdef.h uidef.h \
 	screendef.h usbdefs.h hwaredef.h options.h bufbars.h wscreen.h \
 	lscreen.h sdrdef.h seldef.h osnum.h fft1def.h
-BASEB_GRAPH=Makefile baseb_graph.c globdef.h uidef.h fft1def.h screendef.h vernr.h \
-	sigdef.h seldef.h fft2def.h fft3def.h graphcal.h osnum.h \
-	thrdef.h options.h bufbars.h wscreen.h lscreen.h
-BLADERF=Makefile bladerf.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	screendef.h fft1def.h screendef.h thrdef.h vernr.h osnum.h \
+BASEB_GRAPH=Makefile baseb_graph.c globdef.h uidef.h fft1def.h screendef.h \
+	vernr.h sigdef.h seldef.h fft2def.h fft3def.h graphcal.h osnum.h \
+	loadalsa.h thrdef.h options.h bufbars.h wscreen.h lscreen.h
+BLADERF=Makefile bladerf.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h screendef.h fft1def.h screendef.h thrdef.h vernr.h osnum.h \
 	hwaredef.h options.h bufbars.h wscreen.h lscreen.h
 BLANK1=Makefile blank1.c globdef.h uidef.h screendef.h blnkdef.h fft1def.h \
 	fft2def.h thrdef.h osnum.h 
 BLNKVAR=Makefile blnkvar.c globdef.h blnkdef.h osnum.h 
-BUF=Makefile buf.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
-	seldef.h blnkdef.h sigdef.h hwaredef.h oclprogs.h thrdef.h \
+BUF=Makefile buf.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h seldef.h blnkdef.h sigdef.h hwaredef.h oclprogs.h \
+	thrdef.h osnum.h 
+CALIBRATE=Makefile calibrate.c globdef.h uidef.h fft1def.h screendef.h \
+	caldef.h fft2def.h thrdef.h keyboard_def.h wscreen.h lscreen.h \
 	osnum.h 
-CALIBRATE=Makefile calibrate.c globdef.h uidef.h fft1def.h screendef.h caldef.h \
-	fft2def.h thrdef.h keyboard_def.h wscreen.h lscreen.h osnum.h 
 CALIQ=Makefile caliq.c globdef.h uidef.h fft1def.h caldef.h thrdef.h osnum.h \
-	keyboard_def.h wscreen.h lscreen.h
-CALSUB2=Makefile calsub2.c globdef.h uidef.h fft1def.h fft2def.h llsqdef.h caldef.h \
-	keyboard_def.h wscreen.h lscreen.h osnum.h 
-CALSUB=Makefile calsub.c globdef.h uidef.h fft1def.h fft2def.h caldef.h osnum.h \
-	thrdef.h wscreen.h lscreen.h
+	keyboard_def.h wscreen.h lscreen.h loadalsa.h
+CALSUB2=Makefile calsub2.c globdef.h uidef.h fft1def.h fft2def.h llsqdef.h \
+	caldef.h keyboard_def.h wscreen.h lscreen.h osnum.h 
+CALSUB=Makefile calsub.c globdef.h uidef.h fft1def.h fft2def.h caldef.h \
+	osnum.h thrdef.h wscreen.h lscreen.h loadalsa.h
 CALVAR=Makefile calvar.c globdef.h caldef.h osnum.h 
-CLOUDIQ=Makefile cloudiq.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	thrdef.h fft1def.h screendef.h hwaredef.h vernr.h osnum.h \
+CLOUDIQ=Makefile cloudiq.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h thrdef.h fft1def.h screendef.h hwaredef.h vernr.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
 COH_OSC=Makefile coh_osc.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
 	wscreen.h lscreen.h osnum.h 
 COHERENT=Makefile coherent.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
 	fft3def.h options.h bufbars.h thrdef.h wscreen.h lscreen.h osnum.h 
-COHSUB=Makefile cohsub.c globdef.h uidef.h sigdef.h screendef.h fft1def.h options.h \
-	bufbars.h osnum.h 
+COHSUB=Makefile cohsub.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
+	options.h bufbars.h osnum.h 
 CSPLIT=Makefile csplit.c globdef.h uidef.h osnum.h fft1def.h
 CUDA=Makefile cuda.c osnum.h 
 CWDETECT=Makefile cwdetect.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
 	options.h bufbars.h llsqdef.h fft3def.h osnum.h 
 CWSPEED=Makefile cwspeed.c globdef.h uidef.h sigdef.h screendef.h fft1def.h \
 	options.h bufbars.h llsqdef.h osnum.h 
-ELAD=Makefile elad.c loadusb.h globdef.h options.h bufbars.h uidef.h screendef.h \
-	fft1def.h usbdefs.h vernr.h thrdef.h lscreen.h osnum.h 
+ELAD=Makefile elad.c loadusb.h globdef.h options.h bufbars.h uidef.h \
+	screendef.h fft1def.h usbdefs.h vernr.h thrdef.h lscreen.h osnum.h 
 ELEKTOR=Makefile elektor.c globdef.h uidef.h fft1def.h screendef.h seldef.h \
 	thrdef.h loadusb.h wscreen.h lscreen.h osnum.h 
-EME=Makefile eme.c globdef.h uidef.h screendef.h keyboard_def.h thrdef.h wscreen.h \
-	lscreen.h osnum.h 
+EME=Makefile eme.c globdef.h uidef.h screendef.h keyboard_def.h thrdef.h \
+	wscreen.h lscreen.h osnum.h 
 EXCALIBUR=Makefile excalibur.c timing_setup.c input_speed.c globdef.h uidef.h \
 	thrdef.h sdrdef.h fft1def.h screendef.h vernr.h osnum.h  \
 	options.h bufbars.h wscreen.h lscreen.h
-EXTIO=Makefile extio.c globdef.h timing_setup.c input_speed.c uidef.h screendef.h \
-	hwaredef.h seldef.h thrdef.h fft1def.h keyboard_def.h osnum.h  \
-	options.h bufbars.h
+EXTIO=Makefile extio.c globdef.h timing_setup.c input_speed.c uidef.h \
+	screendef.h hwaredef.h seldef.h thrdef.h fft1def.h keyboard_def.h \
+	osnum.h  options.h bufbars.h
 FCDPP=Makefile fcdpp.c fcdpp.c globdef.h uidef.h screendef.h seldef.h osnum.h \
 	thrdef.h wscreen.h lscreen.h fft1def.h
 FFT0=Makefile fft0.c globdef.h uidef.h fft1def.h fft2def.h osnum.h 
-FFT1=Makefile fft1.c globdef.h uidef.h fft1def.h screendef.h caldef.h oclprogs.h \
-	seldef.h thrdef.h options.h bufbars.h hwaredef.h osnum.h 
+FFT1=Makefile fft1.c globdef.h uidef.h fft1def.h screendef.h caldef.h \
+	oclprogs.h seldef.h thrdef.h options.h bufbars.h hwaredef.h osnum.h 
 FFT1_RE=Makefile fft1_re.c globdef.h uidef.h fft1def.h osnum.h 
 FFT1VAR=Makefile fft1var.c globdef.h fft1def.h osnum.h 
-FFT2=Makefile fft2.c globdef.h uidef.h seldef.h fft1def.h fft2def.h screendef.h \
-	sigdef.h thrdef.h osnum.h 
+FFT2=Makefile fft2.c globdef.h uidef.h seldef.h fft1def.h fft2def.h \
+	screendef.h sigdef.h thrdef.h osnum.h 
 FFT2VAR=Makefile fft2var.c globdef.h fft2def.h osnum.h 
-FFT3=Makefile fft3.c globdef.h uidef.h seldef.h fft3def.h screendef.h sigdef.h \
-	thrdef.h osnum.h fft1def.h
+FFT3=Makefile fft3.c globdef.h uidef.h seldef.h fft3def.h screendef.h \
+	sigdef.h thrdef.h osnum.h fft1def.h
 FFT3VAR=Makefile fft3var.c globdef.h fft3def.h osnum.h 
 FONTS=Makefile fonts.c globdef.h uidef.h screendef.h osnum.h 
-FM=Makefile fm.c globdef.h uidef.h fft1def.h fft3def.h sigdef.h seldef.h screendef.h \
-	options.h bufbars.h osnum.h 
-FREQ_CONTROL=Makefile freq_control.c globdef.h uidef.h seldef.h screendef.h hwaredef.h \
-	fft1def.h thrdef.h sdrdef.h wscreen.h lscreen.h osnum.h 
+FM=Makefile fm.c globdef.h uidef.h fft1def.h fft3def.h sigdef.h seldef.h \
+	screendef.h options.h bufbars.h osnum.h 
+FREQ_CONTROL=Makefile freq_control.c globdef.h uidef.h seldef.h screendef.h \
+	hwaredef.h fft1def.h thrdef.h sdrdef.h wscreen.h lscreen.h osnum.h 
 GIFSAVE=Makefile gifsave.c globdef.h uidef.h thrdef.h options.h osnum.h \
 	bufbars.h wscreen.h lscreen.h
-HELP=Makefile help.c globdef.h uidef.h fft1def.h screendef.h seldef.h sigdef.h \
-	thrdef.h vernr.h options.h bufbars.h wscreen.h lscreen.h osnum.h
+HELP=Makefile help.c globdef.h uidef.h fft1def.h screendef.h seldef.h \
+	sigdef.h thrdef.h vernr.h options.h bufbars.h wscreen.h lscreen.h \
+	osnum.h
 ifeq ($(OS), Darwin)
 HID=Makefile hidmac.c hidapi.h
 else
 HID=Makefile hid.c hidapi.h osnum.h
 endif
 HIDWIN=Makefile hidwin.c hidapi.h
-HIRES_GRAPH=Makefile hires_graph.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
-	blnkdef.h seldef.h graphcal.h vernr.h thrdef.h sigdef.h osnum.h \
-	wscreen.h lscreen.h
+HIRES_GRAPH=Makefile hires_graph.c globdef.h uidef.h fft1def.h fft2def.h \
+	screendef.h blnkdef.h seldef.h graphcal.h vernr.h thrdef.h sigdef.h \
+	osnum.h wscreen.h lscreen.h
 HTML_SERVER=Makefile html_server.c httpd.h globdef.h osnum.h
 HTTPD=Makefile httpd.c httpd.h
-HWAREDRIVER=Makefile hwaredriver.c globdef.h uidef.h hwaredef.h @DEPS2@ fft1def.h \
-	wse_sdrxx.c seldef.h screendef.h thrdef.h sdrdef.h osnum.h \
+HWAREDRIVER=Makefile hwaredriver.c globdef.h uidef.h hwaredef.h @DEPS2@ \
+	fft1def.h wse_sdrxx.c seldef.h screendef.h thrdef.h sdrdef.h osnum.h \
 	txdef.h
 LFXSYS=Makefile lfxsys.c globdef.h uidef.h thrdef.h options.h osnum.h \
         wscreen.h lscreen.h keyboard_def.h screendef.h xdef.h \
@@ -236,88 +239,93 @@ LFXSYS=Makefile lfxsys.c globdef.h uidef.h thrdef.h options.h osnum.h \
 LLSQ=Makefile llsq.c globdef.h uidef.h llsqdef.h osnum.h 
 LLSQVAR=Makefile llsqvar.c globdef.h llsqdef.h osnum.h
 LOADALSA=Makefile loadalsa.c loadalsa.h osnum.h
-LOADUSB=Makefile loadusb.c loadusb.h uidef.h options.h bufbars.h wscreen.h lscreen.h osnum.h
+LOADUSB=Makefile loadusb.c loadusb.h uidef.h options.h bufbars.h wscreen.h \
+	lscreen.h osnum.h
 LSDR=Makefile lsdr.c globdef.h uidef.h sdrdef.h osnum.h
 KEYBOARD_VAR=Makefile keyboard_var.c keyboard_def.h
-MENU=Makefile menu.c globdef.h uidef.h fft1def.h fft2def.h screendef.h powtdef.h \
-	vernr.h sigdef.h seldef.h thrdef.h sdrdef.h caldef.h osnum.h \
-	keyboard_def.h txdef.h options.h bufbars.h padef.h sdrdef.h \
+MENU=Makefile menu.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	powtdef.h vernr.h sigdef.h seldef.h thrdef.h sdrdef.h caldef.h \
+	osnum.h keyboard_def.h txdef.h options.h bufbars.h padef.h sdrdef.h \
 	hwaredef.h fft3def.h padef.h loadalsa.h oclprogs.h
 METER_GRAPH=Makefile meter_graph.c globdef.h uidef.h sigdef.h screendef.h \
 	thrdef.h vernr.h fft1def.h wscreen.h lscreen.h osnum.h
-MIRICS=Makefile mirics.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
+MIRICS=Makefile mirics.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
 MIX1=Makefile mix1.c globdef.h uidef.h seldef.h fft1def.h fft2def.h fft3def.h \
-	screendef.h sigdef.h osnum.h
+	screendef.h sigdef.h osnum.h thrdef.h
 MIX2=Makefile mix2.c globdef.h uidef.h fft1def.h fft3def.h sigdef.h seldef.h \
-	screendef.h blnkdef.h options.h osnum.h
-MODESUB=Makefile modesub.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h thrdef.h \
-	@DEPS2@ seldef.h sigdef.h screendef.h vernr.h options.h osnum.h \
-	bufbars.h keyboard_def.h blnkdef.h caldef.h txdef.h \
+	screendef.h options.h osnum.h
+MODESUB=Makefile modesub.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	thrdef.h @DEPS2@ seldef.h sigdef.h screendef.h vernr.h options.h \
+	osnum.h bufbars.h keyboard_def.h blnkdef.h caldef.h txdef.h \
 	padef.h sdrdef.h wscreen.h lscreen.h wdef.h
-MORSE=Makefile morse.c globdef.h uidef.h fft1def.h sigdef.h screendef.h osnum.h
-MOUSE=Makefile mouse.c globdef.h uidef.h screendef.h keyboard_def.h thrdef.h osnum.h
-NETWORK=Makefile network.c globdef.h uidef.h fft1def.h screendef.h fft2def.h vernr.h \
-	caldef.h thrdef.h keyboard_def.h seldef.h options.h bufbars.h \
-	sigdef.h wscreen.h lscreen.h timing_setup.c input_speed.c osnum.h 
+MORSE=Makefile morse.c globdef.h uidef.h fft1def.h sigdef.h screendef.h \
+	osnum.h
+MOUSE=Makefile mouse.c globdef.h uidef.h screendef.h keyboard_def.h \
+	thrdef.h osnum.h
+NETWORK=Makefile network.c globdef.h uidef.h fft1def.h screendef.h \
+	fft2def.h vernr.h caldef.h thrdef.h keyboard_def.h seldef.h \
+	options.h bufbars.h sigdef.h wscreen.h lscreen.h timing_setup.c \
+	input_speed.c osnum.h 
 OCLPROGS=Makefile oclprogs.c oclprogs.h globdef.h uidef.h osnum.h
-OPENHPSDR=Makefile openhpsdr.c globdef.h uidef.h fft1def.h screendef.h fft2def.h vernr.h \
-        caldef.h thrdef.h keyboard_def.h seldef.h options.h osnum.h \
-                sigdef.h wscreen.h lscreen.h screendef.h
+OPENHPSDR=Makefile openhpsdr.c globdef.h uidef.h fft1def.h screendef.h \
+	fft2def.h vernr.h caldef.h thrdef.h keyboard_def.h seldef.h \
+	options.h osnum.h sigdef.h wscreen.h lscreen.h screendef.h
 PA=Makefile pa.c globdef.h uidef.h padef.h thrdef.h sigdef.h \
 	fft1def.h keyboard_def.h screendef.h txdef.h options.h bufbars.h \
 	wscreen.h lscreen.h osnum.h
 PAVAR=Makefile pavar.c padef.h
 PALETTE=Makefile palette.c globdef.h screendef.h osnum.h
-PCIE9842=Makefile pcie9842.c timing_setup.c input_speed.c globdef.h uidef.h options.h \
-	bufbars.h screendef.h thrdef.h vernr.h sdrdef.h usbdefs.h \
+PCIE9842=Makefile pcie9842.c timing_setup.c input_speed.c globdef.h uidef.h \
+	options.h bufbars.h screendef.h thrdef.h vernr.h sdrdef.h usbdefs.h \
 	fft1def.h osnum.h
-PERSEUS=Makefile perseus.c timing_setup.c input_speed.c globdef.h uidef.h vernr.h \
-	thrdef.h sdrdef.h fft1def.h screendef.h options.h bufbars.h \
+PERSEUS=Makefile perseus.c timing_setup.c input_speed.c globdef.h uidef.h \
+	vernr.h thrdef.h sdrdef.h fft1def.h screendef.h options.h bufbars.h \
 	wscreen.h lscreen.h osnum.h
 POL_GRAPH=Makefile pol_graph.c globdef.h uidef.h screendef.h vernr.h thrdef.h \
 	seldef.h wscreen.h lscreen.h osnum.h fft1def.h
-POWTIM=Makefile powtim.c globdef.h uidef.h sigdef.h fft1def.h fft2def.h screendef.h \
-	thrdef.h seldef.h powtdef.h wscreen.h lscreen.h osnum.h
+POWTIM=Makefile powtim.c globdef.h uidef.h sigdef.h fft1def.h fft2def.h \
+	screendef.h thrdef.h seldef.h powtdef.h wscreen.h lscreen.h osnum.h
 POWTVAR=Makefile powtvar.c powtdef.h
-RADAR=Makefile radar.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
-	sigdef.h seldef.h hwaredef.h thrdef.h vernr.h \
+RADAR=Makefile radar.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h hwaredef.h thrdef.h vernr.h \
 	keyboard_def.h options.h bufbars.h blnkdef.h txdef.h \
 	wscreen.h lscreen.h osnum.h
-RTL2832=Makefile rtl2832.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	fft1def.h screendef.h thrdef.h options.h vernr.h hwaredef.h osnum.h
-RXIN=Makefile rxin.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
-	sigdef.h seldef.h hwaredef.h thrdef.h options.h bufbars.h \
-	txdef.h osnum.h
+RTL2832=Makefile rtl2832.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h fft1def.h screendef.h thrdef.h options.h vernr.h hwaredef.h \
+	osnum.h
+RXIN=Makefile rxin.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h hwaredef.h thrdef.h options.h \
+	bufbars.h txdef.h osnum.h
 RXOUT=Makefile rxout.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
 	screendef.h sigdef.h seldef.h thrdef.h txdef.h options.h \
 	bufbars.h osnum.h
-SCREEN=Makefile screen.c globdef.h uidef.h screendef.h fft1def.h fft2def.h fft3def.h \
-	blnkdef.h sigdef.h seldef.h thrdef.h hwaredef.h @DEPS3@ \
+SCREEN=Makefile screen.c globdef.h uidef.h screendef.h fft1def.h fft2def.h \
+	fft3def.h blnkdef.h sigdef.h seldef.h thrdef.h hwaredef.h @DEPS3@ \
 	txdef.h options.h bufbars.h lscreen.h wscreen.h osnum.h
-SCREENSUB=Makefile screensub.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
-	seldef.h graphcal.h screendef.h sigdef.h thrdef.h osnum.h \
+SCREENSUB=Makefile screensub.c globdef.h uidef.h fft1def.h fft2def.h \
+	fft3def.h seldef.h graphcal.h screendef.h sigdef.h thrdef.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
 SCREENVAR=Makefile screenvar.c globdef.h screendef.h osnum.h
-SDR14=Makefile sdr14.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	thrdef.h fft1def.h screendef.h vernr.h options.h bufbars.h \
+SDR14=Makefile sdr14.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h thrdef.h fft1def.h screendef.h vernr.h options.h bufbars.h \
 	wscreen.h lscreen.h osnum.h
-SDRIP=Makefile sdrip.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	thrdef.h fft1def.h screendef.h hwaredef.h vernr.h \
+SDRIP=Makefile sdrip.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h thrdef.h fft1def.h screendef.h hwaredef.h vernr.h \
 	options.h bufbars.h wscreen.h lscreen.h osnum.h
-SDRPLAY2=Makefile sdrplay2.c timing_setup.c input_speed.c globdef.h uidef.h sdrdef.h \
-	fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
+SDRPLAY2=Makefile sdrplay2.c timing_setup.c input_speed.c globdef.h uidef.h \
+	sdrdef.h fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
 SDRPLAY3=Makefile sdrplay3.c timing_setup.c input_speed.c globdef.h uidef.h \
 	sdrdef.h fft1def.h screendef.h thrdef.h vernr.h hwaredef.h osnum.h \
 	options.h bufbars.h wscreen.h lscreen.h
 SDRVAR=Makefile sdrvar.c globdef.h sdrdef.h osnum.h
-SELLIM=Makefile sellim.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
-	 osnum.h
+SELLIM=Makefile sellim.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	seldef.h  osnum.h
 SELVAR=Makefile selvar.c globdef.h seldef.h osnum.h
-SI570=Makefile si570.c globdef.h uidef.h screendef.h usbdefs.h options.h bufbars.h \
-	loadusb.h thrdef.h wscreen.h lscreen.h osnum.h
+SI570=Makefile si570.c globdef.h uidef.h screendef.h usbdefs.h options.h \
+	bufbars.h loadusb.h thrdef.h wscreen.h lscreen.h osnum.h
 SIGANAL_GRAPH=Makefile siganal_graph.c globdef.h osnum.h uidef.h screendef.h \
 	thrdef.h vernr.h seldef.h sigdef.h fft3def.h
 ALLAN_GRAPH=Makefile allan_graph.c globdef.h osnum.h uidef.h screendef.h \
@@ -325,19 +333,19 @@ ALLAN_GRAPH=Makefile allan_graph.c globdef.h osnum.h uidef.h screendef.h \
 SIGVAR=Makefile sigvar.c globdef.h sigdef.h osnum.h
 SOFT66=Makefile soft66.c globdef.h uidef.h screendef.h usbdefs.h loadusb.h \
 	options.h bufbars.h wscreen.h lscreen.h osnum.h fft1def.h
-SOUNDCARD=Makefile soundcard.c globdef.h uidef.h loadalsa.h wscreen.h lscreen.h \
-	osnum.h fft1def.h
-SPUR=Makefile spur.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
-	sigdef.h thrdef.h osnum.h
-SPURSUB=Makefile spursub.c globdef.h uidef.h fft1def.h fft2def.h screendef.h seldef.h \
-	osnum.h
+SOUNDCARD=Makefile soundcard.c globdef.h uidef.h loadalsa.h wscreen.h \
+	lscreen.h osnum.h fft1def.h
+SPUR=Makefile spur.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	seldef.h sigdef.h thrdef.h osnum.h
+SPURSUB=Makefile spursub.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
+	seldef.h osnum.h
 THRVAR=Makefile thrvar.c globdef.h thrdef.h osnum.h
 TIMF2=Makefile timf2.c globdef.h uidef.h fft1def.h osnum.h
-TIMING=Makefile timing.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h sigdef.h \
-	screendef.h thrdef.h wscreen.h lscreen.h osnum.h
-TUNE=Makefile tune.c globdef.h uidef.h fft1def.h fft3def.h screendef.h sigdef.h \
-	seldef.h hwaredef.h @DEPS2@ caldef.h thrdef.h sdrdef.h wscreen.h \
-	lscreen.h osnum.h
+TIMING=Makefile timing.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	sigdef.h screendef.h thrdef.h wscreen.h lscreen.h osnum.h
+TUNE=Makefile tune.c globdef.h uidef.h fft1def.h fft3def.h screendef.h \
+	sigdef.h seldef.h hwaredef.h @DEPS2@ caldef.h thrdef.h sdrdef.h \
+	wscreen.h lscreen.h osnum.h
 TX=Makefile tx.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
 	sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h \
 	options.h bufbars.h keyboard_def.h osnum.h
@@ -345,24 +353,25 @@ TX_GRAPH=Makefile tx_graph.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
 	screendef.h sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h \
 	keyboard_def.h padef.h wscreen.h lscreen.h wscreen.h lscreen.h \
 	osnum.h
-TXSSB=Makefile txssb.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
-	sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h osnum.h \
-	sdrdef.h keyboard_def.h options.h bufbars.h wscreen.h lscreen.h
+TXSSB=Makefile txssb.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h sigdef.h seldef.h thrdef.h txdef.h vernr.h hwaredef.h \
+	osnum.h sdrdef.h keyboard_def.h options.h bufbars.h wscreen.h \
+	lscreen.h
 TXTEST=Makefile txtest.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
 	sigdef.h seldef.h thrdef.h osnum.h
 TXVAR=Makefile txvar.c globdef.h txdef.h osnum.h
-UI=Makefile ui.c globdef.h uidef.h screendef.h vernr.h sigdef.h fft1def.h fft2def.h \
-	thrdef.h caldef.h powtdef.h keyboard_def.h sdrdef.h txdef.h \
-	options.h seldef.h lscreen.h wscreen.h wdef.h osnum.h
+UI=Makefile ui.c globdef.h uidef.h screendef.h vernr.h sigdef.h fft1def.h \
+	fft2def.h fft3def.h thrdef.h caldef.h powtdef.h keyboard_def.h \
+	sdrdef.h txdef.h options.h seldef.h lscreen.h wscreen.h wdef.h osnum.h
 UIVAR=Makefile uivar.c globdef.h uidef.h thrdef.h osnum.h
-USB2LPT=Makefile usb2lpt.c globdef.h uidef.h screendef.h usbdefs.h options.h bufbars.h \
-	loadusb.h sdrdef.h wscreen.h lscreen.h osnum.h
-WCW=Makefile wcw.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h screendef.h \
-	seldef.h sigdef.h thrdef.h sdrdef.h oclprogs.h osnum.h \
+USB2LPT=Makefile usb2lpt.c globdef.h uidef.h screendef.h usbdefs.h options.h \
+	bufbars.h loadusb.h sdrdef.h wscreen.h lscreen.h osnum.h
+WCW=Makefile wcw.c globdef.h uidef.h fft1def.h fft2def.h fft3def.h \
+	screendef.h seldef.h sigdef.h thrdef.h sdrdef.h oclprogs.h osnum.h \
 	options.h bufbars.h blnkdef.h wscreen.h lscreen.h
-WIDE_GRAPH=Makefile wide_graph.c globdef.h uidef.h fft1def.h fft2def.h screendef.h \
-	seldef.h graphcal.h vernr.h sigdef.h thrdef.h wscreen.h lscreen.h \
-	sdrdef.h osnum.h
+WIDE_GRAPH=Makefile wide_graph.c globdef.h uidef.h fft1def.h fft2def.h \
+	screendef.h seldef.h graphcal.h vernr.h sigdef.h thrdef.h wscreen.h \
+	lscreen.h sdrdef.h osnum.h
 WSDR=Makefile wsdr.c globdef.h uidef.h thrdef.h wdef.h fft1def.h sdrdef.h \
 	screendef.h options.h wscreen.h osnum.h
 WSE=Makefile wse.c globdef.h sdrdef.h uidef.h screendef.h hwaredef.h txdef.h \

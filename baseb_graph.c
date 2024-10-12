@@ -23,8 +23,6 @@
 	
 #define YWF 4
 #define YBO 4
-#define DA_GAIN_RANGE 10.
-#define DA_GAIN_REF 1.
 #define BG_MINYCHAR 8
 #define BG_MIN_WIDTH (36*text_width)
 
@@ -79,52 +77,7 @@ int new_bg_twopol;
 
 float make_interleave_ratio(int nn);
 void prepare_mixer(MIXER_VARIABLES *m, int nn);
-
 static int ch2_signs[3]={1,-1,0};
-
-void skip_nonvalid(void)
-{
-float wt;
-// Called when frequency changed in correlation modes.
-// We need to discard the data that contains the frequency
-// jump.
-// Find out how much time the data waiting before fft1 sums up to.
-make_timing_info();
-wt=ad_wttim+fft1_wttim+timf2_wttim+fft2_wttim+
-                       timf3_wttim+fft3_wttim+baseb_wttim;
-timf2_pa=0;
-timf2_pb=0;
-timf2_pc=0;
-timf2_pn1=0;
-timf2_pn2=0;
-timf2_pt=0;
-timf2_px=0;
-timf3_pa=0;
-timf3_px=0;
-timf3_py=0;
-timf3_ps=0;
-timf3_pn=0;
-timf3_pc=0;
-timf3_pd=0;
-baseb_pa=0;
-baseb_pb=0;
-baseb_pc=0;
-baseb_pd=0;
-baseb_pe=0;
-baseb_pf=0;
-baseb_ps=0;
-baseb_pm=0;
-baseb_pn=0;
-baseb_py=0;
-baseb_px=0;
-daout_px=daout_pa;
-// We want to discard all old data in buffers.
-// Une unit of inhibit_count discards one block of size mix2.new_points
-// in the fft3 buffer. The associated time is 
-// 2*mix2.new_points*ui.rx_rf_channels/timf3_sampling_speed
-basebcorr_inhibit_count=1+rint(0.5+wt/(
-          (float)(2*mix2.new_points*ui.rx_rf_channels)/timf3_sampling_speed));
-}
 
 double iir5_c4(float fq)
 {
@@ -227,39 +180,11 @@ iir5[0].c3=iir5_c3(fq);
 iir5[0].c4=iir5_c4(fq);
 }
 
-void halt_rx_output(void)
-{
-int i;
-i=0;
-await_semclear:;
-if(all_threads_started &&
-         thread_status_flag[THREAD_RX_OUTPUT]!=THRFLAG_SEMCLEAR)
-  {
-  if(new_baseb_flag != 0)
-    {
-    i++;
-    lir_sleep(20000);
-    if(i<200)goto await_semclear;
-    lirerr(564292);
-    return;
-    }
-// The output is running. Stop it now!
-  pause_thread(THREAD_RX_OUTPUT);
-  thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_SEMCLEAR;
-  lir_sched_yield();
-  while(thread_status_flag[THREAD_RX_OUTPUT] != THRFLAG_SEMCLEAR)
-    {
-    lir_sleep(1000);
-    }
-  baseb_reset_counter++;
-  }
-}
-
 void clear_baseb_arrays(int nn,int k)
 {
 memset(&baseb_raw[2*nn],0,2*k*sizeof(float));
 memset(&baseb_raw_orthog[2*nn],0,2*k*sizeof(float));
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
   memset(&d_baseb[2*nn],0,2*k*sizeof(double));
   memset(&d_baseb_carrier[2*nn],0,2*k*sizeof(double));
@@ -304,6 +229,7 @@ baseb_ps=0;
 baseb_pm=0;
 baseb_pn=0;
 baseb_py=0;
+baseb_fx=0;
 baseb_px=0;
 timf3_pa=0;
 timf3_px=0;
@@ -311,7 +237,6 @@ timf3_py=0;
 timf3_ps=0;
 timf3_pn=0;
 timf3_pc=0;
-timf3_pd=0;
 lir_sched_yield();
 }
 
@@ -340,6 +265,9 @@ bg_waterf_czer=10*bg.waterfall_zero;
 
 void make_bg_yfac(void)
 {
+bg_ypixels=bg_y0-bg_ymax+1;
+bg.db_per_pixel=20*log10(bg.yrange)/bg_ypixels;
+
 if(genparm[SECOND_FFT_ENABLE]==0)
   {
   bg.yfac_power=FFT1_BASEBAND_FACTOR;
@@ -401,40 +329,27 @@ if(rx_daout_bytes == 2)
   }
 }
 
-void make_daout_gainy(void)
-{
-int old;
-float t1;
-old=daout_gain_y;
-t1=log10(bg.output_gain*DA_GAIN_REF)/DA_GAIN_RANGE;
-daout_gain_y=(bg_y0+bg_ymax)/2-t1*(bg_y0-bg_ymax);
-make_daout_gain();
-update_bar(bg_vol_x1,bg_vol_x2,bg_y0,daout_gain_y,old,
-                                                 BG_GAIN_COLOR,bg_volbuf);
-}
-
 void make_new_daout_upsamp(void)
 {
-int k, new;
+int k, new_usamp;
 float t1;
 t1=da_resample_ratio;
-new=1;
+new_usamp=1;
 daout_upsamp_n=0;
 if( (ui.network_flag & NET_RXOUT_BASEB) == 0)
   {
   k=genparm[DA_OUTPUT_SPEED];
-  while(t1 > 5 && k > 16000 && new < 32)
+  while(t1 > 5 && k > 16000 && new_usamp < 32)
     {
     daout_upsamp_n++;
     k/=2;
     t1/=2;
-    new*=2;
+    new_usamp*=2;
     }
   }  
-if(new != daout_upsamp)
+if(new_usamp != daout_upsamp)
   {
-  halt_rx_output();
-  daout_upsamp=new;
+  daout_upsamp=new_usamp;
   }
 }
 
@@ -656,22 +571,13 @@ if( (cg.oscill_on&6) != 0)
   cg.oscill_on=1;
   cg_osc_ptr=0;
   }
-halt_rx_output();
 if(kill_all_flag)return;
 if(baseband_handle != NULL)
   {
   baseband_handle=chk_free(baseband_handle);
   }
-// Make the daout buffer big enough to hold data for at least 6
-// times longer than the rate at which the wideband thread posts
-// to the narrowband thread.
-t1=(6*fftx_size)/ui.rx_ad_speed;
-// Make sure minimum is 0.5 seconds
-if(t1<0.5)t1=0.5;
-t1*=genparm[DA_OUTPUT_SPEED];
-// and make sure we can hold 8192 samples
-if(t1 < 8192)t1=8192;
-daout_size=t1;
+// allocate memory for 2 seconds to the output buffer
+daout_size=2*genparm[DA_OUTPUT_SPEED];
 if(daout_size < 8*snd[RXDA].block_frames)daout_size=8*snd[RXDA].block_frames;
 // Do not use snd[RXDA].framesize since bytes or channels may have changed.
 // Do not multiply by channels here, allocate 8 times this size
@@ -694,9 +600,9 @@ if(genparm[THIRD_FFT_SINPOW] == 8)k+=2;
 cg_code_unit=0.5*(float)(mix2.size)/k;
 cg_decay_factor=pow(0.5,0.2/cg_code_unit);
 cw_waveform_max=14*cg_code_unit;
-if(cw_waveform_max >= 2*fftn_tmp_size)
+if(cw_waveform_max >= 2*timf3_tmp_size)
   {
-  cw_waveform_max=2*fftn_tmp_size-1;
+  cw_waveform_max=2*timf3_tmp_size-1;
   }
 cg_osc_offset=mix2.size+50*cg_code_unit;
 while(baseband_size < 4*cg_osc_offset)baseband_size*=2;
@@ -805,7 +711,7 @@ else
 // ********************************************************
 init_memalloc(basebmem, MAX_BASEB_ARRAYS);
 mem(1,&baseb_out,baseband_size*2*baseb_channels*sizeof(float),0);
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
   mem(202,&d_baseb_carrier,baseband_size*4*sizeof(double),0);
   mem(205,&d_baseb,baseband_size*4*sizeof(double),0);
@@ -823,7 +729,7 @@ mem(3,&baseb_raw,baseband_size*2*sizeof(float),0);
 mem(4,&baseb_raw_orthog,baseband_size*2*sizeof(float),0);
 mem(8,&mix2.permute,mix2.size*sizeof(short int),0);
 mem(9,&mix2.table,mix2.size*sizeof(COSIN_TABLE)/2,0);
-mem(10,&daout,8*daout_size,0);
+mem(10,&daout,daout_size,0);
 mem(11,&cg_map,cg_size*cg_size*sizeof(float),0);
 mem(13,&cg_traces,CG_MAXTRACE*MAX_CG_OSCW*sizeof(short int),0);
 mem(16,&basblock_maxpower,basblock_size*sizeof(float),0);
@@ -992,7 +898,7 @@ else
   if(ui.max_blocked_cpus > 3)yieldflag_ndsp_mix2=FALSE;
   }
 prepare_mixer(&mix2, THIRD_FFT_SINPOW);
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
   make_d_sincos(0, mix2.size, d_mix2_table);
   }
@@ -1100,7 +1006,8 @@ if(fm_pilot_size > 0)
   rds_phase=0;
   rds_power=0;
   }
-DEB"\nbaseband_sampling_speed=%f",baseband_sampling_speed);
+DEB"fft3_size=%d baseband_sampling_speed=%f\n",
+                                        fft3_size,baseband_sampling_speed);   
 }
 
 void update_squelch_buttons(void)
@@ -1127,25 +1034,9 @@ show_button(&bgbutt[BG_SQUELCH_POINT],s);
 settextcolor(7);
 } 
 
-void make_bg_filter(void)
+void bg_filter_1(void)
 {
-int i,k,max,mm;
-int j, iy;
-int ja, jb, m;
-float t1,t2,t3,t4;
-double dt1, dt2, dt3, dt4;
-int ib,ic;
-// Set up the filter function in the baseband for
-// the main signal and show it on the screen.
-// bg.filter_flat is the size of the flat region
-// of the filter in Hz (divided by 2)
-// bg.filter_curv is the curvature expressed as ten times the distance 
-// in Hz to the 6dB point from the end of the flat region.
-// The filter response is a flat center region with parabolic fall off.
-//
-// The filter is applied to the fft3 transforms with a symmetric
-// function which is flat over 2*bg_flatpoints and falls off over
-// bg_curvpoints at each end.
+int i,k,max;
 if(flat_xpixel > 0)
   {
   for(i=bg_ymax; i<=bg_y4; i++)lir_setpixel(flat_xpixel, i,bg_background[i]);
@@ -1215,201 +1106,8 @@ bg.filter_curv=10*bg_hz_per_pixel*bg_curvpoints;
 bg_curvpoints=0.1*bg.filter_curv/bg_hz_per_pixel;
 bg_flatpoints=bg.filter_flat/bg_hz_per_pixel;
 if(bg_flatpoints < 1)bg_flatpoints=1;
-if(fft1_correlation_flag != 0)
-  {
-  d_bgfil_weight=1;
-  d_timf3_float[fft3_size/2]=1;
-  for(i=1; i<bg_flatpoints; i++)
-    {
-    d_timf3_float[fft3_size/2+i]=1;
-    d_timf3_float[fft3_size/2-i]=1;
-    d_bgfil_weight+=2;  
-    }
-  bg_filter_points=bg_flatpoints;  
-  if(bg_curvpoints > 0)
-    {
-    dt1=.5/bg_curvpoints;
-    dt2=1;
-    dt3=dt1;
-    dt2=1-dt3*dt3;
-    dt3+=dt1;
-    while(dt2 > 0 && bg_filter_points<fft3_size/2)
-      {
-      d_timf3_float[fft3_size/2+bg_filter_points]=dt2;
-      d_timf3_float[fft3_size/2-bg_filter_points]=dt2;
-      d_bgfil_weight+=2*dt2*dt2;  
-      dt2=1-dt3*dt3;
-      dt3+=dt1;
-      bg_filter_points++;
-      }
-    }  
-  for(i=bg_filter_points; i<fft3_size/2; i++)
-    {
-    d_timf3_float[fft3_size/2+i]=0;
-    d_timf3_float[fft3_size/2-i]=0;
-    }
-  d_timf3_float[0]=0;
-  }
-bgfil_weight=1;
-bg_filterfunc[fft3_size/2]=1;
-for(i=1; i<bg_flatpoints; i++)
-  {
-  bg_filterfunc[fft3_size/2+i]=1;
-  bg_filterfunc[fft3_size/2-i]=1;
-  bgfil_weight+=2;  
-  }
-bg_filter_points=bg_flatpoints;  
-if(bg_curvpoints > 0)
-  {
-  t1=.5/bg_curvpoints;
-  t2=1;
-  t3=t1;
-  t2=1-t3*t3;
-  t3+=t1;
-  while(t2 > 0 && bg_filter_points<fft3_size/2)
-    {
-    bg_filterfunc[fft3_size/2+bg_filter_points]=t2;
-    bg_filterfunc[fft3_size/2-bg_filter_points]=t2;
-    bgfil_weight+=2*t2*t2;  
-    t2=1-t3*t3;
-    t3+=t1;
-    bg_filter_points++;
-    }
-  }  
-for(i=bg_filter_points; i<fft3_size/2; i++)
-  {
-  bg_filterfunc[fft3_size/2+i]=0;
-  bg_filterfunc[fft3_size/2-i]=0;
-  }
-bg_filterfunc[0]=0;
-// The filter we just specified determines the bandwidth of
-// the signal we recover when backtransforming from fft3.
-// Find out by what factor we should reduce the sampling speed
-// for further processing
-if(fft1_correlation_flag != 0)
-  {
-  k=1;
-  }
-else
-  {  
-  k=bg_filter_points+binshape_points;
-  k=(0.4*(fft3_size+0.5*k))/k;
-  make_power_of_two(&k);
-  if(genparm[CW_DECODE_ENABLE] != 0)k/=2;
-  }
-if(k > 2)
-  { 
-  baseband_sampling_speed=2*timf3_sampling_speed/k;
-  if((int)mix2.size != 2*fft3_size/k || 
-     (reinit_baseb && mouse_active_flag==0))
-    {
-    mix2.size=2*fft3_size/k;
-    init_basebmem();
-    if(kill_all_flag)return;
-    baseb_reset_counter++;
-    }
-  }
-else
-  {
-  baseband_sampling_speed=timf3_sampling_speed;   
-  if((int)mix2.size != fft3_size ||
-     (reinit_baseb && mouse_active_flag==0))
-    {
-    mix2.size=fft3_size;
-    init_basebmem();
-    if(kill_all_flag)return;
-    baseb_reset_counter++;
-    }  
-  }
-timf1_to_baseband_speed_ratio=rint(timf1_sampling_speed/baseband_sampling_speed);
-timf2_blockpower_block=4*ui.rx_rf_channels*timf1_to_baseband_speed_ratio;
-if((int)mix2.size>fft3_size)
-  {
-  lirerr(88888);  
-  return;
-  }
-if(fft1_correlation_flag != 0)
-  {
-  d_carrfil_weight=1;
-  d_fftn_tmp[fft3_size/2]=1;
-  mm=1;
-  k=bg.coh_factor;
-  while(mm < fft3_size/2)
-    {
-    if(k<fft3_size/2)
-      {
-      dt2=d_timf3_float[fft3_size/2+k];
-      }
-    else
-      {
-      dt2=0;
-      }  
-    d_fftn_tmp[fft3_size/2+mm]=dt2;
-    d_fftn_tmp[fft3_size/2-mm]=dt2;
-    d_carrfil_weight+=2*dt2*dt2;
-    mm++;
-    k+=bg.coh_factor;
-    }
-  d_fftn_tmp[0]=0;
-  }
-carrfil_weight=1;
-bg_carrfilter[fft3_size/2]=1;
-mm=1;
-k=bg.coh_factor;
-while(mm < fft3_size/2)
-  {
-  if(k<fft3_size/2)
-    {
-    t2=bg_filterfunc[fft3_size/2+k];
-    }
-  else
-    {
-    t2=0;
-    }  
-  bg_carrfilter[fft3_size/2+mm]=t2;
-  bg_carrfilter[fft3_size/2-mm]=t2;
-  carrfil_weight+=2*t2*t2;
-  mm++;
-  k+=bg.coh_factor;
-  }
-bg_carrfilter[0]=0;
-bg_filtershift_points=bg.filter_shift*(fft3_size/4+8)/999;
-// Shift bg_filterfunc as specified by bg_filtershift_points
-// But do it only if the mixer mode is back transformation
-// and Rx mode is AM
-if(bg.mixer_mode == 1 && rx_mode == MODE_AM)
-  {
-  if(bg_filtershift_points > 0)
-    {
-    k=0;
-    for(i=bg_filtershift_points; i< fft3_size; i++)
-      {
-      bg_filterfunc[k]=bg_filterfunc[i];
-      k++;
-      }
-    while(k < fft3_size)
-      {
-      bg_filterfunc[k]=0;
-      k++;
-      }
-    }
-  if(bg_filtershift_points < 0)
-    {
-    k=fft3_size-1;
-    for(i=fft3_size+bg_filtershift_points; i>=0; i--)
-      {
-      bg_filterfunc[k]=bg_filterfunc[i];
-      k--;
-      }
-    while(k >= 0)
-      {
-      bg_filterfunc[k]=0;
-      k--;
-      }
-    }
-  }  
 // **************************************************************
-// Place the current filter function on the screen.
+// Erase the current filter function from the screen.
 // First remove any curve that may exist on the screen.
 for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   {
@@ -1422,123 +1120,12 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
     lir_setpixel(i,bg_carrfilter_y[i],bg_background[bg_carrfilter_y[i]]);
     }
   }
-// Slide the bin filter shape over our carrier filter and accumulate
-// to take the widening due to the fft window into account.
-for(i=0; i<fft3_size; i++)
-  {
-  ja=i-fft3_size/2;
-  jb=i+fft3_size/2;
-  m=0;
-  if(ja<0)
-    {
-    m=-ja;
-    ja=0;
-    }
-  j=(fft3_size/2-binshape_points)-m;
-  if(j>0)
-    {
-    ja+=j;
-    m+=j;
-    }
-  if(jb > fft3_size)jb=fft3_size;    
-  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
-  t1=0;
-  for(j=ja; j<jb; j++)
-    {
-    t1+=bg_carrfilter[j]*bg_binshape[m];
-    m++;
-    }
-  bg_ytmp[i]=t1;
-  }
-if(fft3_size > 16384)lir_sched_yield();
-t1=0;
-for(i=0; i<fft3_size; i++)
-  {
-  if(bg_ytmp[i]>t1)t1=bg_ytmp[i];
-  }
-for(i=0; i<fft3_size; i++)
-  {
-  bg_ytmp[i]/=t1;
-  }
-j=bg_first_xpoint;
-bg_carrfilter_points=0;
-for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
-  {
-  if(bg_ytmp[j] > 1.e-7)
-    {
-    bg_carrfilter_points++;
-    iy=2*bg.yfac_log*log10(1./bg_ytmp[j]);  
-    iy=bg_ymax-1+iy;
-    if(iy>bg_y0)
-      {
-      iy=-1;
-      }
-    else
-      {
-      lir_setpixel(i,iy,58);
-      }
-    }
-  else
-    {
-    iy=-1;
-    }
-  bg_carrfilter_y[i]=iy;
-  j++;
-  }
-if(fft1_correlation_flag == 2)
-  {
-  lir_sched_yield();
-  sc[SC_SG_REDRAW]++;
-  }
-if(fft1_correlation_flag == 3)
-  {
-  lir_sched_yield();
-  sc[SC_VG_REDRAW]++;
-  }
-if(bg.mixer_mode == 1)
-  {
-  for(i=0; i<bg_no_of_notches; i++)
-    {
-    j=fft3_size/2-bg_notch_pos[i]*bg_filter_points/1000;
-    k=bg_notch_width[i]*bg_filter_points/1000;
-    ja=j-k;
-    jb=j+k;
-    if(ja < 0)ja=0;
-    if(jb >= fft3_size)jb=fft3_size-1;
-    for(j=ja; j<=jb; j++)
-      {
-      bg_filterfunc[j]=0;
-      }
-    }
-  }  
-// Slide the bin filter shape over our filter function and accumulate
-// to take the widening due to the fft window into account.
-for(i=0; i<fft3_size; i++)
-  {
-  ja=i-fft3_size/2;
-  jb=i+fft3_size/2;
-  m=0;
-  if(ja<0)
-    {
-    m=-ja;
-    ja=0;
-    }
-  j=(fft3_size/2-binshape_points)-m;
-  if(j>0)
-    {
-    ja+=j;
-    m+=j;
-    }
-  if(jb > fft3_size)jb=fft3_size;    
-  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
-  t1=0;
-  for(j=ja; j<jb; j++)
-    {
-    t1+=bg_filterfunc[j]*bg_binshape[m];
-    m++;
-    }
-  bg_ytmp[i]=t1;
-  }
+}
+
+void bg_filter_2(void)
+{
+int i, j, iy;
+float t1, t2;
 t1=0;
 for(i=0; i<fft3_size; i++)
   {
@@ -1600,221 +1187,12 @@ for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   bg_filterfunc_y[i]=iy;
   j++;
   }
-// We apply a filter in the frequency domain when picking a subset
-// of fft1 or fft2 for back-transformation.
-// That filter, mix1_fqwin, affects our frequency response when wide
-// filters are used. Compensate for mix1_fqwin by multiplying with
-// its inverse in fft3 points.
-for(i=0; i<fft3_size;i++)bg_filterfunc[i]*=sqrt(fft3_fqwin_inv[i]);  
-// Construct a FIR filter of size fft3 with a frequency response like the
-// baseband filter we have set up.
-// The array of FIR filter coefficients is the pulse response of a FIR 
-// filter. Get it by taking the FFT.
-// Since we use a complex FFT we can use the real side for the
-// baseband filter and the imaginary part for the carrier filter.
-if(fft1_correlation_flag != 0)
-  {
-  for(i=0; i<fft3_size;i++)d_fftn_tmp[i]*=sqrt(d_fft3_fqwin_inv[i]);  
-  d_timf3_float[0]=0;
-  d_timf3_float[1]=1;
-  i=fft3_size/2+1;
-  jb=fft3_size-1;
-  for(ja=1; ja<fft3_size/2; ja++)
-    {
-    d_timf3_float[2*ja+1]=d_fftn_tmp[i];
-    d_timf3_float[2*jb+1]=d_fftn_tmp[i];
-    d_timf3_float[2*ja  ]=0;
-    d_timf3_float[2*jb  ]=0;
-    i++;
-    jb--;
-    }
-  d_timf3_float[2*jb  ]=0;
-  d_timf3_float[2*jb+1]=0;
-  for( i=0; i<fft3_size/2; i++)
-    {
-    dt1=d_timf3_float[2*i  ];
-    dt2=d_timf3_float[fft3_size+2*i  ];
-    dt3=d_timf3_float[2*i+1];
-    dt4=d_timf3_float[fft3_size+2*i+1];
-    d_timf3_float[2*i  ]=dt1+dt2;
-    d_timf3_float[2*i+1]=dt3+dt4;
-    d_timf3_float[fft3_size+2*i  ]=
-                d_fft3_tab[i].cos*(dt1-dt2)+d_fft3_tab[i].sin*(dt4-dt3);
-    d_timf3_float[fft3_size+2*i+1]=
-                d_fft3_tab[i].sin*(dt1-dt2)-d_fft3_tab[i].cos*(dt4-dt3);
-    } 
-  d_bulk_of_dif(fft3_size,fft3_n,d_timf3_float,
-                                          d_fft3_tab, yieldflag_ndsp_fft3);
-  for(i=0; i < fft3_size; i+=2)
-    {
-    ib=fft3_permute[i];                               
-    ic=fft3_permute[i+1];
-    d_basebcarr_fir[ib]=d_timf3_float[2*i+1]+d_timf3_float[2*i+3];
-    d_basebcarr_fir[ic]=d_timf3_float[2*i+1]-d_timf3_float[2*i+3];
-    }
-  }
-fft3_tmp[0]=1;
-fft3_tmp[1]=1;
-i=fft3_size/2+1;
-jb=fft3_size-1;
-for(ja=1; ja<fft3_size/2; ja++)
-  {
-  fft3_tmp[2*ja  ]=bg_filterfunc[i];
-  fft3_tmp[2*jb  ]=bg_filterfunc[i];
-  fft3_tmp[2*ja+1]=bg_carrfilter[i];
-  fft3_tmp[2*jb+1]=bg_carrfilter[i];
-  i++;
-  jb--;
-  }
-fft3_tmp[2*jb  ]=0;
-fft3_tmp[2*jb+1]=0;
-for( i=0; i<fft3_size/2; i++)
-  {
-  t1=fft3_tmp[2*i  ];
-  t2=fft3_tmp[fft3_size+2*i  ];
-  t3=fft3_tmp[2*i+1];
-  t4=fft3_tmp[fft3_size+2*i+1];
-  fft3_tmp[2*i  ]=t1+t2;
-  fft3_tmp[2*i+1]=t3+t4;
-  fft3_tmp[fft3_size+2*i  ]=fft3_tab[i].cos*(t1-t2)+fft3_tab[i].sin*(t4-t3);
-  fft3_tmp[fft3_size+2*i+1]=fft3_tab[i].sin*(t1-t2)-fft3_tab[i].cos*(t4-t3);
-  } 
-if(fft3_size > 2*8192)lir_sched_yield();
-#if IA64 == 0 && CPU == CPU_INTEL
-asmbulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#else
-bulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
-#endif
-if(fft3_size > 8192)lir_sched_yield();
-for(i=0; i < fft3_size; i+=2)
-  {
-  ib=fft3_permute[i];                               
-  ic=fft3_permute[i+1];
-  basebraw_fir[ib]=fft3_tmp[2*i  ]+fft3_tmp[2*i+2];
-  basebraw_fir[ic]=fft3_tmp[2*i  ]-fft3_tmp[2*i+2];
-  basebcarr_fir[ib]=fft3_tmp[2*i+1]+fft3_tmp[2*i+3];
-  basebcarr_fir[ic]=fft3_tmp[2*i+1]-fft3_tmp[2*i+3];
-  }
-// Now take the effects of our window into account.
-// Note the order in which fft3_window is stored.
-for(i=0; i<fft3_size/2; i++)
-  {
-  basebraw_fir[i]*=fft3_window[2*i];  
-  basebcarr_fir[i]*=fft3_window[2*i];  
-  basebraw_fir[fft3_size/2+i]*=fft3_window[2*i+1];  
-  basebcarr_fir[fft3_size/2+i]*=fft3_window[2*i+1];  
-  }
-// The FIR filter must be symmetric. Actually forcing symmetry
-// might reduce rounding errors slightly.
-for(i=1; i<fft3_size/2; i++)
-  {
-  basebraw_fir[i]=0.5*(basebraw_fir[i]+basebraw_fir[fft3_size-i]);
-  basebcarr_fir[i]=0.5*(basebcarr_fir[i]+basebcarr_fir[fft3_size-i]);
-  basebraw_fir[fft3_size-i]=basebraw_fir[i];
-  basebcarr_fir[fft3_size-i]=basebcarr_fir[i];
-  }
-// The fft1 algorithms use float variables with 24 bit accuracy.
-// the associated spur level is -140 dB.
-// There is no reason to make the FIR filter extend outside
-// the range where the coefficients are below -140 dB.
-t1=1.e-7*basebraw_fir[fft3_size/2];
-k=0;
-while(fabs(basebraw_fir[k]) < t1 && k < fft3_size)
-  {
-  k++;
-  }
-j=k;
-basebraw_fir_pts=0;
-while(k <= fft3_size-j+1)
-  {
-  basebraw_fir[basebraw_fir_pts]=basebraw_fir[k];
-  k++;
-  basebraw_fir_pts++;
-  }
-k=basebraw_fir_pts;
-memset(&basebraw_fir[k],0,(fft3_size-k)*sizeof(float));
-t1=1.e-7*basebcarr_fir[fft3_size/2];
-k=0;
-while(fabs(basebcarr_fir[k]) < t1 && k < fft3_size)k++;
-j=k;
-basebcarr_fir_pts=0;
-while(k<fft3_size-j+1)
-  {
-  basebcarr_fir[basebcarr_fir_pts]=basebcarr_fir[k];
-  k++;
-  basebcarr_fir_pts++;
-  }
-k=basebcarr_fir_pts;
-memset(&basebcarr_fir[k],0,(fft3_size-k)*sizeof(float));
-// Normalize the FIR filter so it gives the same amplitude as we have
-// with the back transformation of fft3 in mix2.
-t1=0;
-for(i=0; i<basebraw_fir_pts; i++)
-  {
-  t1+=basebraw_fir[i];
-  }
-t1=2.78*fft3_size/t1;  
-for(i=0; i<basebraw_fir_pts; i++)
-  {
-  basebraw_fir[i]*=t1;
-  }
-t1=0;
-for(i=0; i<basebcarr_fir_pts; i++)
-  {
-  t1+=basebcarr_fir[i];
-  }
-t1=2.78*fft3_size/t1;  
-for(i=0; i<basebcarr_fir_pts; i++)
-  {
-  basebcarr_fir[i]*=t1;
-  }
-if(fft1_correlation_flag != 0)
-  {
-  
-  for(i=0; i<fft3_size/2; i++)
-    {
-    d_basebcarr_fir[i]*=d_fft3_window[2*i];  
-    d_basebcarr_fir[fft3_size/2+i]*=d_fft3_window[2*i+1];  
-    }
-// The FIR filter must be symmetric. Actually forcing symmetry
-// might reduce rounding errors slightly. (but not needed with double floaf...
-  for(i=1; i<fft3_size/2; i++)
-    {
-    d_basebcarr_fir[i]=0.5*(d_basebcarr_fir[i]+d_basebcarr_fir[fft3_size-i]);
-    d_basebcarr_fir[fft3_size-i]=d_basebcarr_fir[i];
-    }
-// The fft1 algorithms use float variables with 24 bit accuracy.
-// the associated spur level is -140 dB.
-// with correlation we can go deep into the noise....
-// There is no reason to make the FIR filter extend outside
-// the range where the coefficients are below -200 dB.
-  dt1=1.e-10*d_basebcarr_fir[fft3_size/2];
-  k=0;
-  while(fabs(d_basebcarr_fir[k]) < dt1 && k < fft3_size)k++;
-  j=k;
-  d_basebcarr_fir_pts=0;
-  while(k<fft3_size-j+1)
-    {
-    d_basebcarr_fir[d_basebcarr_fir_pts]=d_basebcarr_fir[k];
-    k++;
-    d_basebcarr_fir_pts++;
-    }
-  k=d_basebcarr_fir_pts;
-  memset(&d_basebcarr_fir[k],0,(fft3_size-k)*sizeof(double));
-// Normalize the FIR filter so it gives the same amplitude as we have
-// with the back transformation of fft3 in mix2.
-  dt1=0;
-  for(i=0; i<d_basebcarr_fir_pts; i++)
-    {
-    dt1+=d_basebcarr_fir[i];
-    }
-  dt1=2.78*fft3_size/dt1;  
-  for(i=0; i<d_basebcarr_fir_pts; i++)
-    {
-    d_basebcarr_fir[i]*=dt1;
-    }
-  }
-if(fft3_size > 4096)lir_sched_yield();
+}
+
+void bg_filter_3(void)
+{
+int i;
+float t1;
 flat_xpixel=filcur_pixel(bg_flatpoints);
 lir_line(flat_xpixel, bg_ymax,flat_xpixel,bg_y4-1,14);
 curv_xpixel=filcur_pixel(bg_curvpoints);
@@ -1864,7 +1242,752 @@ for(i=0; i<4; i++)
   xv4[i]=0;
   yv4[i]=0;
   }
-update_squelch_buttons();
+}
+
+void make_bg_filter(void)
+{
+int i,k,mm;
+int j, iy;
+int ja, jb, m;
+float t1,t2,t3,t4;
+int ib,ic;
+// Set up the filter function in the baseband for
+// the main signal and show it on the screen.
+// bg.filter_flat is the size of the flat region
+// of the filter in Hz (divided by 2)
+// bg.filter_curv is the curvature expressed as ten times the distance 
+// in Hz to the 6dB point from the end of the flat region.
+// The filter response is a flat center region with parabolic fall off.
+//
+// The filter is applied to the fft3 transforms with a symmetric
+// function which is flat over 2*bg_flatpoints and falls off over
+// bg_curvpoints at each end.
+bg_filter_1();
+bgfil_weight=1;
+bg_filterfunc[fft3_size/2]=1;
+for(i=1; i<bg_flatpoints; i++)
+  {
+  bg_filterfunc[fft3_size/2+i]=1;
+  bg_filterfunc[fft3_size/2-i]=1;
+  bgfil_weight+=2;  
+  }
+bg_filter_points=bg_flatpoints;  
+if(bg_curvpoints > 0)
+  {
+  t1=.5/bg_curvpoints;
+  t2=1;
+  t3=t1;
+  t2=1-t3*t3;
+  t3+=t1;
+  while(t2 > 0 && bg_filter_points<fft3_size/2)
+    {
+    bg_filterfunc[fft3_size/2+bg_filter_points]=t2;
+    bg_filterfunc[fft3_size/2-bg_filter_points]=t2;
+    bgfil_weight+=2*t2*t2;  
+    t2=1-t3*t3;
+    t3+=t1;
+    bg_filter_points++;
+    }
+  }  
+for(i=bg_filter_points; i<fft3_size/2; i++)
+  {
+  bg_filterfunc[fft3_size/2+i]=0;
+  bg_filterfunc[fft3_size/2-i]=0;
+  }
+bg_filterfunc[0]=0;
+// The filter we just specified determines the bandwidth of
+// the signal we recover when backtransforming from fft3.
+// Find out by what factor we should reduce the sampling speed
+// for further processing
+k=bg_filter_points+binshape_points;
+k=(0.4*(fft3_size+0.5*k))/k;
+make_power_of_two(&k);
+if(genparm[CW_DECODE_ENABLE] != 0)k/=2;
+if(k > 2)
+  { 
+  baseband_sampling_speed=2*timf3_sampling_speed/k;
+  if((int)mix2.size != 2*fft3_size/k || 
+     (reinit_baseb && mouse_active_flag==0))
+    {
+    mix2.size=2*fft3_size/k;
+    init_basebmem();
+    if(kill_all_flag)return;
+    baseb_reset_counter++;
+    }
+  }
+else
+  {
+  baseband_sampling_speed=timf3_sampling_speed;   
+  if((int)mix2.size != fft3_size ||
+     (reinit_baseb && mouse_active_flag==0))
+    {
+    mix2.size=fft3_size;
+    init_basebmem();
+    if(kill_all_flag)return;
+    baseb_reset_counter++;
+    }  
+  }
+timf1_to_baseband_speed_ratio=rint(timf1_sampling_speed/baseband_sampling_speed);
+timf2_blockpower_block=4*ui.rx_rf_channels*timf1_to_baseband_speed_ratio;
+if((int)mix2.size>fft3_size)
+  {
+  lirerr(88888);  
+  return;
+  }
+carrfil_weight=1;
+bg_carrfilter[fft3_size/2]=1;
+mm=1;
+k=bg.coh_factor;
+while(mm < fft3_size/2)
+  {
+  if(k<fft3_size/2)
+    {
+    t2=bg_filterfunc[fft3_size/2+k];
+    }
+  else
+    {
+    t2=0;
+    }  
+  bg_carrfilter[fft3_size/2+mm]=t2;
+  bg_carrfilter[fft3_size/2-mm]=t2;
+  carrfil_weight+=2*t2*t2;
+  mm++;
+  k+=bg.coh_factor;
+  }
+bg_carrfilter[0]=0;
+
+bg_filtershift_points=bg.filter_shift*(fft3_size/4+8)/999;
+// Shift bg_filterfunc as specified by bg_filtershift_points
+// But do it only if the mixer mode is back transformation
+// and Rx mode is AM
+if(bg.mixer_mode == 1 && rx_mode == MODE_AM)
+  {
+  if(bg_filtershift_points > 0)
+    {
+    k=0;
+    for(i=bg_filtershift_points; i< fft3_size; i++)
+      {
+      bg_filterfunc[k]=bg_filterfunc[i];
+      k++;
+      }
+    while(k < fft3_size)
+      {
+      bg_filterfunc[k]=0;
+      k++;
+      }
+    }
+  if(bg_filtershift_points < 0)
+    {
+    k=fft3_size-1;
+    for(i=fft3_size+bg_filtershift_points; i>=0; i--)
+      {
+      bg_filterfunc[k]=bg_filterfunc[i];
+      k--;
+      }
+    while(k >= 0)
+      {
+      bg_filterfunc[k]=0;
+      k--;
+      }
+    }
+  }  
+if(bg.mixer_mode == 1)
+  {
+  for(i=0; i<bg_no_of_notches; i++)
+    {
+    j=fft3_size/2-bg_notch_pos[i]*bg_filter_points/1000;
+    k=bg_notch_width[i]*bg_filter_points/1000;
+    ja=j-k;
+    jb=j+k;
+    if(ja < 0)ja=0;
+    if(jb >= fft3_size)jb=fft3_size-1;
+    for(j=ja; j<=jb; j++)
+      {
+      bg_filterfunc[j]=0;
+      }
+    }
+  }  
+// Slide the bin filter shape over our carrier filter and accumulate
+// to take the widening due to the fft window into account.
+for(i=0; i<fft3_size; i++)
+  {
+  ja=i-fft3_size/2;
+  jb=i+fft3_size/2;
+  m=0;
+  if(ja<0)
+    {
+    m=-ja;
+    ja=0;
+    }
+  j=(fft3_size/2-binshape_points)-m;
+  if(j>0)
+    {
+    ja+=j;
+    m+=j;
+    }
+  if(jb > fft3_size)jb=fft3_size;    
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
+  t1=0;
+  for(j=ja; j<jb; j++)
+    {
+    t1+=bg_carrfilter[j]*bg_binshape[m];
+    m++;
+    }
+  bg_ytmp[i]=t1;
+  }
+bg_carr_20db_points=fft3_size;
+while(bg_ytmp[bg_carr_20db_points-1] < 0.1 && bg_carr_20db_points >0)
+  {
+  bg_carr_20db_points--;
+  }
+i=0;
+while(bg_ytmp[i+1] < 0.1)i++;
+bg_carr_20db_points-=i;
+if(fft3_size > 16384)lir_sched_yield();
+t1=0;
+for(i=0; i<fft3_size; i++)
+  {
+  if(bg_ytmp[i]>t1)t1=bg_ytmp[i];
+  }
+for(i=0; i<fft3_size; i++)
+  {
+  bg_ytmp[i]/=t1;
+  }
+j=bg_first_xpoint;
+bg_carrfilter_points=0;
+// The fft1 algorithms use float variables with 24 bit accuracy.
+// the associated spur level is -140 dB.
+// There is no reason to make the FIR filter extend outside
+// the range where the coefficients are below -140 dB.
+// The user might want to use double precision, a new feature so we make it -160 dB.
+for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
+  {
+  if(bg_ytmp[j] > 1.e-8)
+    {
+    bg_carrfilter_points++;
+    iy=2*bg.yfac_log*log10(1./bg_ytmp[j]);  
+    iy=bg_ymax-1+iy;
+    if(iy>bg_y0)
+      {
+      iy=-1;
+      }
+    else
+      {
+      lir_setpixel(i,iy,58);
+      }
+    }
+  else
+    {
+    iy=-1;
+    }
+  bg_carrfilter_y[i]=iy;
+  j++;
+  }
+for(i=0; i<fft3_size; i++)bg_carrfilter[i]=bg_ytmp[i];
+// Slide the bin filter shape over our filter function and accumulate
+// to take the widening due to the fft window into account.
+for(i=0; i<fft3_size; i++)
+  {
+  ja=i-fft3_size/2;
+  jb=i+fft3_size/2;
+  m=0;
+  if(ja<0)
+    {
+    m=-ja;
+    ja=0;
+    }
+  j=(fft3_size/2-binshape_points)-m;
+  if(j>0)
+    {
+    ja+=j;
+    m+=j;
+    }
+  if(jb > fft3_size)jb=fft3_size;    
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
+  t1=0;
+  for(j=ja; j<jb; j++)
+    {
+    t1+=bg_filterfunc[j]*bg_binshape[m];
+    m++;
+    }
+  bg_ytmp[i]=t1;
+  }
+bg_filter_2();  
+// We apply a filter in the frequency domain when picking a subset
+// of fft1 or fft2 for back-transformation.
+// That filter, mix1_fqwin, affects our frequency response when wide
+// filters are used. Compensate for mix1_fqwin by multiplying with
+// its inverse in fft3 points.
+for(i=0; i<fft3_size; i++)bg_filterfunc[i]=bg_ytmp[i];
+for(i=0; i<fft3_size;i++)
+  {
+  bg_filterfunc[i]*=sqrt(fft3_fqwin_inv[i]);  
+  bg_carrfilter[i]*=sqrt(fft3_fqwin_inv[i]);  
+  }
+// Construct a FIR filter of size fft3 with a frequency response like the
+// baseband filter we have set up.
+// The array of FIR filter coefficients is the pulse response of a FIR 
+// filter. Get it by taking the FFT.
+// Since we use a complex FFT we can use the real side for the
+// baseband filter and the imaginary part for the carrier filter.
+fft3_tmp[0]=1;
+fft3_tmp[1]=1;
+i=fft3_size/2+1;
+jb=fft3_size-1;
+for(ja=1; ja<fft3_size/2; ja++)
+  {
+  fft3_tmp[2*ja  ]=bg_filterfunc[i];
+  fft3_tmp[2*jb  ]=bg_filterfunc[i];
+  fft3_tmp[2*ja+1]=bg_carrfilter[i];
+  fft3_tmp[2*jb+1]=bg_carrfilter[i];
+  i++;
+  jb--;
+  }
+fft3_tmp[2*jb  ]=0;
+fft3_tmp[2*jb+1]=0;
+
+for( i=0; i<fft3_size/2; i++)
+  {
+  t1=fft3_tmp[2*i  ];
+  t2=fft3_tmp[fft3_size+2*i  ];
+  t3=fft3_tmp[2*i+1];
+  t4=fft3_tmp[fft3_size+2*i+1];
+  fft3_tmp[2*i  ]=t1+t2;
+  fft3_tmp[2*i+1]=t3+t4;
+  fft3_tmp[fft3_size+2*i  ]=fft3_tab[i].cos*(t1-t2)+fft3_tab[i].sin*(t4-t3);
+  fft3_tmp[fft3_size+2*i+1]=fft3_tab[i].sin*(t1-t2)-fft3_tab[i].cos*(t4-t3);
+  } 
+if(fft3_size > 2*8192)lir_sched_yield();
+#if IA64 == 0 && CPU == CPU_INTEL
+asmbulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
+#else
+bulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
+#endif
+if(fft3_size > 32768)lir_sched_yield();
+for(i=0; i < fft3_size; i+=2)
+  {
+  ib=fft3_permute[i];                               
+  ic=fft3_permute[i+1];
+  basebraw_fir[ib]=fft3_tmp[2*i  ]+fft3_tmp[2*i+2];
+  basebraw_fir[ic]=fft3_tmp[2*i  ]-fft3_tmp[2*i+2];
+  basebcarr_fir[ib]=fft3_tmp[2*i+1]+fft3_tmp[2*i+3];
+  basebcarr_fir[ic]=fft3_tmp[2*i+1]-fft3_tmp[2*i+3];
+  }
+// Now take the effects of our window into account.
+// Note the order in which fft3_window is stored.
+
+for(i=0; i<fft3_size/2; i++)
+  {
+  basebraw_fir[i]*=fft3_window[2*i];  
+  basebcarr_fir[i]*=fft3_window[2*i];  
+  basebraw_fir[fft3_size/2+i]*=fft3_window[2*i+1];  
+  basebcarr_fir[fft3_size/2+i]*=fft3_window[2*i+1];  
+  }
+// The FIR filter must be symmetric. Actually forcing symmetry
+// might reduce rounding errors slightly.
+for(i=1; i<fft3_size/2; i++)
+  {
+  basebraw_fir[i]=0.5*(basebraw_fir[i]+basebraw_fir[fft3_size-i]);
+  basebcarr_fir[i]=0.5*(basebcarr_fir[i]+basebcarr_fir[fft3_size-i]);
+  basebraw_fir[fft3_size-i]=basebraw_fir[i];
+  basebcarr_fir[fft3_size-i]=basebcarr_fir[i];
+  }
+t1=1.e-8*basebraw_fir[fft3_size/2];
+k=0;
+while(fabs(basebraw_fir[k]) < t1 && k < fft3_size)
+  {
+  k++;
+  }
+j=k;
+basebraw_fir_pts=0;
+while(k <= fft3_size-j+1)
+  {
+  basebraw_fir[basebraw_fir_pts]=basebraw_fir[k];
+  k++;
+  basebraw_fir_pts++;
+  }
+k=basebraw_fir_pts;
+memset(&basebraw_fir[k],0,(fft3_size-k)*sizeof(float));
+t1=1.e-8*basebcarr_fir[fft3_size/2];
+k=0;
+while(fabs(basebcarr_fir[k]) < t1 && k < fft3_size)k++;
+j=k;
+basebcarr_fir_pts=0;
+while(k<fft3_size-j+1)
+  {
+  basebcarr_fir[basebcarr_fir_pts]=basebcarr_fir[k];
+  k++;
+  basebcarr_fir_pts++;
+  }
+k=basebcarr_fir_pts;
+memset(&basebcarr_fir[k],0,(fft3_size-k)*sizeof(float));
+// Normalize the FIR filter so it gives the same amplitude as we have
+// with the back transformation of fft3 in mix2.
+t1=0;
+for(i=0; i<basebraw_fir_pts; i++)
+  {
+  t1+=basebraw_fir[i];
+  }
+t1=2.78*fft3_size/t1;  
+for(i=0; i<basebraw_fir_pts; i++)
+  {
+  basebraw_fir[i]*=t1;
+  }
+t1=0;
+for(i=0; i<basebcarr_fir_pts; i++)
+  {
+  t1+=basebcarr_fir[i];
+  }
+t1=2.78*fft3_size/t1;  
+for(i=0; i<basebcarr_fir_pts; i++)
+  {
+  basebcarr_fir[i]*=t1;
+  }
+if(fft3_size > 4096)lir_sched_yield();
+bg_filter_3();
+}
+
+void make_bg_d_filter(void)
+{
+int i,k,mm;
+int j, iy;
+int ja, jb, m;
+float t1;
+double dt1, dt2, dt3, dt4;
+int ib,ic;
+// Set up the filter function in the baseband for
+// the main signal and show it on the screen.
+// bg.filter_flat is the size of the flat region
+// of the filter in Hz (divided by 2)
+// bg.filter_curv is the curvature expressed as ten times the distance 
+// in Hz to the 6dB point from the end of the flat region.
+// The filter response is a flat center region with parabolic fall off.
+//
+// The filter is applied to the fft3 transforms with a symmetric
+// function which is flat over 2*bg_flatpoints and falls off over
+// bg_curvpoints at each end.
+bg_filter_1();
+d_bgfil_weight=1;
+d_timf3_float[fft3_size/2]=1;
+for(i=1; i<bg_flatpoints; i++)
+  {
+  d_timf3_float[fft3_size/2+i]=1;
+  d_timf3_float[fft3_size/2-i]=1;
+  d_bgfil_weight+=2;  
+  }
+bg_filter_points=bg_flatpoints;  
+if(bg_curvpoints > 0)
+  {
+  dt1=.5/bg_curvpoints;
+  dt2=1;
+  dt3=dt1;
+  dt2=1-dt3*dt3;
+  dt3+=dt1;
+  while(dt2 > 0 && bg_filter_points<fft3_size/2)
+    {
+    d_timf3_float[fft3_size/2+bg_filter_points]=dt2;
+    d_timf3_float[fft3_size/2-bg_filter_points]=dt2;
+    d_bgfil_weight+=2*dt2*dt2;  
+    dt2=1-dt3*dt3;
+    dt3+=dt1;
+    bg_filter_points++;
+    }
+  }  
+for(i=bg_filter_points; i<fft3_size/2; i++)
+  {
+  d_timf3_float[fft3_size/2+i]=0;
+  d_timf3_float[fft3_size/2-i]=0;
+  }
+d_timf3_float[0]=0;
+// The filter we just specified determines the bandwidth of
+// the signal we recover when backtransforming from fft3.
+// Find out by what factor we should reduce the sampling speed
+// for further processing
+baseband_sampling_speed=timf3_sampling_speed;   
+if((int)mix2.size != fft3_size ||
+   (reinit_baseb && mouse_active_flag==0))
+  {
+  mix2.size=fft3_size;
+  init_basebmem();
+  if(kill_all_flag)return;
+  baseb_reset_counter++;
+  }  
+timf1_to_baseband_speed_ratio=rint(timf1_sampling_speed/baseband_sampling_speed);
+timf2_blockpower_block=4*ui.rx_rf_channels*timf1_to_baseband_speed_ratio;
+if((int)mix2.size>fft3_size)
+  {
+  lirerr(88888);  
+  return;
+  }
+d_carrfil_weight=1;
+d_timf3_tmp[fft3_size/2]=1;
+mm=1;
+k=bg.coh_factor;
+while(mm < fft3_size/2)
+  {
+  if(k<fft3_size/2)
+    {
+    dt2=d_timf3_float[fft3_size/2+k];
+    }
+  else
+    {
+    dt2=0;
+    }  
+  d_timf3_tmp[fft3_size/2+mm]=dt2;
+  d_timf3_tmp[fft3_size/2-mm]=dt2;
+  d_carrfil_weight+=2*dt2*dt2;
+  mm++;
+  k+=bg.coh_factor;
+  }
+d_timf3_tmp[0]=0;
+// Slide the bin filter shape over our carrier filter and accumulate
+// to take the widening due to the fft window into account.
+for(i=0; i<fft3_size; i++)
+  {
+  ja=i-fft3_size/2;
+  jb=i+fft3_size/2;
+  m=0;
+  if(ja<0)
+    {
+    m=-ja;
+    ja=0;
+    }
+  j=(fft3_size/2-binshape_points)-m;
+  if(j>0)
+    {
+    ja+=j;
+    m+=j;
+    }
+  if(jb > fft3_size)jb=fft3_size;    
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
+  dt1=0;
+  for(j=ja; j<jb; j++)
+    {
+    dt1+=d_timf3_tmp[j]*d_bg_binshape[m];
+    m++;
+    }
+  bg_ytmp[i]=dt1;
+  }
+if(fft3_size > 16384)lir_sched_yield();
+t1=0;
+for(i=0; i<fft3_size; i++)
+  {
+  if(bg_ytmp[i]>t1)t1=bg_ytmp[i];
+  }
+for(i=0; i<fft3_size; i++)
+  {
+  bg_ytmp[i]/=t1;
+  }
+j=bg_first_xpoint;
+bg_carrfilter_points=0;
+for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
+  {
+  if(bg_ytmp[j] > 1.e-10)
+    {
+    bg_carrfilter_points++;
+    iy=2*bg.yfac_log*log10(1./bg_ytmp[j]);  
+    iy=bg_ymax-1+iy;
+    if(iy>bg_y0)
+      {
+      iy=-1;
+      }
+    else
+      {
+      lir_setpixel(i,iy,58);
+      }
+    }
+  else
+    {
+    iy=-1;
+    }
+  bg_carrfilter_y[i]=iy;
+  j++;
+  }
+if(fft1_correlation_flag == 2)
+  {
+  lir_sched_yield();
+  sc[SC_SG_REDRAW]++;
+  }
+if(fft1_correlation_flag == 3)
+  {
+  lir_sched_yield();
+  sc[SC_VG_REDRAW]++;
+  }
+for(i=0; i<fft3_size; i++)d_timf3_tmp[i]=bg_ytmp[i];
+bg_carr_20db_points=fft3_size;
+while(bg_ytmp[bg_carr_20db_points-1] < 0.1 && bg_carr_20db_points >0)
+  {
+  bg_carr_20db_points--;
+  }
+i=0;
+while(bg_ytmp[i+1] < 0.1)i++;
+bg_carr_20db_points-=i;  
+// Slide the bin filter shape over our filter function and accumulate
+// to take the widening due to the fft window into account.
+for(i=0; i<fft3_size; i++)
+  {
+  ja=i-fft3_size/2;
+  jb=i+fft3_size/2;
+  m=0;
+  if(ja<0)
+    {
+    m=-ja;
+    ja=0;
+    }
+  j=(fft3_size/2-binshape_points)-m;
+  if(j>0)
+    {
+    ja+=j;
+    m+=j;
+    }
+  if(jb > fft3_size)jb=fft3_size;    
+  if(jb-ja > 2*binshape_points+1)jb=ja+2*binshape_points+1;
+  dt1=0;
+  for(j=ja; j<jb; j++)
+    {
+    dt1+=d_timf3_float[j]*d_bg_binshape[m];
+    m++;
+    }
+  bg_ytmp[i]=dt1;
+  }
+bg_filter_2();
+// We apply a filter in the frequency domain when picking a subset
+// of fft1 or fft2 for back-transformation.
+// That filter, mix1_fqwin, affects our frequency response when wide
+// filters are used. Compensate for mix1_fqwin by multiplying with
+// its inverse in fft3 points.
+for(i=0; i<fft3_size; i++)d_timf3_float[i]=bg_ytmp[i];
+for(i=0; i<fft3_size;i++)
+  {
+  d_timf3_float[i]*=sqrt(d_fft3_fqwin_inv[i]);
+  d_timf3_tmp[i]*=sqrt(d_fft3_fqwin_inv[i]);
+  }
+// Construct a FIR filter of size fft3 with a frequency response like the
+// baseband filter we have set up.
+// The array of FIR filter coefficients is the pulse response of a FIR 
+// filter. Get it by taking the FFT.
+// Since we use a complex FFT we can use the real side for the
+// baseband filter and the imaginary part for the carrier filter.
+d_fft3_tmp[0]=1;
+d_fft3_tmp[1]=1;
+i=fft3_size/2+1;
+jb=fft3_size-1;
+for(ja=1; ja<fft3_size/2; ja++)
+  {
+  d_fft3_tmp[2*ja  ]=d_timf3_float[i];
+  d_fft3_tmp[2*jb  ]=d_timf3_float[i];
+  d_fft3_tmp[2*ja+1]=d_timf3_tmp[i];
+  d_fft3_tmp[2*jb+1]=d_timf3_tmp[i];
+  i++;
+  jb--;
+  }
+d_fft3_tmp[2*jb  ]=0;
+d_fft3_tmp[2*jb+1]=0;
+for( i=0; i<fft3_size/2; i++)
+  {
+  dt1=d_fft3_tmp[2*i  ];
+  dt2=d_fft3_tmp[fft3_size+2*i  ];
+  dt3=d_fft3_tmp[2*i+1];
+  dt4=d_fft3_tmp[fft3_size+2*i+1];
+  d_fft3_tmp[2*i  ]=dt1+dt2;
+  d_fft3_tmp[2*i+1]=dt3+dt4;
+  d_fft3_tmp[fft3_size+2*i  ]=
+              d_fft3_tab[i].cos*(dt1-dt2)+d_fft3_tab[i].sin*(dt4-dt3);
+  d_fft3_tmp[fft3_size+2*i+1]=
+              d_fft3_tab[i].sin*(dt1-dt2)-d_fft3_tab[i].cos*(dt4-dt3);
+  } 
+d_bulk_of_dif(fft3_size,fft3_n,d_fft3_tmp,
+                                        d_fft3_tab, yieldflag_ndsp_fft3);
+for(i=0; i < fft3_size; i+=2)
+  {
+  ib=fft3_bigpermute[i];                               
+  ic=fft3_bigpermute[i+1];
+  d_basebraw_fir[ib]=d_fft3_tmp[2*i  ]+d_fft3_tmp[2*i+2];
+  d_basebraw_fir[ic]=d_fft3_tmp[2*i  ]-d_fft3_tmp[2*i+2];
+  d_basebcarr_fir[ib]=d_fft3_tmp[2*i+1]+d_fft3_tmp[2*i+3];
+  d_basebcarr_fir[ic]=d_fft3_tmp[2*i+1]-d_fft3_tmp[2*i+3];
+  }
+// Now take the effects of our window into account.
+// Note the order in which fft3_window is stored.
+for(i=0; i<fft3_size/2; i++)
+  { 
+  d_basebraw_fir[i]*=d_fft3_window[2*i];  
+  d_basebcarr_fir[i]*=d_fft3_window[2*i];  
+  d_basebraw_fir[fft3_size/2+i]*=d_fft3_window[2*i+1];  
+  d_basebcarr_fir[fft3_size/2+i]*=d_fft3_window[2*i+1];  
+  }
+// The FIR filters must be symmetric. Actually forcing symmetry
+// might reduce rounding errors slightly.
+for(i=1; i<fft3_size/2; i++)
+  {
+  d_basebraw_fir[i]=0.5*(d_basebraw_fir[i]+d_basebraw_fir[fft3_size-i]);
+  d_basebcarr_fir[i]=0.5*(d_basebcarr_fir[i]+d_basebcarr_fir[fft3_size-i]);
+  d_basebraw_fir[fft3_size-i]=d_basebraw_fir[i];
+  d_basebcarr_fir[fft3_size-i]=d_basebcarr_fir[i];
+  }
+t1=1.e-9*d_basebraw_fir[fft3_size/2];
+k=0;
+while(fabs(d_basebraw_fir[k]) < t1 && k < fft3_size)
+  {
+  k++;
+  }
+j=k;
+basebraw_fir_pts=0;
+while(k <= fft3_size-j+1)
+  {
+  d_basebraw_fir[basebraw_fir_pts]=d_basebraw_fir[k];
+  k++;
+  basebraw_fir_pts++;
+  }
+k=basebraw_fir_pts;
+memset(&d_basebraw_fir[k],0,(fft3_size-k)*sizeof(double));
+t1=1.e-9*d_basebcarr_fir[fft3_size/2];
+k=0;
+while(fabs(d_basebcarr_fir[k]) < t1 && k < fft3_size-1)k++;
+j=k;
+d_basebcarr_fir_pts=0;
+while(k<fft3_size-j)
+  {
+  d_basebcarr_fir[d_basebcarr_fir_pts]=d_basebcarr_fir[k];
+  k++;
+  d_basebcarr_fir_pts++;
+  }
+k=d_basebcarr_fir_pts;
+memset(&d_basebcarr_fir[k],0,(fft3_size-k)*sizeof(double));
+// Normalize the FIR filter so it gives the same amplitude as we have
+// with the back transformation of fft3 in mix2.
+t1=0;
+for(i=0; i<basebraw_fir_pts; i++)
+  {
+  t1+=basebraw_fir[i];
+  }
+t1=2.78*fft3_size/t1;  
+for(i=0; i<basebraw_fir_pts; i++)
+  {
+  basebraw_fir[i]*=t1;
+  }
+t1=0;
+for(i=0; i<d_basebcarr_fir_pts; i++)
+  {
+  t1+=basebcarr_fir[i];
+  }
+t1=2.78*fft3_size/t1;  
+for(i=0; i<d_basebcarr_fir_pts; i++)
+  {
+  basebcarr_fir[i]*=t1;
+  }
+dt1=0;
+for(i=0; i<d_basebcarr_fir_pts; i++)
+  {
+  dt1+=d_basebcarr_fir[i];
+  }
+dt1=2.78*fft3_size/dt1;  
+for(i=0; i<d_basebcarr_fir_pts; i++)
+  {
+  d_basebcarr_fir[i]*=dt1;
+  }
+if(fft3_size > 32768)lir_sched_yield();
+bg_filter_3();
 }
 
 void check_bg_cohfac(void)
@@ -1926,7 +2049,6 @@ if(bg.delay_points < 1)bg.delay_points=1;
 if(bg.delay_points > 999)bg.delay_points=999;
 sc[SC_BG_BUTTONS]++;
 }
-
 
 void new_bg_agc_attack(void)
 {
@@ -2182,34 +2304,12 @@ help_message(msg_no);
 
 void change_fft3_avgnum(void)
 {
-int j,k;
 bg.fft_avgnum=numinput_int_data;
 chk_bg_avgnum();
 make_modepar_file(GRAPHTYPE_BG);
-if(sw_onechan)
-  {  
-  for(k=bg_first_xpixel; k<=bg_last_xpixel; k++)
-    {
-    lir_setpixel(k,fft3_spectrum[k],bg_background[fft3_spectrum[k]]);
-    fft3_spectrum[k]=bg_y0;
-    }
-  }
-else
-  {
-  for(k=bg_first_xpixel; k<=bg_last_xpixel; k++)
-    {
-    for(j=2*k; j<2*k+2; j++)
-      {
-      lir_setpixel(k,fft3_spectrum[j],bg_background[fft3_spectrum[j]]);
-      fft3_spectrum[j]=bg_y0;
-      }
-    }
-  }       
 init_baseband_sizes();
 make_baseband_graph(TRUE);
 }
-
-
 
 void change_bg_waterf_avgnum(void)
 {
@@ -2415,19 +2515,23 @@ switch (mouse_active_flag-1)
   {
   case BG_YSCALE_EXPAND:
   bg.yrange/=1.5;
-  break;
+  make_bg_yfac();
+  goto finish2;
       
   case BG_YSCALE_CONTRACT:
   bg.yrange*=1.5;
-  break;
+  make_bg_yfac();
+  goto finish2;
       
   case BG_YZERO_DECREASE:
   bg.yzero/=1.5;
-  break;
+  make_bg_yfac();
+  goto finish2;
             
   case BG_YZERO_INCREASE:
   bg.yzero*=1.5;
-  break;
+  make_bg_yfac();
+  goto finish2;
 
   case BG_RESOLUTION_DECREASE:
   bg.bandwidth/=2;
@@ -2444,36 +2548,36 @@ switch (mouse_active_flag-1)
     {
     bg.oscill_on^=1;
     }
-  break;
+  goto finish2;
 
   case BG_OSC_INCREASE: 
   if(bg.oscill_on != 0)
     {
     bg.oscill_gain*=5;
     }
-  break;
+  goto finish3;
     
   case BG_OSC_DECREASE:
   if(bg.oscill_on != 0)
     {
     bg.oscill_gain*=0.25;
     }
-  break;
+  goto finish3;
 
   case BG_PIX_PER_PNT_INC:
   bg.pixels_per_point++;
   if(bg.pixels_per_point > 16)bg.pixels_per_point=16;
-  break;    
+  break;
 
   case BG_PIX_PER_PNT_DEC:
   bg.pixels_per_point--;
   if(bg.pixels_per_point < 1)bg.pixels_per_point=1;
-  break;    
+  break;
 
   case BG_TOGGLE_EXPANDER:
   bg_expand++;
   if(bg_expand > 2)bg_expand=0;
-  break;
+  goto finish2;
 
   case  BG_TOGGLE_COHERENT:
   if(fft1_correlation_flag <= 1)
@@ -2483,7 +2587,7 @@ switch (mouse_active_flag-1)
       new_bg_coherent=bg_coherent+1;
       }
     }  
-  break;
+  goto finish2;
 
   case  BG_TOGGLE_PHASING:
   if(fft1_correlation_flag <= 1)
@@ -2495,7 +2599,7 @@ switch (mouse_active_flag-1)
       if(new_bg_delay == 0)new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);
       }
     }
-  break;
+  goto finish2;
 
   case BG_TOGGLE_TWOPOL:
   if(fft1_correlation_flag <= 1)
@@ -2507,13 +2611,13 @@ switch (mouse_active_flag-1)
       if(new_bg_twopol == 0)new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);
       }
     }  
-  break;
+  goto finish2;
 
   case  BG_TOGGLE_CHANNELS:
   new_daout_channels=rx_daout_channels+1; 
   if(new_daout_channels>ui.rx_max_da_channels)
                                      new_daout_channels=ui.rx_min_da_channels;
-  break;
+  goto finish2;
 
   case BG_TOGGLE_CH2_PHASE:
   if(  baseb_channels == 1  && 
@@ -2523,19 +2627,19 @@ switch (mouse_active_flag-1)
     {
     new_bg_ch2_phase=bg.ch2_phase+1;
     }
-  break;
+  goto finish2;
 
   case  BG_TOGGLE_BYTES:
   new_daout_bytes=rx_daout_bytes+1;
   if(new_daout_bytes>ui.rx_max_da_bytes)new_daout_bytes=ui.rx_min_da_bytes;
-  break;
+  goto finish2;
 
   case BG_TOGGLE_AGC:
   if(genparm[CW_DECODE_ENABLE] == 0)
     {
     new_bg_agc_flag=bg.agc_flag+1;
     }
-  break;
+  goto finish2;
   
   case BG_SEL_COHFAC:
   mouse_active_flag=1;
@@ -2607,8 +2711,6 @@ switch (mouse_active_flag-1)
   par_from_keyboard_routine=new_bg_agc_hang;
   return;
 
-
-
   case BG_WATERF_ZERO:
   mouse_active_flag=1;
   numinput_xpix=bgbutt[BG_WATERF_ZERO].x1+text_width/2-1;
@@ -2632,15 +2734,15 @@ switch (mouse_active_flag-1)
   case BG_HORIZ_ARROW_MODE:
   bg.horiz_arrow_mode++;
   if(bg.horiz_arrow_mode > 2)bg.horiz_arrow_mode=0;
-  break;
+  goto finish2;
 
   case BG_MIXER_MODE:
-  if(fft1_correlation_flag == 0)
+  if(fft1_correlation_flag <= 1)
     { 
     bg.mixer_mode++;
     if(bg.mixer_mode > 2)bg.mixer_mode=1;
     }
-  break;
+  goto finish2;
 
   case BG_FILTER_SHIFT:
   if(rx_mode == MODE_AM && bg.mixer_mode == 1)
@@ -2755,6 +2857,13 @@ if(new_baseb_flag == -1)
   make_baseband_graph(TRUE);
   }
 baseb_reset_counter++;
+return;
+finish2:;
+sc[SC_FFT3_SCALE]++;
+finish3:;
+leftpressed=BUTTON_IDLE;  
+init_baseband_sizes();
+mouse_active_flag=0;
 }
 
 void clear_bfo(void)
@@ -2767,8 +2876,6 @@ if(bfo_xpixel > 0)
   for(i=bg_y3; i<bg_y2; i++)lir_setpixel(bfo_xpixel, i,bg_background[i]);
   }
 }
-
-
 
 void baseb_par_control(void)
 {
@@ -2817,14 +2924,17 @@ switch (bfo_flag)
     if(bg_flatpoints < 1)bg_flatpoints=1;
     bg.filter_flat=bg_hz_per_pixel*bg_flatpoints;
     pause_thread(THREAD_SCREEN);
-    make_bg_filter(); 
+    if(fft1_correlation_flag < 1)
+      {
+      make_bg_filter(); 
+      }
+    else
+      {
+      make_bg_d_filter(); 
+      }
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
-    if(fft1_correlation_flag > 1)
-      {
-      baseb_reset_counter++;
-      }
     }
   break;
   
@@ -2835,14 +2945,17 @@ switch (bfo_flag)
     if(bg_curvpoints < 0)bg_curvpoints=0;
     bg.filter_curv=bg_hz_per_pixel*10*bg_curvpoints;
     pause_thread(THREAD_SCREEN);
-    make_bg_filter(); 
+    if(fft1_correlation_flag < 1)
+      {
+      make_bg_filter(); 
+      }
+    else
+      {
+      make_bg_d_filter(); 
+      }
     if(kill_all_flag)return;  
     resume_thread(THREAD_SCREEN);
     mg_clear_flag=TRUE;
-    if(fft1_correlation_flag > 1)
-      {
-      baseb_reset_counter++;
-      }
     }
   break;
     
@@ -2964,7 +3077,6 @@ settextcolor(7);
 void init_baseband_sizes(void)
 {
 int bcha, coh, twop, dela;
-halt_rx_output();
 if(use_bfo == 0)
   {
 // Make sure delay is zero in AM and FM.
@@ -3136,16 +3248,13 @@ bg_maxamp=0;
 
 void make_baseband_graph(int clear_old)
 {
-char *stmp;
 char s[80];
 int x, y;
 int volbuf_bytes;
-int i,j,k,sizold,ypixels;
+int i,j,k,sizold;
 int ix1,ix2,iy1,iy2,ib,ic;
-double db_scalestep;
 float t1, t2, t3, t4, x1, x2;
-double dt1, dt2;
-float scale_value, scale_y;
+double dt1, dt2, dt3, dt4;
 pause_thread(THREAD_SCREEN);
 if(clear_old)
   {
@@ -3224,7 +3333,7 @@ i=fft3_size;
 make_power_of_two(&fft3_size);
 if(fft3_size > 1.5*i)fft3_size>>=1;
 while(fft3_size < bg_xpoints)fft3_size<<=1;
-if(fft3_size > 0x10000)
+if(fft3_size > 0x10000  && fft1_correlation_flag != 2)
   {
   fft3_size=0x10000;
   fft3_size_error("Max N = 16");
@@ -3249,7 +3358,6 @@ if(sizold != fft3_size)
   {
   fft3_size_error("baseband storage time");
   }
-// fft3 uses sin squared window with interleave factor=2
 new_fft3:;
 while(fft3_size < bg_xpoints)
   {
@@ -3278,7 +3386,6 @@ bg_hz_per_pixel=timf3_sampling_speed/fft3_size;
 bg_flatpoints=bg.filter_flat/bg_hz_per_pixel;
 if(bg_flatpoints < 1)bg_flatpoints=1;
 bg_curvpoints=0.1*bg.filter_curv/bg_hz_per_pixel;
-fft3_block=fft3_size*2*ui.rx_rf_channels*MAX_MIX1;
 fft3_blocktime=0.5*fft3_size/timf3_sampling_speed;
 chk_bg_avgnum();
 // find out how much memory we need for the fft3 buffer.
@@ -3297,18 +3404,18 @@ else
 t1=2*k/timf1_sampling_speed;
 if(t1<2)t1=2;
 // make buffer big enough for t1 seconds of data
+fft3_block=fft3_size*2*ui.rx_rf_channels*MAX_MIX1;
 if(i < t1*bg_hz_per_pixel*2) i=t1*bg_hz_per_pixel*2; 
 if(i<4)i=4;
 make_power_of_two(&i);
 t1=fft3_block*i;
-if(fft1_correlation_flag == 0)
+if(fft1_correlation_flag <= 1)
   {
   k=sizeof(float);
   }
 else
   {
-  k=sizeof(double);
-  if(fft1_correlation_flag >= 2)k*=4;
+  k=4*sizeof(double);
   }
 if(t1*k > (float)(0x4FFFFFFF))
   {
@@ -3320,8 +3427,9 @@ if(t1*k > (float)(0x4FFFFFFF))
     }
   bg.fft_avgnum/=2;
   goto new_fft3;
-  }  
-fft3_totsiz=fft3_block*i;
+  }
+    //fft3_interleave_ratio ?? mix2.interleave_points
+fft3_totsiz=4*fft3_block*i;  //öö factor 4 added sept 30 2014
 fft3_mask=fft3_totsiz-1;
 fft3_show_size=bg_xpoints*ui.rx_rf_channels*bg.fft_avgnum;
 bg_waterf_lines=bg.yborder-bg.ytop-text_height-YWF;
@@ -3337,14 +3445,8 @@ max_bg_waterf_times=2+bg_waterf_lines/(2*text_height);
 bg_waterf_ptr=0;
 local_bg_waterf_ptr=0;
 sc[SC_BG_WATERF_INIT]++;
-if((unsigned)fft3_size > mix1.size)
-  {
-  fftn_tmp_size=fft3_size;
-  }
-else  
-  {
-  fftn_tmp_size=mix1.size;
-  }
+timf3_tmp_size=fft3_size;
+fftn_tmp_size=mix1.size;
 // ***********************************************
 if(fft3_handle != NULL)
   {
@@ -3352,43 +3454,55 @@ if(fft3_handle != NULL)
   }
 init_memalloc(fft3mem,MAX_FFT3_ARRAYS);
 mem( 1,&fft3,fft3_totsiz*sizeof(float),0);
-mem( 2,&fft3_window,fft3_size*sizeof(float),0);
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
   mem( 101,&d_fft3,fft3_totsiz*sizeof(double),0);
   mem( 102,&d_fft3_window,fft3_size*sizeof(double),0);
-  mem( 103,&d_fft3_tmp,2*fft3_size*(ui.rx_rf_channels+2)*sizeof(double),0);
-  mem( 104,&d_fft3_tab,fft3_size*sizeof(D_COSIN_TABLE)/2,0);
+  mem( 103,&d_fft3_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(double),0);
+  mem( 104,&d_carr_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(double),0);
+  mem( 114,&d_mi2_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(double),0);
+  mem( 105,&d_fft3_tab,fft3_size*sizeof(D_COSIN_TABLE)/2,0);
   mem( 106,&d_fft3_fqwin_inv,fft3_size*sizeof(double),0);
   mem( 107,&d_basebcarr_fir,fft3_size*sizeof(double),0);
   mem( 108,&d_fftn_tmp,4*fftn_tmp_size*sizeof(double),0);
-  if(fft1_correlation_flag >= 2)
+  mem( 109,&d_timf3_tmp,4*timf3_tmp_size*sizeof(double),0);
+  mem( 110,&fft3_bigpermute,fft3_size*sizeof(int),0);
+  mem( 111,&d_basebraw_fir,fft3_size*sizeof(double),0);
+  mem( 112,&d_bg_binshape,fft3_size*sizeof(double),0);
+  if(fft1_correlation_flag == 2)
     {
-    mem( 109,&fft3_cleansum,4*bg_xpoints*sizeof(float),0);
+    mem( 113,&fft3_cleansum,4*bg_xpoints*sizeof(float),0);
     }
   }
-mem( 3,&fft3_tmp,4*fft3_size*(ui.rx_rf_channels+2)*sizeof(float),0);
-mem( 4,&fft3_tab,fft3_size*sizeof(COSIN_TABLE)/2,0);
-mem( 5,&fft3_permute,fft3_size*sizeof(short int),0);
-mem( 6,&fft3_fqwin_inv,fft3_size*sizeof(float),0);
-mem( 7,&fft3_power,fft3_show_size*ui.rx_rf_channels*sizeof(float),0);
-mem( 8,&fft3_slowsum,bg_xpoints*ui.rx_rf_channels*sizeof(float),0);
-mem( 9,&fft3_spectrum,screen_width*ui.rx_rf_channels*sizeof(short int),0);
-mem(10,&bg_background,screen_height*sizeof(char),0);
-mem(11,&bg_filterfunc,fft3_size*sizeof(float),0);
-mem(12,&bg_filterfunc_y,screen_width*sizeof(short int),0);
-mem(13,&bg_volbuf,volbuf_bytes,0);
+else
+  {
+  mem( 2,&fft3_window,fft3_size*sizeof(float),0);
+  mem( 5,&fft3_tab,fft3_size*sizeof(COSIN_TABLE)/2,0);
+  mem( 3,&fft3_tmp,4*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
+mem( 4,&carr_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
+  }
+mem(34,&mi2_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
+mem( 6,&fft3_permute,fft3_size*sizeof(short int),0);
+mem( 7,&fft3_fqwin_inv,fft3_size*sizeof(float),0);
+mem( 8,&fft3_power,fft3_show_size*ui.rx_rf_channels*sizeof(float),0);
+mem( 9,&fft3_slowsum,bg_xpoints*ui.rx_rf_channels*sizeof(float),0);
+mem(10,&fft3_spectrum,screen_width*ui.rx_rf_channels*sizeof(short int),0);
+mem(11,&bg_background,screen_height*sizeof(char),0);
+mem(12,&bg_filterfunc,fft3_size*sizeof(float),0);
+mem(13,&bg_filterfunc_y,screen_width*sizeof(short int),0);
+mem(14,&bg_volbuf,volbuf_bytes,0);
 mem(15,&bg_carrfilter,fft3_size*sizeof(float),0);
 mem(16,&bg_carrfilter_y,screen_width*sizeof(short int),0);
 mem(17,&bg_waterf_sum,bg_xpoints*sizeof(float),0);
 mem(18,&bg_waterf,5000+bg_waterf_size*sizeof(short int),0);
 mem(19,&bg_waterf_times,max_bg_waterf_times*sizeof(WATERF_TIMES),0);
 mem(20,&bg_binshape,fft3_size*sizeof(float),0);
-mem(21,&bg_ytmp,fft3_size*sizeof(float),0);
+mem(21,&bg_ytmp,fft3_size*sizeof(double),0);
 mem(22,&basebraw_fir,fft3_size*sizeof(float),0);
 mem(23,&basebcarr_fir,fft3_size*sizeof(float),0);
 mem(24,&squelch_info,bg_xpoints*sizeof(float),0);
 mem(25,&fftn_tmp,4*fftn_tmp_size*sizeof(float),0);
+mem(26,&timf3_tmp,4*timf3_tmp_size*sizeof(float),0);
 // **********************************************
 fft3_totmem=memalloc(&fft3_handle,"fft3");
 if(fft3_totmem == 0)
@@ -3413,9 +3527,7 @@ for(i=0; i<max_bg_waterf_times; i++)
   {
   bg_waterf_times[i].line=5;
   bg_waterf_times[i].text[0]=0;
-  }  
-// Show the fft size in the upper right corner.
-sprintf(s,"%2d",fft3_n);
+  }
 // Clear the waterfall memory area
 for(i=0;i<bg_waterf_size;i++)bg_waterf[i]=0x8000;
 // Make sure we know these pixels are not on screen.
@@ -3424,20 +3536,13 @@ for(i=0;i<screen_width; i++)
   bg_filterfunc_y[i]=-1;
   bg_carrfilter_y[i]=-1;
   }
-lir_pixwrite(bg.xright-2*text_width,bg.yborder+3*text_height/2,s);
 fft3_pa=0;
 fft3_px=0;
 fft3_indicator_block=(fft3_mask+1)/INDICATOR_SIZE;
-stmp=(void*)(fft3);
-sprintf(stmp,"Reserved for blanker");
-i=(bg.xright-bg.xleft)/text_width-12;
-if(i<0)i=0;
-stmp[i]=0;
-lir_pixwrite(bg.xleft+6*text_width,bg.ybottom-text_height-2,stmp);
-init_fft(1,fft3_n, fft3_size, fft3_tab, fft3_permute);
-if(fft1_correlation_flag != 0)
+if(fft1_correlation_flag > 1)
   {
-  make_d_sincos(1, fft3_size, d_fft3_tab);
+  init_d_fft(1,fft3_n, fft3_size, d_fft3_tab, fft3_bigpermute);
+  make_d_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], d_fft3_window);
   make_d_window(6,fft3_size, 4, d_fft3_fqwin_inv);
 // Near the ends the inverse window has very large values.
 // We do not want to multiply with something VERY large, so
@@ -3454,126 +3559,232 @@ if(fft1_correlation_flag != 0)
     dt1+=dt2;
     k--;
     }
-  make_d_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], d_fft3_window);
-  if(fft1_correlation_flag >= 2)
+  for(i=0; i<fft3_size; i++)
+    {
+    d_bg_binshape[i]=0;
+    }
+  for(j=-3; j<=3; j++)
+    {
+    dt1=0;
+    dt2=j*PI_L/(fft3_size*3);
+    for(i=0; i<fft3_size; i++)
+      {
+      d_fft3_tmp[2*i  ]=cos(dt1);
+      d_fft3_tmp[2*i+1]=sin(dt1);
+      dt1+=dt2;
+      }
+    for( i=0; i<fft3_size/2; i++)
+      {
+      dt1=d_fft3_tmp[2*i  ]*d_fft3_window[2*i];
+      dt2=d_fft3_tmp[2*i+1]*d_fft3_window[2*i];      
+      dt3=d_fft3_tmp[fft3_size+2*i  ]*d_fft3_window[2*i+1];
+      dt4=d_fft3_tmp[fft3_size+2*i+1]*d_fft3_window[2*i+1];   
+      x1=dt1-dt3;
+      d_fft3_tmp[2*i  ]=dt1+dt3;
+      x2=dt4-dt2;
+      d_fft3_tmp[2*i+1]=dt2+dt4;
+      d_fft3_tmp[fft3_size+2*i   ]=d_fft3_tab[i].cos*x1+d_fft3_tab[i].sin*x2;
+      d_fft3_tmp[fft3_size+2*i +1]=d_fft3_tab[i].sin*x1-d_fft3_tab[i].cos*x2;
+      } 
+    d_bulk_of_dif(fft3_size, fft3_n, d_fft3_tmp, d_fft3_tab, yieldflag_ndsp_fft3);
+    for(i=0; i < fft3_size; i+=2)
+      {
+      ib=fft3_bigpermute[i];                               
+      ic=fft3_bigpermute[i+1];                             
+      d_bg_binshape[ib  ]+=pow(d_fft3_tmp[2*i  ]+d_fft3_tmp[2*i+2],2.0)+
+                         pow(d_fft3_tmp[2*i+1]+d_fft3_tmp[2*i+3],2.0);                          
+      d_bg_binshape[ic  ]+=pow(d_fft3_tmp[2*i  ]-d_fft3_tmp[2*i+2],2.0)+
+                         pow(d_fft3_tmp[2*i+1]-d_fft3_tmp[2*i+3],2.0);
+      }
+    if(fft3_size > 8192)lir_sched_yield();
+    }
+// The bin shape has to be symmetric around the midpoint so we
+// use the average from both sides. Store in the lower half
+// while accumulating errors in the upper half.
+  i=fft3_size/2-1;
+  k=fft3_size/2+1;
+  while(i>0)
+    {
+    dt1=d_bg_binshape[i]-d_bg_binshape[k];
+    d_bg_binshape[i]=0.5*(d_bg_binshape[i]+d_bg_binshape[k]);
+    d_bg_binshape[k]=fabs(dt1);
+    i--;
+    k++;
+    }
+  dt1=0;
+  for(i=3*fft3_size/4; i<fft3_size; i++)
+    {
+    dt1+=d_bg_binshape[i];
+    }
+  dt1/=fft3_size/4;  
+  dt2=0.1*dt1;
+// dt1 is now the average error.
+// Subtract it from our d_bg_binshape values.
+  for(i=0; i<=fft3_size/2; i++)
+    {
+    d_bg_binshape[i]-=dt1;
+    if(d_bg_binshape[i]<dt2)d_bg_binshape[i]=dt2;
+    }
+  i=fft3_size/2-1;
+  while(i > 0)
+    {
+    d_bg_binshape[i]=sqrt(d_bg_binshape[i]/d_bg_binshape[fft3_size/2]);
+    i--;
+    k++;
+    }
+  dt2=sqrt(dt2/d_bg_binshape[fft3_size/2]);
+  d_bg_binshape[fft3_size/2]=1;  
+// The binshape function should be steeper the farther out we go.
+// At some point rounding errors will flatten it out.
+  i=fft3_size/2-1;
+  dt1=d_bg_binshape[i+1]/d_bg_binshape[i];
+  i--;
+  get_d_shape:;
+  if(d_bg_binshape[i+1]/d_bg_binshape[i] > dt1)
+    {
+    dt1=d_bg_binshape[i+1]/d_bg_binshape[i];
+    i--;
+    goto get_d_shape;
+    }
+  d_bg_binshape[i]=d_bg_binshape[i+1]/dt1;
+  binshape_points=fft3_size/2-i;
+  while(i>0)
+    {
+    i--;
+    d_bg_binshape[i]=0;
+    }
+  i=fft3_size/2-1;
+  k=fft3_size/2+1;
+  while(i > 0)
+    {
+    d_bg_binshape[k]=d_bg_binshape[i];
+    i--;
+    k++;
+    }
+  i=fft3_size/2-1;
+  if(fft1_correlation_flag == 2)
     {
     memset(fft3_cleansum,0,bg_xpoints*ui.rx_rf_channels*sizeof(float));
     }
   }
-make_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], fft3_window);
+else
+  {
 // Find the average filter shape of an FFT bin.
 // It depends on what window we have selected.
 // Store a sine-wave with frequency from -0.5 bin to +0.5 bin
 // in several steps. Produce the power spectrum in each case
 // and collect the average.
-lir_sched_yield();
-for(i=0; i<fft3_size; i++)
-  {
-  bg_binshape[i]=0;
-  }
-for(j=-3; j<=3; j++)
-  {
-  t1=0;
-  t2=j*PI_L/(fft3_size*3);
+  init_fft(1,fft3_n, fft3_size, fft3_tab, fft3_permute);
+  make_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], fft3_window);
+  lir_sched_yield();
   for(i=0; i<fft3_size; i++)
     {
-    fft3_tmp[2*i  ]=cos(t1);
-    fft3_tmp[2*i+1]=sin(t1);
-    t1+=t2;
+    bg_binshape[i]=0;
     }
-  for( i=0; i<fft3_size/2; i++)
+  for(j=-3; j<=3; j++)
     {
-    t1=fft3_tmp[2*i  ]*fft3_window[2*i];
-    t2=fft3_tmp[2*i+1]*fft3_window[2*i];      
-    t3=fft3_tmp[fft3_size+2*i  ]*fft3_window[2*i+1];
-    t4=fft3_tmp[fft3_size+2*i+1]*fft3_window[2*i+1];   
-    x1=t1-t3;
-    fft3_tmp[2*i  ]=t1+t3;
-    x2=t4-t2;
-    fft3_tmp[2*i+1]=t2+t4;
-    fft3_tmp[fft3_size+2*i   ]=fft3_tab[i].cos*x1+fft3_tab[i].sin*x2;
-    fft3_tmp[fft3_size+2*i +1]=fft3_tab[i].sin*x1-fft3_tab[i].cos*x2;
-    } 
+    t1=0;
+    t2=j*PI_L/(fft3_size*3);
+    for(i=0; i<fft3_size; i++)
+      {
+      fft3_tmp[2*i  ]=cos(t1);
+      fft3_tmp[2*i+1]=sin(t1);
+      t1+=t2;
+      }
+    for( i=0; i<fft3_size/2; i++)
+      {
+      t1=fft3_tmp[2*i  ]*fft3_window[2*i];
+      t2=fft3_tmp[2*i+1]*fft3_window[2*i];      
+      t3=fft3_tmp[fft3_size+2*i  ]*fft3_window[2*i+1];
+      t4=fft3_tmp[fft3_size+2*i+1]*fft3_window[2*i+1];   
+      x1=t1-t3;
+      fft3_tmp[2*i  ]=t1+t3;
+      x2=t4-t2;
+      fft3_tmp[2*i+1]=t2+t4;
+      fft3_tmp[fft3_size+2*i   ]=fft3_tab[i].cos*x1+fft3_tab[i].sin*x2;
+      fft3_tmp[fft3_size+2*i +1]=fft3_tab[i].sin*x1-fft3_tab[i].cos*x2;
+      } 
 #if IA64 == 0 && CPU == CPU_INTEL
-  asmbulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
+    asmbulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
 #else
-  bulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
+    bulk_of_dif(fft3_size, fft3_n, fft3_tmp, fft3_tab, yieldflag_ndsp_fft3);
 #endif
-  for(i=0; i < fft3_size; i+=2)
-    {
-    ib=fft3_permute[i];                               
-    ic=fft3_permute[i+1];                             
-    bg_binshape[ib  ]+=pow(fft3_tmp[2*i  ]+fft3_tmp[2*i+2],2.0)+
-                       pow(fft3_tmp[2*i+1]+fft3_tmp[2*i+3],2.0);                          
-    bg_binshape[ic  ]+=pow(fft3_tmp[2*i  ]-fft3_tmp[2*i+2],2.0)+
-                       pow(fft3_tmp[2*i+1]-fft3_tmp[2*i+3],2.0);
+    for(i=0; i < fft3_size; i+=2)
+      {
+      ib=fft3_permute[i];                               
+      ic=fft3_permute[i+1];                             
+      bg_binshape[ib  ]+=pow(fft3_tmp[2*i  ]+fft3_tmp[2*i+2],2.0)+
+                         pow(fft3_tmp[2*i+1]+fft3_tmp[2*i+3],2.0);                          
+      bg_binshape[ic  ]+=pow(fft3_tmp[2*i  ]-fft3_tmp[2*i+2],2.0)+
+                         pow(fft3_tmp[2*i+1]-fft3_tmp[2*i+3],2.0);
+      }
+    if(fft3_size > 8192)lir_sched_yield();
     }
-  if(fft3_size > 8192)lir_sched_yield();
-  }
 // The bin shape has to be symmetric around the midpoint so we
 // use the average from both sides. Store in the lower half
 // while accumulating errors in the upper half.
-i=fft3_size/2-1;
-k=fft3_size/2+1;
-while(i>0)
-  {
-  t1=bg_binshape[i]-bg_binshape[k];
-  bg_binshape[i]=0.5*(bg_binshape[i]+bg_binshape[k]);
-  bg_binshape[k]=fabs(t1);
-  i--;
-  k++;
-  }
-t1=0;
-for(i=3*fft3_size/4; i<fft3_size; i++)
-  {
-  t1+=bg_binshape[i];
-  }
-t1/=fft3_size/4;  
-t2=0.1*t1;
+  i=fft3_size/2-1;
+  k=fft3_size/2+1;
+  while(i>0)
+    {
+    t1=bg_binshape[i]-bg_binshape[k];
+    bg_binshape[i]=0.5*(bg_binshape[i]+bg_binshape[k]);
+    bg_binshape[k]=fabs(t1);
+    i--;
+    k++;
+    }
+  t1=0;
+  for(i=3*fft3_size/4; i<fft3_size; i++)
+    {
+    t1+=bg_binshape[i];
+    }
+  t1/=fft3_size/4;  
+  t2=0.1*t1;
 // t1 is now the average error.
 // Subtract it from our bg_binshape values.
-for(i=0; i<=fft3_size/2; i++)
-  {
-  bg_binshape[i]-=t1;
-  if(bg_binshape[i]<t2)bg_binshape[i]=t2;
-  }
-i=fft3_size/2-1;
-while(i > 0)
-  {
-  bg_binshape[i]=sqrt(bg_binshape[i]/bg_binshape[fft3_size/2]);
-  i--;
-  k++;
-  }
-t2=sqrt(t2/bg_binshape[fft3_size/2]);
-bg_binshape[fft3_size/2]=1;  
+  for(i=0; i<=fft3_size/2; i++)
+    {
+    bg_binshape[i]-=t1;
+    if(bg_binshape[i]<t2)bg_binshape[i]=t2;
+    }
+  i=fft3_size/2-1;
+  while(i > 0)
+    {
+    bg_binshape[i]=sqrt(bg_binshape[i]/bg_binshape[fft3_size/2]);
+    i--;
+    k++;
+    }
+  t2=sqrt(t2/bg_binshape[fft3_size/2]);
+  bg_binshape[fft3_size/2]=1;  
 // The binshape function should be steeper the farther out we go.
 // At some point rounding errors will flatten it out.
-i=fft3_size/2-1;
-t1=bg_binshape[i+1]/bg_binshape[i];
-i--;
-get_shape:;
-if(bg_binshape[i+1]/bg_binshape[i] > t1)
-  {
+  i=fft3_size/2-1;
   t1=bg_binshape[i+1]/bg_binshape[i];
   i--;
-  goto get_shape;
+get_shape:;
+  if(bg_binshape[i+1]/bg_binshape[i] > t1)
+    {
+    t1=bg_binshape[i+1]/bg_binshape[i];
+    i--;
+    goto get_shape;
+    }
+  bg_binshape[i]=bg_binshape[i+1]/t1;
+  binshape_points=fft3_size/2-i;
+  while(i>0)
+    {
+    i--;
+    bg_binshape[i]=0;
+    }
+  i=fft3_size/2-1;
+  k=fft3_size/2+1;
+  while(i > 0)
+    {
+    bg_binshape[k]=bg_binshape[i];
+    i--;
+    k++;
+    }
+  i=fft3_size/2-1;
   }
-bg_binshape[i]=bg_binshape[i+1]/t1;
-binshape_points=fft3_size/2-i;
-while(i>0)
-  {
-  i--;
-  bg_binshape[i]=0;
-  }
-i=fft3_size/2-1;
-k=fft3_size/2+1;
-while(i > 0)
-  {
-  bg_binshape[k]=bg_binshape[i];
-  i--;
-  k++;
-  }
-i=fft3_size/2-1;
 // Now we have the spectral shape of a single FFT bin in
 // bg_binshape with the maximum at position fft3_size/2.
 // **************************************************************
@@ -3613,9 +3824,9 @@ make_button(x, y, bgbutt, BG_HORIZ_ARROW_MODE,
                                        arrow_mode_char[bg.horiz_arrow_mode]);
 i=(bg.ybottom+bg.yborder)/2;
 make_button(bg.xright-text_width,i-text_height/2-2,
-                                         bgbutt,BG_YZERO_DECREASE,CHAR_ARROW_UP);
+                                      bgbutt,BG_YZERO_DECREASE,CHAR_ARROW_UP);
 make_button(bg.xright-text_width,i+text_height/2+2,
-                                         bgbutt,BG_YZERO_INCREASE,CHAR_ARROW_DOWN);
+                                    bgbutt,BG_YZERO_INCREASE,CHAR_ARROW_DOWN);
 make_button(bg.xright-3*text_width,bg.ytop+text_height/2+3,
                                          bgbutt,BG_RESOLUTION_DECREASE,26);
 make_button(bg.xright-text_width,bg.ytop+text_height/2+3,
@@ -3638,22 +3849,25 @@ iy2=bg.ybottom-2;
 iy1=iy2-text_height-1;
 ix2=ix1-3+text_width;
 ix1-=text_width;
-bgbutt[BG_NOTCH_NO].x1=ix1;
-bgbutt[BG_NOTCH_NO].x2=ix2;
-bgbutt[BG_NOTCH_NO].y1=iy1;
-bgbutt[BG_NOTCH_NO].y2=iy2;
-ix2=ix1-3;
-ix1-=7*text_width;
-bgbutt[BG_NOTCH_WIDTH].x1=ix1;
-bgbutt[BG_NOTCH_WIDTH].x2=ix2;
-bgbutt[BG_NOTCH_WIDTH].y1=iy1;
-bgbutt[BG_NOTCH_WIDTH].y2=iy2;
-ix2=ix1-2;
-ix1-=8*text_width;
-bgbutt[BG_NOTCH_POS].x1=ix1;
-bgbutt[BG_NOTCH_POS].x2=ix2;
-bgbutt[BG_NOTCH_POS].y1=iy1;
-bgbutt[BG_NOTCH_POS].y2=iy2;
+if(fft1_correlation_flag <= 1)
+  {
+  bgbutt[BG_NOTCH_NO].x1=ix1;
+  bgbutt[BG_NOTCH_NO].x2=ix2;
+  bgbutt[BG_NOTCH_NO].y1=iy1;
+  bgbutt[BG_NOTCH_NO].y2=iy2;
+  ix2=ix1-3;
+  ix1-=7*text_width;
+  bgbutt[BG_NOTCH_WIDTH].x1=ix1;
+  bgbutt[BG_NOTCH_WIDTH].x2=ix2;
+  bgbutt[BG_NOTCH_WIDTH].y1=iy1;
+  bgbutt[BG_NOTCH_WIDTH].y2=iy2;
+  ix2=ix1-2;
+  ix1-=8*text_width;
+  bgbutt[BG_NOTCH_POS].x1=ix1;
+  bgbutt[BG_NOTCH_POS].x2=ix2;
+  bgbutt[BG_NOTCH_POS].y1=iy1;
+  bgbutt[BG_NOTCH_POS].y2=iy2;
+  }
 make_button(bg.xleft+text_width,bg.ytop+text_height/2+3,
                                          bgbutt,BG_PIX_PER_PNT_DEC,26);
 make_button(bg.xleft+3*text_width,bg.ytop+text_height/2+3,
@@ -3678,32 +3892,32 @@ bgbutt[BG_SEL_FFT3AVGNUM].y1=iy1;
 bgbutt[BG_SEL_FFT3AVGNUM].y2=iy2;
 ix1=bg.xleft+4+9*text_width/2;
 ix2=ix1+7*text_width/2;
-if(rx_mode == MODE_FM)
+if(fft1_correlation_flag <= 1)
   {
-  bgbutt[BG_TOGGLE_FM_MODE].x1=ix1;
-  bgbutt[BG_TOGGLE_FM_MODE].x2=ix2;
-  bgbutt[BG_TOGGLE_FM_MODE].y1=iy1;
-  bgbutt[BG_TOGGLE_FM_MODE].y2=iy2;
-  ix1=ix2+2;
-  ix2=ix1+3*text_width/2;
-  bgbutt[BG_TOGGLE_FM_SUBTRACT].x1=ix1;
-  bgbutt[BG_TOGGLE_FM_SUBTRACT].x2=ix2;
-  bgbutt[BG_TOGGLE_FM_SUBTRACT].y1=iy1;
-  bgbutt[BG_TOGGLE_FM_SUBTRACT].y2=iy2;
-  ix1=ix2+2;
-  ix2=ix1+11*text_width/2;
-  bgbutt[BG_SEL_FM_AUDIO_BW].x1=ix1;
-  bgbutt[BG_SEL_FM_AUDIO_BW].x2=ix2;
-  bgbutt[BG_SEL_FM_AUDIO_BW].y1=iy1;
-  bgbutt[BG_SEL_FM_AUDIO_BW].y2=iy2;
-  freq_readout_x1=ix2;
-  bg.agc_flag=0;
-  }
-else   
-  {
-  freq_readout_x1=ix2;
-  if(fft1_correlation_flag <= 1)
+  if(rx_mode == MODE_FM)
     {
+    bgbutt[BG_TOGGLE_FM_MODE].x1=ix1;
+    bgbutt[BG_TOGGLE_FM_MODE].x2=ix2;
+    bgbutt[BG_TOGGLE_FM_MODE].y1=iy1;
+    bgbutt[BG_TOGGLE_FM_MODE].y2=iy2;
+    ix1=ix2+2;
+    ix2=ix1+3*text_width/2;
+    bgbutt[BG_TOGGLE_FM_SUBTRACT].x1=ix1;
+    bgbutt[BG_TOGGLE_FM_SUBTRACT].x2=ix2;
+    bgbutt[BG_TOGGLE_FM_SUBTRACT].y1=iy1;
+    bgbutt[BG_TOGGLE_FM_SUBTRACT].y2=iy2;
+    ix1=ix2+2;
+    ix2=ix1+11*text_width/2;
+    bgbutt[BG_SEL_FM_AUDIO_BW].x1=ix1;
+    bgbutt[BG_SEL_FM_AUDIO_BW].x2=ix2;
+    bgbutt[BG_SEL_FM_AUDIO_BW].y1=iy1;
+    bgbutt[BG_SEL_FM_AUDIO_BW].y2=iy2;
+    freq_readout_x1=ix2;
+    bg.agc_flag=0;
+    }
+  else   
+    {
+    freq_readout_x1=ix2;
     bgbutt[BG_TOGGLE_AGC].x1=ix1;
     bgbutt[BG_TOGGLE_AGC].x2=ix2;
     bgbutt[BG_TOGGLE_AGC].y1=iy1;
@@ -3731,28 +3945,23 @@ else
       freq_readout_x1=ix2;
       }
     }
-  } 
-freq_readout_x1+=text_width;  
-freq_readout_y1=iy1;
-ix2=bg.xright-2;
-ix1=ix2-3*text_width/2;
-bgbutt[BG_MIXER_MODE].x1=ix1;
-bgbutt[BG_MIXER_MODE].x2=ix2;
-bgbutt[BG_MIXER_MODE].y1=iy1;
-bgbutt[BG_MIXER_MODE].y2=iy2;
-if(rx_mode == MODE_AM && bg.mixer_mode == 1)
-  {
+  ix2=bg.xright-2;
+  ix1=ix2-3*text_width/2;
+  bgbutt[BG_MIXER_MODE].x1=ix1;
+  bgbutt[BG_MIXER_MODE].x2=ix2;
+  bgbutt[BG_MIXER_MODE].y1=iy1;
+  bgbutt[BG_MIXER_MODE].y2=iy2;
+  if(rx_mode == MODE_AM && bg.mixer_mode == 1)
+    {
 // ***********  make filter shift button ******************
-  ix2=ix1-2;
-  ix1-=8*text_width;
-  bgbutt[BG_FILTER_SHIFT].x1=ix1;
-  bgbutt[BG_FILTER_SHIFT].x2=ix2;
-  bgbutt[BG_FILTER_SHIFT].y1=iy1;
-  bgbutt[BG_FILTER_SHIFT].y2=iy2;
-  }
+    ix2=ix1-2;
+    ix1-=8*text_width;
+    bgbutt[BG_FILTER_SHIFT].x1=ix1;
+    bgbutt[BG_FILTER_SHIFT].x2=ix2;
+    bgbutt[BG_FILTER_SHIFT].y1=iy1;
+    bgbutt[BG_FILTER_SHIFT].y2=iy2;
+    }
 // Make the squelch buttons. They will be placed on screen by make_bg_filter.
-if(fft1_correlation_flag <= 1)
-  {
   ix2=ix1-2;
   ix1=ix2-3*text_width/2;
   bgbutt[BG_SQUELCH_TIME].x1=ix1;
@@ -3773,84 +3982,35 @@ if(fft1_correlation_flag <= 1)
   bgbutt[BG_SQUELCH_LEVEL].y2=iy2;
   squelch_turnon_time=current_time();
   }
+freq_readout_y1=bg.yborder+2;
+freq_readout_x1+=text_width;  
 squelch_on=-2;
-// Write out the y scale for logarithmic spectrum graph.
-// We want a point with amplitude 1<<(fft1_n/2) to be placed at the
-// zero point of the dB scale. 
-for(i=0; i<screen_height; i++)bg_background[i]=0;
-ypixels=bg_y0-bg_ymax+1;
-bg.db_per_pixel=20*log10(bg.yrange)/ypixels;
-db_scalestep=1.3*bg.db_per_pixel*text_height;
-adjust_scale(&db_scalestep);
-if(db_scalestep < 1)
-  {
-  db_scalestep=1;
-  bg.db_per_pixel=0.5/text_height;
-  bg.yrange=pow(10.,ypixels*bg.db_per_pixel/20);
-  }
-t1=20*log10( bg.yzero);
-i=(t1+0.5*db_scalestep)/db_scalestep;
-scale_value=i*db_scalestep;
-scale_y=bg_y0+(t1-scale_value)/bg.db_per_pixel;
-while( scale_y > bg_ymax)
-  {
-  if(scale_y+text_height/2+1 < bg_y0)
-    {
-    i=(int)(scale_value);
-    sprintf(s,"%3d",i);
-    lir_pixwrite(bg.xleft+text_width/2,(int)scale_y-text_height/2+2,s);
-    }
-  if(scale_y+1 < bg_y0)
-    {
-    i=scale_y;
-    bg_background[i]=BG_DBSCALE_COLOR;    
-    if(i > bgbutt[BG_SQUELCH_LEVEL].y2)
-      {
-      j=bg_last_xpixel;
-      }
-    else
-      {
-      j= bgbutt[BG_SQUELCH_LEVEL].x1-1;
-      }
-    lir_hline(bg_first_xpixel,i,j,BG_DBSCALE_COLOR);
-    if(kill_all_flag) return;
-    }
-  scale_y-=db_scalestep/bg.db_per_pixel;
-  scale_value+=db_scalestep;
-  }
-freq_readout_x2=ix1-text_width;  
-make_bg_yfac();
-make_bg_filter();
-if(kill_all_flag) return;
-make_modepar_file(GRAPHTYPE_BG);
-bg_flag=1;
-daout_gain_y=-1;
-make_daout_gainy();
+sc[SC_FFT3_SCALE]++;
 // *************  Make button to select no of channels for mono modes
-ix1=bg.xleft+text_width;
-if(  baseb_channels == 1  && 
+if(fft1_correlation_flag <= 1)
+  {
+  ix1=bg.xleft+text_width;
+  if(baseb_channels == 1  && 
      rx_daout_channels == 2  &&
      bg_delay == 0 &&
      bg_twopol == 0)
-  {
-  make_button(ix1,bg.ybottom-2*text_height,
+    {
+    make_button(ix1,bg.ybottom-2*text_height,
                  bgbutt,BG_TOGGLE_CH2_PHASE,ch2_phase_symbol[bg.ch2_phase]);
-  }
-ix1+=3*text_width/2+2;
-make_button(ix1,bg.ybottom-2*text_height,
+    }
+  ix1+=3*text_width/2+2;
+  make_button(ix1,bg.ybottom-2*text_height,
                        bgbutt,BG_TOGGLE_CHANNELS,'0'+rx_daout_channels);
 // ************** Make button to select number of bit's
-ix1+=4+text_width/2;
-ix2=ix1+5*text_width/2;
-iy1=bg.ybottom-5*text_height/2-1;
-iy2=iy1+text_height+1;
-bgbutt[BG_TOGGLE_BYTES].x1=ix1;
-bgbutt[BG_TOGGLE_BYTES].x2=ix2;
-bgbutt[BG_TOGGLE_BYTES].y1=iy1;
-bgbutt[BG_TOGGLE_BYTES].y2=iy2;
+  ix1+=4+text_width/2;
+  ix2=ix1+5*text_width/2;
+  iy1=bg.ybottom-5*text_height/2-1;
+  iy2=iy1+text_height+1;
+  bgbutt[BG_TOGGLE_BYTES].x1=ix1;
+  bgbutt[BG_TOGGLE_BYTES].x2=ix2;
+  bgbutt[BG_TOGGLE_BYTES].y1=iy1;
+  bgbutt[BG_TOGGLE_BYTES].y2=iy2;
 // **************   Make the button for the amplitude expander
-if(fft1_correlation_flag <= 1)
-  {
   if(use_bfo != 0)
     {
     ix1=ix2+2;
@@ -3868,6 +4028,12 @@ if(fft1_correlation_flag <= 1)
   bgbutt[BG_TOGGLE_COHERENT].y1=iy1;
   bgbutt[BG_TOGGLE_COHERENT].y2=iy2;
 // ***********  make coherent bandwidth factor button ******************
+  }
+else
+  {
+  iy1=bg.ybottom-5*text_height/2-1;
+  iy2=iy1+text_height+1;
+  ix2=bg.xleft+9*text_width;
   }
 ix1=ix2+2;
 ix2=ix1+15*text_width/2;
@@ -3909,6 +4075,27 @@ if(fft1_correlation_flag <= 1)
     bgbutt[BG_TOGGLE_TWOPOL].y2=iy2;
     }
   }  
+else
+  {
+  i=(bg.xright-bg.xleft)/2;
+  i+=bg.xleft;
+  freq_readout_x1=i-8*text_width;
+  freq_readout_x2=i+8*text_width;
+  }  
+make_bg_yfac();
+if(fft1_correlation_flag < 1)
+  {
+  make_bg_filter(); 
+  }
+else
+  {
+  make_bg_d_filter(); 
+  }
+if(kill_all_flag) return;
+make_modepar_file(GRAPHTYPE_BG);
+bg_flag=1;
+daout_gain_y=-1;
+//make_daout_gain();
 i=bg_twopol;                 //bit 7
 i=(i<<1)+bg_delay;           //bit 6
 i=(i<<2)+bg_coherent;        //bits 4 and 5
@@ -4119,14 +4306,14 @@ if(errcnt < 2)
      bg.agc_hang > 9
      )goto bg_default;
   }
-if(fft1_correlation_flag > 0)bg.mixer_mode=2;     
+if(fft1_correlation_flag > 1)bg.mixer_mode=2;     
 bg_no_of_notches=0;
 bg_current_notch=0;
 new_bg_agc_flag=bg.agc_flag;
 if(bg.wheel_stepn<-30 || bg.wheel_stepn >30)bg.wheel_stepn=0;
 bfo_flag=0;  
 mix2.size=-1;
-if(fft1_correlation_flag >= 2)genparm[OUTPUT_MODE]=51;
+if(fft1_correlation_flag >= 2)genparm[OUTPUT_MODE]=3;
 new_daout_bytes=1+(genparm[OUTPUT_MODE]&1);           //bit 0
 new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);   //bit 1
 bg_expand=(genparm[OUTPUT_MODE]>>2)&3;                //bit 2 and 3

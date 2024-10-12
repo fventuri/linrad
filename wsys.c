@@ -1724,6 +1724,22 @@ blocking_rxout();
 return 100;
 }
 
+DWORD WINAPI winthread_mix2(PVOID arg)
+{
+(void) arg;
+SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+do_mix2();
+return 100;
+}
+
+DWORD WINAPI winthread_fft3(PVOID arg)
+{ 
+(void) arg;
+SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
+do_fft3();
+return 100;
+}
+
 DWORD WINAPI winthread_write_raw_file(PVOID arg)
 {
 (void) arg;

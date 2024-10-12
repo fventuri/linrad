@@ -113,6 +113,7 @@ int waterfall_yield_interval;
 
 int bg_flatpoints;
 int bg_curvpoints;
+int bg_carr_20db_points;
 int bg_6db_points;
 float bg_noise_bw;
 int bg_60db_points;

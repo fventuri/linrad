@@ -235,9 +235,9 @@ usb2lpt_flag=FALSE;
 old_fdms1_ratenum=-1;
 fg_truncation_error=0;
 mg_meter_file=NULL;
-corr_afc_count=MAX_CORR_AFC_COUNT;
 fft1_skip_flag=1;
 vgf_freq=NULL;
+old_mix1_selfreq=-1;
 }
  
 int skip_calibration(void)
@@ -1919,7 +1919,7 @@ for(i=0; i<memalloc_no; i++)
    {
    DEB"\nERROR %s totbytes=%.0fMB bytes wanted %.0fMB",s,
                     (double)(totbytes/1.e6),dt/1.e6);
-   fprintf(stderr,"\nERROR %s totbytes=%.0fMB wanted %.0fMB",s,
+   fprintf( stderr,"\nERROR %s totbytes=%.0fMB wanted %.0fMB",s,
                     (double)(totbytes/1.e6),dt/1.e6);
    lirerr(1472);
    return 0;

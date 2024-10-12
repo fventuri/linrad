@@ -115,7 +115,9 @@ ROUTINE thread_routine[THREAD_MAX]={thread_rx_adinput,          //0
                                     thread_network_send,        //51
                                     thread_airspyhf_input,      //52
                                     thread_sdrplay2_input,      //53
-                                    thread_sdrplay3_input       //54
+                                    thread_sdrplay3_input,      //54
+                                    thread_mix2,                 //55
+                                    thread_fft3                 //56
                                     };
 char *eme_own_info_filename={"/home/emedir/own_info"};
 char *eme_allcalls_filename={"/home/emedir/allcalls.dta"};

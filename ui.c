@@ -30,6 +30,7 @@
 #include "sigdef.h"
 #include "fft1def.h"
 #include "fft2def.h"
+#include "fft3def.h"
 #include "thrdef.h"
 #include "caldef.h"
 #include "powtdef.h"
@@ -53,8 +54,12 @@
 #include "loadalsa.h"
 #include "xdef.h"
 #include "lscreen.h"
-extern snd_pcm_t *rx_ad_handle, *rx_da_handle;
-extern snd_pcm_t *tx_ad_handle, *tx_da_handle;
+
+typedef struct _snd_pcm_status snd_pcm_status_t;
+snd_pcm_status_t *status;
+int snd_pcm_status(snd_pcm_t *pcm, snd_pcm_status_t *status);
+snd_pcm_uframes_t snd_pcm_status_get_avail(const snd_pcm_status_t *obj); 	
+
 
 extern int  alsa_dev_seq_nmbr;
 extern char alsa_dev_soundcard_name [256];
@@ -80,6 +85,7 @@ void set_sdrip_att(void);
 void set_sdrip_frequency(void);
 void set_netafedri_att(void);
 void set_netafedri_frequency(void);
+
 
 // The syscall thread follows these states:
 // THRFLAG_SEM_WAIT:    The syscall thread is waiting for a command to be set by the caller.
@@ -247,12 +253,12 @@ DEB"\ninterrupt_rate %f     open_flag %d",
 void update_snd(int sound_type)
 {
 int i, k;
-#if(OSNUM == OSNUM_LINUX)
-int err;
-#endif
+float t1;
 #if(OSNUM == OSNUM_WINDOWS)
 WAVEHDR *whdr;
 int j;
+#else
+int retry;
 #endif
 i=0;
 buftest:;  
@@ -313,7 +319,42 @@ k=0;
 switch (sound_type)
   {
   case RXDA:
-  if(rx_audio_out == -1) return;
+  if(rx_audio_out == -1)
+    {
+    snd[RXDA].framesize=rx_daout_channels*rx_daout_bytes;
+    t1=min_delay_time;
+    i=4;
+    if(diskread_flag >= 2)i=1;
+    if(t1 < fft3_blocktime/(float)i)
+      {
+      t1=fft3_blocktime/(float)i;
+      }
+    if(t1 > 1)t1=1;
+    snd[RXDA].block_frames=(int)(0.75F*t1*(float)genparm[DA_OUTPUT_SPEED]);
+    make_power_of_two(&snd[RXDA].block_frames);
+// make the minimum block 8 frames
+    if(snd[RXDA].block_frames < 8)snd[RXDA].block_frames=8;
+    make_power_of_two(&snd[RXDA].block_frames);
+    snd[RXDA].interrupt_rate=(float)(genparm[DA_OUTPUT_SPEED])/
+                                      (float)snd[RXDA].block_frames;
+    while(snd[RXDA].interrupt_rate < ui.min_dma_rate && snd[RXDA].block_frames>8)
+      {
+      snd[RXDA].interrupt_rate*=2;
+      snd[RXDA].block_frames/=2;
+      }
+    while(snd[RXDA].interrupt_rate > ui.max_dma_rate)
+      {
+      snd[RXDA].interrupt_rate/=2;
+      snd[RXDA].block_frames*=2;
+      }
+    snd[RXDA].block_bytes=snd[RXDA].block_frames*snd[RXDA].framesize;
+    snd[RXDA].no_of_blocks=(int)(0.3F*snd[RXDA].interrupt_rate);
+    make_power_of_two(&snd[RXDA].no_of_blocks);
+    if(snd[RXDA].no_of_blocks < 8)snd[RXDA].no_of_blocks=8;
+    snd[RXDA].tot_bytes=snd[RXDA].no_of_blocks*snd[RXDA].block_bytes;
+    snd[RXDA].tot_frames=snd[RXDA].no_of_blocks*snd[RXDA].block_frames;
+    return;
+    }
   if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_ACTIVE)
     {
     if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)
@@ -323,6 +364,8 @@ switch (sound_type)
       k=snd[sound_type].no_of_blocks-1;
       break;
       }
+    if(rx_audio_out == -1 ||
+         thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto stp;
 #if(OSNUM == OSNUM_WINDOWS)
     for(j=0; j< snd[RXDA].no_of_blocks; j++)
       {
@@ -334,24 +377,36 @@ switch (sound_type)
 #else
     if( (ui.use_alsa&NATIVE_ALSA_USED)!=0)
       {
+      if(thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_ACTIVE)goto stp; 
       if(!alsa_library_flag)
         {
         lirerr(269113);
         return;
         }
-//Try to synchronize stream position with hardware
-      err=snd_pcm_hwsync(rx_da_handle);
-//Get # of frames available (for read or write.)
-      if(err != 0)
+      k=(int)snd_pcm_avail(alsa_handle[RXDA]);
+      if(k < 0)
         {
-        k=0;
-        }
+        retry=0;
+        if(k == -EPIPE)            // underrun, try to recover
+          {
+          snd[sound_type].empty_frames=snd[sound_type].tot_frames;
+recover:;
+          k=snd_pcm_recover(alsa_handle[RXDA], k, 0);
+          }
+        if(k == -EBUSY)
+          {
+          retry++;
+          if(retry < 15)
+            {
+            lir_sleep(100);
+            goto recover;
+            }
+          }
+        }   
       else
-        {  
-        k=(int)snd_pcm_avail_update(rx_da_handle);
+        {
+        snd[sound_type].empty_frames=k;
         }
-      if(k < 0)k=0;
-      snd[sound_type].empty_frames=k;
       }
     else
 #if(HAVE_OSS == 1)
@@ -378,10 +433,14 @@ switch (sound_type)
       if(kill_all_flag)return;
       i++;
       if(i<3)goto buftest;
+// if the value stays at zero we assume that the buffer is empty.
+// so we return the buffer size
+      snd[sound_type].empty_frames=snd[sound_type].tot_frames;
       }
     }
   else
     {
+stp:;
     snd[sound_type].empty_frames=snd[sound_type].tot_frames;
     }   
   break;
@@ -441,7 +500,14 @@ void qt1(char *cc)
 {
 double dd;
 dd=current_time();
-DEB"\n%s %f",cc,dd-q_time);
+if(dmp == NULL)
+  {
+  fprintf( stderr,"\n%s %f",cc,dd-q_time);
+  }
+else
+  {  
+  DEB"\n%s %f",cc,dd-q_time);
+  }
 q_time=dd;
 }
 
@@ -449,7 +515,16 @@ void qt2(char *cc)
 {
 double dd;
 dd=current_time();
+if(dmp == NULL)
+  {
+  fprintf( stderr,"\n%s %f",cc,dd-q_time);
+  }
 DEB"\n%s %f",cc,dd-q_time);
+}
+
+double zt(void)
+{
+return current_time()-q_time;
 }
 
 void kill_all(void)
@@ -457,8 +532,7 @@ void kill_all(void)
 int i,j,k;
 fflush(NULL);
 kill_all_flag=TRUE;
-lir_sleep(300000);
-DEB"\n\nEnter kill_all()");
+lir_sleep(100000);
 // Sleep for a while to make sure that the first error
 // code (if any) has been saved by lirerr.
 // When we start to stop threads we may induce new errors
@@ -487,7 +561,7 @@ for(i=0; i<THREAD_MAX; i++)
         }
       if(i == THREAD_RX_OUTPUT)
         {
-        lir_set_event(EVENT_BASEB);
+        lir_set_event(EVENT_RX_START_DA);
         }
       lir_sleep(100);
       }
@@ -496,16 +570,15 @@ for(i=0; i<THREAD_MAX; i++)
 #if(OSNUM == OSNUM_WINDOWS)
 win_semaphores();
 #endif
-DEB"\nremaining no of threads=%d",k);    
 if(k==0)goto ok_exit;
 j=-5;
 fprintf( stderr,"\n");
-while(j<10)
+while(j<20)
   {
   j++;
   if(j > 0)fprintf( stderr,"%d ",j);
   fflush(NULL);
-  lir_sleep(10000);  
+  lir_sleep(100000);  
   k=0;
   for(i=0; i<THREAD_MAX; i++)
     {
@@ -520,16 +593,16 @@ while(j<10)
         {  
         if(thread_command_flag[i] != THRFLAG_NOT_ACTIVE)
           {
+          if(i == THREAD_RX_OUTPUT)
+            {
+            lir_set_event(EVENT_RX_START_DA);
+            }
           k++;
           if(thread_waitsem[i] != -2)
             {
             if(thread_waitsem[i] != -1)
               {
               lir_set_event(thread_waitsem[i]);
-              }
-            if(i == THREAD_RX_OUTPUT)
-              {
-              lir_set_event(EVENT_BASEB);
               }
             thread_command_flag[i]=THRFLAG_KILL;
             }
@@ -563,7 +636,7 @@ i=0;
 lir_refresh_screen();
 zz:;
 i++;
-lir_sleep(10000);
+lir_sleep(1000);
 if(i > 500)abort();
 goto zz;
 }
@@ -590,9 +663,13 @@ if(thread_command_flag[no]==THRFLAG_IDLE)
     }
   }
 thread_command_flag[no]=THRFLAG_IDLE;
-if( no ==THREAD_RX_OUTPUT)
+if(thread_status_flag[no] == THRFLAG_SEM_WAIT)
   {
-  lir_set_event(EVENT_BASEB);
+  lir_set_event(thread_waitsem[no]);
+  if(no == THREAD_RX_OUTPUT)
+    {
+    lir_set_event(EVENT_RX_START_DA);
+    }
   }
 for(i=0; i<4; i++)
   {
@@ -604,6 +681,7 @@ for(i=0; i<4; i++)
   lir_sched_yield();
   if(thread_status_flag[no] == THRFLAG_IDLE)return;
   }
+i=0;  
 while(thread_status_flag[no] != THRFLAG_IDLE  && !kill_all_flag)
   {
   if( no==THREAD_SCREEN &&
@@ -611,11 +689,13 @@ while(thread_status_flag[no] != THRFLAG_IDLE  && !kill_all_flag)
     {
     awake_screen();
     }
-  if( no ==THREAD_RX_OUTPUT)
-    {
-    lir_set_event(EVENT_BASEB);
-    }
   lir_sleep(3000);
+  i++;
+  if(i > 1000)
+    {
+    lirerr(884321);
+    return;
+    }
   }
 }
 
@@ -648,8 +728,11 @@ thread_command_flag[no]=THRFLAG_KILL;
 if(thread_waitsem[no] != -1)
   {
   lir_set_event(thread_waitsem[no]);
+  if(no == THREAD_RX_OUTPUT)
+    {
+    lir_set_event(EVENT_RX_START_DA);
+    }
   }
-if(no == THREAD_RX_OUTPUT)lir_set_event(EVENT_BASEB); 
 lir_sched_yield();
 k=0;
 while(thread_status_flag[no] != THRFLAG_RETURNED)
@@ -657,6 +740,10 @@ while(thread_status_flag[no] != THRFLAG_RETURNED)
   if(thread_waitsem[no] != -1)
     {
     lir_set_event(thread_waitsem[no]);
+    if(no == THREAD_RX_OUTPUT)
+      {
+      lir_set_event(EVENT_RX_START_DA);
+      }
     }
   lir_sleep(3000);
   k++;
@@ -831,7 +918,6 @@ else
 t1*=0.1F*cal_xgain;
 cal_xshift=(int)((float)cal_xshift+t1*(float)dir);
 }
-
 
 void user_command(void)
 {
@@ -1503,25 +1589,12 @@ void xz(char *s)
 {
 if(dmp == NULL)
   {
-  lirerr(1074);
-  lir_sleep(100000);
+  fprintf( stderr,"\n%s",s);
+  fflush( stderr);
   return;
   }
-PERMDEB" %s\n",s);
+PERMDEB"\n%s ",s);
 fflush(dmp);
-lir_sync();
-}
-
-void xq(char *s)
-{
-if(dmp == NULL)
-  {
-  lirerr(1074);
-  lir_sleep(100000);
-  return;
-  }
-fprintf( stderr," %s\n",s);
-fflush(stderr);
 lir_sync();
 }
 

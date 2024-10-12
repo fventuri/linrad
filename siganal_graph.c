@@ -134,6 +134,7 @@ for(j=0; j<4; j+=2)
   dt3=sqrt(dt1*dt1+dt2*dt2);
   dt1/=dt3;
   dt2/=dt3;
+
   dt3/=sg_siz;    
   for(i=0; i<sg_siz; i++)
     {
@@ -665,9 +666,7 @@ current_graph_minw=30*text_width;
 check_graph_placement((void*)(&sg));
 clear_button(sgbutt, MAX_SGBUTT);
 hide_mouse(sg.xleft,sg.xright,sg.ytop,sg.ybottom);  
-sg_first_xpixel=sg.xleft+4*text_width;
 sg_last_xpixel=sg.xright-2;
-
 sg_interleave_ratio=0.8F;
 make_sg_siz();
 max_sg_averages=baseband_size/(2*sg_siz)-1;
@@ -749,7 +748,7 @@ sg_default:
   sg.xscale=0;
   sg.ytop=screen_height/2;
   sg.ybottom=sg.ytop+8.5*text_height;
-  sg.mode=0;
+  sg.mode=1;
   sg.avg=40;
   sg.fft_n=12;
   sg.ymax=0;
@@ -768,6 +767,8 @@ if(sg.mode < 0 ||
    sg.xgain > 900 ||
    sg.xscale < 0 ||
    sg.xscale > 1 ||
+   sg.fft_n < 9 ||
+   sg.fft_n > 22 ||
    sg.check != SG_VERNR)goto sg_default;
 set_ytop2();
 siganal_graph_scro=no_of_scro;

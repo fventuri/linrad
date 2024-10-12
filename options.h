@@ -164,6 +164,7 @@
 // Linrad can display buffer usage as bars on screen when "T"
 // is pressed to provide timing info. This option is however
 // rather time-consuming and not often helpful 
+// Look for info in bufbars.h
 //#define BUFBARS TRUE
 #define BUFBARS FALSE
 #include "bufbars.h"
