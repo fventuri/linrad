@@ -654,8 +654,11 @@ lir_refresh_screen();
 fft3_show_time=current_time();
 fft1_show_time=fft3_show_time;
 if(kill_all_flag) goto normal_rx_x;
-sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
-if(kill_all_flag) goto normal_rx_x;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
+  {
+  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+  if(kill_all_flag) goto normal_rx_x;
+  }
 linrad_thread_create(THREAD_USER_COMMAND);
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_NARROWBAND_DSP);
@@ -941,7 +944,10 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   }
 if(!kill_all_flag)disable_extio();
 free_semaphores();
-sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
+  {
+  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+  }
 }
 
 void prompt_reason(char *s)
@@ -2867,13 +2873,19 @@ switch ( lir_inkey )
 
   case 'U':
 setad:;
-  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+  if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
+    {
+    sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+    }
   sys_func(THRFLAG_SET_RX_IO);
   if(kill_all_flag) goto menu_x;
   verify_network(FALSE);
   save_uiparm();
   uiparm_change_flag=TRUE;
-  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+  if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
+    {
+    sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
+    }
   break; 
 
   case 'V':
@@ -3278,7 +3290,10 @@ menu_x:;
 if(mg_meter_file != NULL)fclose(mg_meter_file);
 close_mouse();
 close_network_sockets();
-if(portaudio_active_flag)sys_func(THRFLAG_PORTAUDIO_STOP);
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
+  {
+  if(portaudio_active_flag)sys_func(THRFLAG_PORTAUDIO_STOP);
+  }
 linrad_thread_stop_and_join(THREAD_SYSCALL);
 free_buffers();
 lir_mutex_destroy();

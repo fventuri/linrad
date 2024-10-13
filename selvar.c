@@ -209,6 +209,7 @@ int ag_ss;
 
 float fftx_points_per_hz;
 double hwfreq;
+double old_hwfreq;
 double mix1_selfreq[MAX_MIX1];
 double old_mix1_selfreq;
 int mix1_curx[MAX_MIX1];

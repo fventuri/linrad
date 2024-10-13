@@ -1018,13 +1018,13 @@ void elektor_rx_amp_control(void)
 }
 
 void update_elektor_rx_frequency()
-{ static double old_hwfreq=0.0;
+{ static double old_freq=0.0;
 
 //fprintf( stderr,"update-freq() cntrfreq=%f, hwfreq=%f\n",fg.passband_center,hwfreq);
   // This routine is called from the screen thread.
-  if ( fabs(old_hwfreq-hwfreq) > 0.001 )
+  if ( fabs(old_freq-hwfreq) > 0.001 )
   { Setup_Preselector();
-    old_hwfreq = hwfreq;
+    old_freq = hwfreq;
   show_elektor_parms();
   }
 }

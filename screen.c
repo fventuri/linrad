@@ -579,6 +579,7 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_ELEKTOR && diskread_flag < 2)
   update_elektor_rx_frequency();
   }
 hwfreq+=0.001F*fg_truncation_error;
+old_hwfreq=hwfreq;
 if(fft1_correlation_flag <= 1)
   {
   if(bg_hz_per_pixel < 0.1)
@@ -603,7 +604,10 @@ ib=freq_readout_x2;
 n=(ib-ia)/text_width;
 if(n >= k)
   {
-  lir_fillbox(ia-1,freq_readout_y1,ib-ia+2,text_height+1,0);
+  if(hwfreq != old_hwfreq)
+    {
+    lir_fillbox(ia-1,freq_readout_y1,ib-ia+2,text_height+1,0);
+    }
   if(j > n)j=n;
   s[j]=0;
   ia+=text_width*(n-j)/2;
@@ -2846,7 +2850,6 @@ if(all)
             }
           }          
         }
-
       show_button(&bgbutt[BG_TOGGLE_AGC],s);
       if(kill_all_flag) return;
       if( bg_expand == 0 )
@@ -3574,7 +3577,7 @@ else
 
 void make_fft3_scale(void)
 {
-int i, j, ix1;
+int i, j;
 int old;
 float t1, scale_value, scale_y;
 double db_scalestep;
@@ -3630,7 +3633,6 @@ daout_gain_y=(bg_y0+bg_ymax)/2-t1*(bg_y0-bg_ymax);
 make_daout_gain();
 update_bar(bg_vol_x1,bg_vol_x2,bg_y0,daout_gain_y,old,
                                                  BG_GAIN_COLOR,bg_volbuf);
-ix1=bgbutt[BG_SQUELCH_LEVEL].x1;
 for(i=0; i<screen_height; i++)bg_background[i]=0;
 db_scalestep=1.3*bg.db_per_pixel*text_height;
 adjust_scale(&db_scalestep);
@@ -3669,7 +3671,6 @@ while( scale_y > bg_ymax)
     }
   scale_y-=db_scalestep/bg.db_per_pixel;
   scale_value+=db_scalestep;
-  freq_readout_x2=ix1-text_width;  
   }
 for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   {
@@ -4178,7 +4179,6 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
   if(sd[SC_SHOW_SIGANAL_INFO]!=sc[SC_SHOW_SIGANAL_INFO])
     {
     sd[SC_SHOW_SIGANAL_INFO]=sc[SC_SHOW_SIGANAL_INFO];
-
     if(skip_siganal)
       {
       settextcolor(12);

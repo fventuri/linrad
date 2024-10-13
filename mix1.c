@@ -989,11 +989,11 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
     if(ib < mm*fft1_first_point-kk)ib=mm*fft1_first_point-kk;
     for(i=n; i<ib; i++)fftn_tmp[i]=0;
     for(i=ib; i<n2; i++)fftn_tmp[i]=x[i];
-    if(fft1_correlation_flag >= 2)
+    if(mix1_selfreq[ss] != old_mix1_selfreq)
       {
-      if(mix1_selfreq[ss] != old_mix1_selfreq)
+      old_mix1_selfreq=mix1_selfreq[ss];
+      if(fft1_correlation_flag >= 2)
         {
-        old_mix1_selfreq=mix1_selfreq[ss];
 // Wait for fft3 and mix2 threads to wait at the semaphores.
         while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT || 
               thread_status_flag[THREAD_FFT3] != THRFLAG_SEM_WAIT)
@@ -1021,8 +1021,11 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
         baseb_py=0;
         baseb_px=0;
         baseb_fx=0;
-        skip_siganal=1;
-        sc[SC_SHOW_SIGANAL_INFO ]++;
+        if(fft1_correlation_flag == 2)
+          {        
+          skip_siganal=1;
+          sc[SC_SHOW_SIGANAL_INFO ]++;
+          }
         }
       }  
     do_mix1(ss,0);

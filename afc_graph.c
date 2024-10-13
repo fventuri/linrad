@@ -363,6 +363,11 @@ void make_afc(void)
 {
 int i, np, kk;
 float t1, current_selfreq;
+if(old_mix1_selfreq != mix1_selfreq[0])
+  {
+  baseb_reset_counter++;
+  return;
+  }
 // Find a signal.
 // Or follow a signal on which we already are locked.
 // Depending on mix1_status:

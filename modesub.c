@@ -238,6 +238,7 @@ mg_meter_file=NULL;
 fft1_skip_flag=1;
 vgf_freq=NULL;
 old_mix1_selfreq=-1;
+old_hwfreq=-2;
 }
  
 int skip_calibration(void)

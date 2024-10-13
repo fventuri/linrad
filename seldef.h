@@ -218,6 +218,7 @@ extern float mix1_good_freq[MAX_MIX1];
 
 extern float fftx_points_per_hz;
 extern double hwfreq;
+extern double old_hwfreq;
 
 
 void make_afc(void);

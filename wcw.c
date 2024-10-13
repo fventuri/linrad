@@ -1232,8 +1232,8 @@ nn=0;
 t1=current_time()-q_time;
 sprintf(s,"\n%.4f %4s timf1(%d,%d) fft1(%d,%d) timf3(%d,%d) fft3(%d,%d) baseb(%d,%d) rxout(%d,%d) DA %d",
         t1,ss,i,i1,j,jj,k,k1,l,l1,m,m1,n,n1,nn );
-fprintf(dmp,"%s",s);
-fflush(dmp);
+fprintf( dmp,"%s",s);
+fflush( dmp);
 }
 
 
@@ -1593,6 +1593,7 @@ do_baseb_reset:;
       old_mix1_selfreq=mix1_selfreq[0];
       new_baseb_flag=3;
       skip_siganal=0;
+      old_hwfreq=-2;
       init_baseband_sizes();
       make_baseband_graph(TRUE);
       allow_audio=FALSE;

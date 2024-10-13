@@ -2587,7 +2587,7 @@ switch (mouse_active_flag-1)
       new_bg_coherent=bg_coherent+1;
       }
     }  
-  goto finish2;
+  break;
 
   case  BG_TOGGLE_PHASING:
   if(fft1_correlation_flag <= 1)
@@ -2599,7 +2599,7 @@ switch (mouse_active_flag-1)
       if(new_bg_delay == 0)new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);
       }
     }
-  goto finish2;
+  break;
 
   case BG_TOGGLE_TWOPOL:
   if(fft1_correlation_flag <= 1)
@@ -2611,7 +2611,7 @@ switch (mouse_active_flag-1)
       if(new_bg_twopol == 0)new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);
       }
     }  
-  goto finish2;
+  break;
 
   case  BG_TOGGLE_CHANNELS:
   new_daout_channels=rx_daout_channels+1; 
@@ -2639,7 +2639,7 @@ switch (mouse_active_flag-1)
     {
     new_bg_agc_flag=bg.agc_flag+1;
     }
-  goto finish2;
+  break;
   
   case BG_SEL_COHFAC:
   mouse_active_flag=1;
@@ -3945,6 +3945,7 @@ if(fft1_correlation_flag <= 1)
       freq_readout_x1=ix2;
       }
     }
+    
   ix2=bg.xright-2;
   ix1=ix2-3*text_width/2;
   bgbutt[BG_MIXER_MODE].x1=ix1;
@@ -3981,9 +3982,15 @@ if(fft1_correlation_flag <= 1)
   bgbutt[BG_SQUELCH_LEVEL].y1=iy1;
   bgbutt[BG_SQUELCH_LEVEL].y2=iy2;
   squelch_turnon_time=current_time();
+  freq_readout_x1+=text_width;  
+  freq_readout_x2=ix1-2;
+  }
+else
+  {
+  freq_readout_x1=bg.xleft+6*text_width;;
+  freq_readout_x2=bg.xright-6*text_width;
   }
 freq_readout_y1=bg.yborder+2;
-freq_readout_x1+=text_width;  
 squelch_on=-2;
 sc[SC_FFT3_SCALE]++;
 // *************  Make button to select no of channels for mono modes
@@ -4074,13 +4081,6 @@ if(fft1_correlation_flag <= 1)
     bgbutt[BG_TOGGLE_TWOPOL].y1=iy1;
     bgbutt[BG_TOGGLE_TWOPOL].y2=iy2;
     }
-  }  
-else
-  {
-  i=(bg.xright-bg.xleft)/2;
-  i+=bg.xleft;
-  freq_readout_x1=i-8*text_width;
-  freq_readout_x2=i+8*text_width;
   }  
 make_bg_yfac();
 if(fft1_correlation_flag < 1)
