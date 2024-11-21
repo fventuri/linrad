@@ -599,11 +599,11 @@ typedef enum
 
 /*
  * sample frequency in kHz
- * values between 2MHz and 10.66MHz are permitted. Decimation can be used
+ * values between 2MHz and 10MHz are permitted. Decimation can be used
  * to obtain lower sample rates.
  */
 #define SDRPLAY3_MIN_RATE 2000
-#define SDRPLAY3_MAX_RATE 10660
+#define SDRPLAY3_MAX_RATE 10000
 
 /*
  * frequency range in kHz
