@@ -1573,7 +1573,9 @@ do_baseb_reset:;
     if(thread_status_flag[THREAD_FFT3] == THRFLAG_SEM_WAIT)
                                             lir_set_event(EVENT_FFT3);
     if(thread_status_flag[THREAD_MIX2] == THRFLAG_SEM_WAIT)
-                                            lir_set_event(EVENT_MIX2);
+    {
+    lir_set_event(EVENT_MIX2);
+    }
     if(thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_SEM_WAIT)
                                             lir_set_event(EVENT_BASEB);
     i=0;
@@ -1606,13 +1608,11 @@ do_baseb_reset:;
         fft1_px=fft1_pa;
         }
       else
-        {  
+        {
         fft2_ref=fft2_na;
-        fft2_nb=fft2_pa;
         fft2_nc=fft2_na;
-        fft2_nm=fft2_na;
         fft2_nx=fft2_na;
-        fft2_pt=fft2_pa;
+        make_hires_graph(TRUE);
         }        
       timf3_pa=0;
       timf3_px=0;
@@ -1756,12 +1756,9 @@ clear_select:;
         fft1_nc=fft1_nb;
         }
       else
-        {  
-        fft2_nb=fft2_na;
+        {
         fft2_nc=fft2_na;
-        fft2_nm=fft2_na;
         fft2_nx=fft2_na;
-        fft2_pt=fft2_pa;
         }
       timf3_px=timf3_pa;
       timf3_py=timf3_pa;
@@ -1886,12 +1883,9 @@ clear_select:;
       {
       if(t1 > -0.2)
         {
-        if(!audio_dump_flag)
-          {
-          thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_ACTIVE;
-          lir_sched_yield();
-          lir_set_event(EVENT_RX_START_DA);
-          }
+        thread_command_flag[THREAD_RX_OUTPUT]=THRFLAG_ACTIVE;
+        lir_sched_yield();
+        lir_set_event(EVENT_RX_START_DA);
         new_baseb_flag=1;
         }
       }
@@ -1931,12 +1925,20 @@ clear_select:;
   timf2_pb=timf2_pn2;
   sc[SC_BG_WATERF_REDRAW]+=3;
 narend:;
+  if(baseb_errmsg != NULL)
+    {
+    if(baseb_errmsg_time+3-recent_time < 0)
+    baseb_errmsg=NULL; 
+    sc[SC_FFT3_SCALE]++;
+    sc[SC_SHOW_FFT3]++;
+    }
   if(fft1_correlation_flag == 2)
     {
     baseb_py=baseb_pa;
     if(new_baseb_flag > 0)
       {
       corrpow_cnt=0;
+      corrpow_reset=fft1corr_reset_flag;
       corr_afc_count=MAX_CORR_AFC_COUNT-1;
       }
     }

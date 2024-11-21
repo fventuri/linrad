@@ -353,6 +353,7 @@ if(j==1)
   lir_text(5,line,s);
   line+=2;
   lir_text(7,line,press_any_key);
+  await_processed_keyboard();
   return k;
   }
 lir_text(5,line,"Select dll file by line number =>");
@@ -429,8 +430,6 @@ if(pa_libhandle != NULL)
   }
 }
 #endif
-
-
 
 #if(OSNUM == OSNUM_LINUX)
 #include <dlfcn.h>
@@ -519,8 +518,6 @@ if(pa_libhandle != NULL)
 #if(OSNUM == OSNUM_WINDOWS)
 int pa_linux_realtime=0;
 #endif
-
-
 
 /// This routine will be called by the PortAudio engine when audio is needed.
 /// It may be called at interrupt level on some machines so don't do anything
@@ -829,16 +826,6 @@ else
 return paContinue;
 }
 
-void portaudio_stop(void)
-{
-if(portaudio_active_flag == FALSE)
-  {
-  lirerr(711401);
-  return;
-  }
-Pa_Terminate();
-}
-
 void open_portaudio_rxad(void)
 {
 PaStreamParameters  rxadParameters;
@@ -1131,14 +1118,15 @@ sprintf((char*)(pa_device_hostapi),"%s"," ");
 *pa_device_min_channels=0;
 minInputChannels=0;
 minOutputChannels=0;
-
-
+/* Many years ago (now 2024) several devices had to be disabled.
+   Skip this code and await reports of any problematic devices.
+   Probably a problematic hardware gets different numbers on different
+   systems this strategy does not seem particularly clever.
 
 #if OSNUM == OSNUM_LINUX
 #if DUMPFILE == TRUE
 if(sound_type == RXAD || sound_type == TXAD)
-  {
-/*  
+  {  
   if(n == 8 ||
      n == 9 ||
      n == 10 ||
@@ -1155,7 +1143,6 @@ if(sound_type == RXAD || sound_type == TXAD)
     fprintf( dmp,"\nWARNING Portaudio input device %d disabled in pa.c",n);
     return -1;
     }
-*/
   }
 else
   {
@@ -1173,8 +1160,7 @@ else
   }
 #endif
 #endif
-
-
+*/
 if(n >= Pa_GetDeviceCount() ) return -1;
 deviceInfo = Pa_GetDeviceInfo(n);
 if (deviceInfo->maxOutputChannels==0 && 
@@ -1987,60 +1973,71 @@ id=lir_get_integer(21,line[0],2, 0, k-1);
 return 0;
 }
 
-int portaudio_startstop(void)
+int portaudio_start(int caller)
 {
 PaErrorCode err;
+if(portaudio_active_flag == TRUE)
+  {
+  DEB"\nportaudio_start(%d) but already running",caller);
+  lirerr(1479);
+  return FALSE;
+  } 
 if( (ui.use_alsa&PORTAUDIO_RX_IN) != 0 ||
     (ui.use_alsa&PORTAUDIO_RX_OUT) != 0 ||
     (ui.use_alsa&PORTAUDIO_TX_IN) != 0 ||
     (ui.use_alsa&PORTAUDIO_TX_OUT) != 0 )
   {
-  if(portaudio_active_flag == FALSE)
+  if(load_pa_library() != 0)
     {
-    if(load_pa_library() != 0)
-      {
-      return FALSE;
-      }
+    return FALSE;
+    }
 #if(OSNUM == OSNUM_LINUX)
-    if(pa_linux_jack == 1)
-      {
-      PaJack_SetClientName(linrad_name);
-      }
+  if(pa_linux_jack == 1)
+    {
+    PaJack_SetClientName(linrad_name);
+    }
 #endif
-    err=Pa_Initialize();
-    if(err != paNoError )
-      {
+  err=Pa_Initialize();
+  if(err != paNoError )
+    {
 #if(OSNUM == OSNUM_WINDOWS)
-      lirerr(1415);
+    lirerr(1415);
 #endif
 #if(OSNUM == OSNUM_LINUX)
-      lirerr(1416);
+    lirerr(1416);
 #endif
-      return FALSE;
-      }
-    if(pa_version != 0)
-      {
-      DEB"\nPortAudio ver %d \n%s\n", Pa_GetVersion(),Pa_GetVersionText());
-      }
-    else
-      {
-      DEB"\nOld PortAudio no support for version info\n");
-      }
-    portaudio_active_flag=TRUE;
+    return FALSE;
+    }
+  if(pa_version != 0)
+    {
+    DEB"\nPortAudio ver %d \n%s\n", Pa_GetVersion(),Pa_GetVersionText());
     }
   else
     {
-    err=Pa_Terminate();
-    if(err != paNoError)
-      {
-      lirerr(847298);
-      return FALSE;
-      }
-    portaudio_active_flag=FALSE;
-    unload_pa_library();
+    DEB"\nOld PortAudio no support for version info\n");
     }
+  portaudio_active_flag=TRUE;
   }
 return TRUE;
+}
+
+void portaudio_stop(int caller)
+{
+PaErrorCode err;
+if(portaudio_active_flag == FALSE)
+  {
+  DEB"\nportaudio_stop(%d) but not running",caller);
+  lirerr(1480);
+  return;
+  } 
+err=Pa_Terminate();
+if(err != paNoError)
+  {
+  lirerr(846198);
+  return;
+  }
+portaudio_active_flag=FALSE;
+unload_pa_library();
 }
 
 void open_portaudio_txad(void)

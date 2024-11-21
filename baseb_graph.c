@@ -2617,7 +2617,7 @@ switch (mouse_active_flag-1)
   new_daout_channels=rx_daout_channels+1; 
   if(new_daout_channels>ui.rx_max_da_channels)
                                      new_daout_channels=ui.rx_min_da_channels;
-  goto finish2;
+  goto finish;
 
   case BG_TOGGLE_CH2_PHASE:
   if(  baseb_channels == 1  && 
@@ -2632,7 +2632,7 @@ switch (mouse_active_flag-1)
   case  BG_TOGGLE_BYTES:
   new_daout_bytes=rx_daout_bytes+1;
   if(new_daout_bytes>ui.rx_max_da_bytes)new_daout_bytes=ui.rx_min_da_bytes;
-  goto finish2;
+  goto finish;
 
   case BG_TOGGLE_AGC:
   if(genparm[CW_DECODE_ENABLE] == 0)
@@ -3060,20 +3060,6 @@ else
 mouse_active_flag=1;
 }
 
-void fft3_size_error(char *txt)
-{  
-int i;
-settextcolor(15);
-i=bg.yborder;
-while(i<bg.ybottom-text_height)
-  {
-  lir_pixwrite(bg.xleft+5*text_width,i,"LIMIT");
-  lir_pixwrite(bg.xleft+12*text_width,i,txt);
-  i+=text_height;
-  }
-settextcolor(7);
-}
-
 void init_baseband_sizes(void)
 {
 int bcha, coh, twop, dela;
@@ -3256,6 +3242,8 @@ int ix1,ix2,iy1,iy2,ib,ic;
 float t1, t2, t3, t4, x1, x2;
 double dt1, dt2, dt3, dt4;
 pause_thread(THREAD_SCREEN);
+baseb_errmsg=NULL;
+baseb_errmsg_time=current_time();
 if(clear_old)
   {
   hide_mouse(bg_old_x1,bg_old_x2,bg_old_y1,bg_old_y2);
@@ -3336,7 +3324,7 @@ while(fft3_size < bg_xpoints)fft3_size<<=1;
 if(fft3_size > 0x10000  && fft1_correlation_flag != 2)
   {
   fft3_size=0x10000;
-  fft3_size_error("Max N = 16");
+  baseb_errmsg="Max N = 16";
   }
 sizold=fft3_size;  
 while(2*fft3_size*ui.rx_rf_channels+timf3_block > 0.8*timf3_size)fft3_size/=2;
@@ -3345,18 +3333,18 @@ if(sizold != fft3_size)
   sizold=fft3_size;  
   if(genparm[SECOND_FFT_ENABLE] == 0)
     {
-    fft3_size_error("fft1 storage time");
+    baseb_errmsg="fft1 storage time";
     }
   else
     {  
-    fft3_size_error("fft2 storage time");
+    baseb_errmsg="fft2 storage time";
     }
   }
 while(2*fft3_size/timf3_sampling_speed > 
                                genparm[BASEBAND_STORAGE_TIME])fft3_size/=2;
 if(sizold != fft3_size)
   {
-  fft3_size_error("baseband storage time");
+  baseb_errmsg="baseband storage time";
   }
 new_fft3:;
 while(fft3_size < bg_xpoints)
@@ -3420,7 +3408,7 @@ else
 if(t1*k > (float)(0x4FFFFFFF))
   {
   fft3_size/=2;
-  fft3_size_error("RAM memory");
+  baseb_errmsg="fft3 > 0x4FFFFFFF";
   if(fft3_size >= bg_xpoints)
     {
     goto new_fft3;
@@ -3471,7 +3459,7 @@ if(fft1_correlation_flag > 1)
   mem( 112,&d_bg_binshape,fft3_size*sizeof(double),0);
   if(fft1_correlation_flag == 2)
     {
-    mem( 113,&fft3_cleansum,4*bg_xpoints*sizeof(float),0);
+    mem( 113,&fft3_cleansum,2*fft3_size*sizeof(float),0);
     }
   }
 else
@@ -3508,7 +3496,7 @@ fft3_totmem=memalloc(&fft3_handle,"fft3");
 if(fft3_totmem == 0)
   {
   fft3_size/=2;
-  fft3_size_error("RAM memory");
+  baseb_errmsg="RAM memory";
   if(fft3_size >= bg_xpoints)
     {
     goto new_fft3;

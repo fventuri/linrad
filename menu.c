@@ -123,6 +123,13 @@ if(!freq_from_file)
   read_freq_control_data();
   }
 check_filtercorr_direction();
+i=TRUE;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)i=portaudio_start(2);
+if(i == FALSE)
+  {
+  lir_status=LIR_DLL_FAILED;
+  return;
+  }
 init_semaphores();
 init_wide_graph();
 if( genparm[SECOND_FFT_ENABLE] != 0 )init_blanker();
@@ -276,10 +283,12 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   close_afedriusb_control();  
   }
 free_semaphores();
+if(portaudio_active_flag == TRUE)portaudio_stop(2);
 }
 
 void tune_wse_routine(void)
 {
+int i;
 usercontrol_mode=USR_TUNE;
 genparm[SECOND_FFT_ENABLE]=0;
 get_wideband_sizes();
@@ -297,9 +306,16 @@ if(     (ui.rx_input_mode&IQ_DATA) == 0 ||
   await_processed_keyboard();
   lir_status=LIR_TUNEERR;
   return;
-   } 
+  } 
 get_buffers(1);
 if(kill_all_flag || lir_status != LIR_OK)return;
+i=TRUE;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)i=portaudio_start(3);
+if(i == FALSE)
+  {
+  lir_status=LIR_DLL_FAILED;
+  return;
+  }
 // Collect data during TUNETIME seconds.
 #define TUNETIME 0.1
 tune_bytes=96000*TUNETIME;
@@ -347,17 +363,26 @@ if((ui.network_flag&NET_RX_OUTPUT)!=0)
                           linrad_thread_stop_and_join(THREAD_NETWORK_SEND);
 linrad_thread_stop_and_join(THREAD_TUNE);
 tune_x:;
+if(portaudio_active_flag == TRUE)portaudio_stop(3);
 free_semaphores();
 }
 
 void rx_adtest_routine(void)
 {
+int i;
 usercontrol_mode=USR_ADTEST;
 genparm[SECOND_FFT_ENABLE]=0;
 get_wideband_sizes();
 if(kill_all_flag)return;
 get_buffers(1);
 if(kill_all_flag || lir_status != LIR_OK)return;
+i=TRUE;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)i=portaudio_start(4);
+if(i == FALSE)
+  {
+  lir_status=LIR_DLL_FAILED;
+  return;
+  }
 init_semaphores();
 linrad_thread_create(rx_input_thread);
 lir_sleep(100000);
@@ -380,12 +405,20 @@ if((ui.network_flag&NET_RX_OUTPUT)!=0)
 linrad_thread_stop_and_join(rx_input_thread);
 linrad_thread_stop_and_join(THREAD_RX_ADTEST);
 adtest_x:;
+if(portaudio_active_flag == TRUE)portaudio_stop(4);
 free_semaphores();
 }
 
 void txtest_routine(void)
 {
 int i;
+i=TRUE;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)i=portaudio_start(5);
+if(i == FALSE)
+  {
+  lir_status=LIR_DLL_FAILED;
+  return;
+  }
 usercontrol_mode=USR_TXTEST;
 if(ui.network_flag != 0 || diskread_flag != 0)
   {
@@ -536,6 +569,7 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   {
   close_afedriusb_control();  
   }
+if(portaudio_active_flag == TRUE)portaudio_stop(5);
 free_semaphores();
 }
 
@@ -556,6 +590,13 @@ usercontrol_mode=USR_NORMAL_RX;
 #if OSNUM == OSNUM_LINUX
 for (i = 0; i<THREAD_MAX; i++)thread_pid[i] = 0;
 #endif
+i=TRUE;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)i=portaudio_start(6);
+if(i == FALSE)
+  {
+  lir_status=LIR_DLL_FAILED;
+  return;
+  }
 init_semaphores();
 enable_extio();
 if(kill_all_flag) goto normal_rx_x;
@@ -654,11 +695,6 @@ lir_refresh_screen();
 fft3_show_time=current_time();
 fft1_show_time=fft3_show_time;
 if(kill_all_flag) goto normal_rx_x;
-if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
-  {
-  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
-  if(kill_all_flag) goto normal_rx_x;
-  }
 linrad_thread_create(THREAD_USER_COMMAND);
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_NARROWBAND_DSP);
@@ -944,10 +980,7 @@ if(ui.rx_soundcard_radio == RX_SOUNDCARD_RADIO_AFEDRI_USB &&
   }
 if(!kill_all_flag)disable_extio();
 free_semaphores();
-if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
-  {
-  sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
-  }
+if(portaudio_active_flag == TRUE)portaudio_stop(6);
 }
 
 void prompt_reason(char *s)
@@ -1405,6 +1438,14 @@ int single_run;
 int i, ia, ib, ic;
 float t1,t2;
 calibrate_flag = 1;
+i=TRUE;
+if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)i=portaudio_start(7);
+if(i == FALSE)
+  {
+  lir_status=LIR_DLL_FAILED;
+  return;
+  }
+
 // **************************************************************
 // Set fft1_direction positive.
 // The calibration routine does not want to know if the fft1 routine
@@ -1736,6 +1777,7 @@ cal_skip:;
 disable_extio();
 memcheck(199,calmem,&calmem_handle);
 calmem_handle=chk_free(calmem_handle);
+if(portaudio_active_flag == TRUE)portaudio_stop(7);
 free_buffers();
 }
 
@@ -2640,7 +2682,15 @@ else
   else
     {
     to_upper_await_keyboard();
-    if(kill_all_flag) goto menu_x;
+    if(lir_inkey==X_ESC_SYM)
+      {
+      kill_all();
+      while(!kill_all_flag)
+        {
+        lir_sleep(1000);
+        }
+      goto menu_x;
+      }
     }
   }
 qt0();  
@@ -2793,7 +2843,6 @@ switch ( lir_inkey )
   if(ui.operator_skil != OPERATOR_SKIL_NEWCOMER)
     {
     lir_fillbox(0,0,screen_width,screen_height,0);
-
     int jj=0;
     int kk=0;
     unsigned char ii;
@@ -2873,19 +2922,11 @@ switch ( lir_inkey )
 
   case 'U':
 setad:;
-  if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
-    {
-    sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
-    }
   sys_func(THRFLAG_SET_RX_IO);
   if(kill_all_flag) goto menu_x;
   verify_network(FALSE);
   save_uiparm();
   uiparm_change_flag=TRUE;
-  if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
-    {
-    sys_func(THRFLAG_PORTAUDIO_STARTSTOP);
-    }
   break; 
 
   case 'V':
@@ -3101,7 +3142,10 @@ do_normal_rx:;
       save_uiparm();
       uiparm_change_flag=TRUE;
       }
-    if(lir_status == LIR_DLL_FAILED)goto menu_loop;
+    if(lir_status == LIR_DLL_FAILED)
+      {
+      goto menu_loop;
+      }
     break;
 
     case MODE_TXTEST:
@@ -3290,10 +3334,6 @@ menu_x:;
 if(mg_meter_file != NULL)fclose(mg_meter_file);
 close_mouse();
 close_network_sockets();
-if(ui.use_alsa && PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT)
-  {
-  if(portaudio_active_flag)sys_func(THRFLAG_PORTAUDIO_STOP);
-  }
 linrad_thread_stop_and_join(THREAD_SYSCALL);
 free_buffers();
 lir_mutex_destroy();

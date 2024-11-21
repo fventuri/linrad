@@ -4,6 +4,27 @@
 // !!                                                         !!
 // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 // ************************************************************
+//                ----  Debug tool  ----
+// Set DUMPFILE to TRUE to get debug info in the files dmp,dmp1,dmp2 and dmp3.
+// Use xz("string"); to get traces from code execution
+// or make explicit writes to dmp. xz() will call
+// fflush() and sync() and thus it contains information
+// just before a crash that would otherwise not have been 
+// physically written to the disk. 
+// If you trace crashes, use fprintf(dmp,"%d.....",variables)
+// followed by xz(" "); to physically write to disk.
+// (Do not use xz() if you want fast processing)
+
+// WARNING!! enabling dump file will skip testing of some
+// portaudio devices. Those devices cause a crash on assert error
+// due to a bug in ALSA. See pa.c 
+
+//#define DUMPFILE TRUE
+#define DUMPFILE FALSE
+
+// Functions deb_timing_info, xx,qt0,qt1,qt2,qq,qq1,qq2 and qq3 
+// may be helpful.
+// ************************************************************
 //    --- Set the colour of crearscreen. ---
 // Normally clear_screen() gives a black screen. By setting 
 // something else one can get a memory function into spectrum graphs.
@@ -110,25 +131,6 @@
 // symbol table option
 // ************************************************************
 //                ----  Debug tool  ----
-// Set DUMPFILE to TRUE to get debug info in the file dmp.
-// Use xz("string"); to get traces from code execution
-// or make explicit writes to dmp. xz() will call
-// fflush() and sync() and thus it contains information
-// just before a crash that would otherwise not have been 
-// physically written to the disk. 
-// If you trace crashes, use fprintf(dmp,"%d.....",variables)
-// followed by xz(" "); to physically write to disk.
-// (Do not use xz() if you want fast processing)
-
-// WARNING!! enabling dump file will skip testing of some
-// portaudio devices. Those devices cause a crash on assert error
-// due to a bug in ALSA. See pa.c 
-
-//#define DUMPFILE TRUE
-#define DUMPFILE FALSE
-
-// ************************************************************
-//                ----  Debug tool  ----
 // Set PERS_DEBUG to 1 to get error messages from libusb and the
 // intrface routines in Linrad. These errors would appear on stdout
 // when a Perseus is used under Linux only.
@@ -228,7 +230,7 @@
 // **********************************************************************
 // Show the frequency difference between the channels in the Allan window,
 // (correlation_flag = 3)
-//#define SHOW_ALLAN_FREQDIFF TRUE
-#define SHOW_ALLAN_FREQDIFF FALSE
+#define SHOW_ALLAN_FREQDIFF TRUE
+//#define SHOW_ALLAN_FREQDIFF FALSE
 // **********************************************************************
 

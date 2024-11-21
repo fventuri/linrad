@@ -170,6 +170,8 @@ unsigned char morsascii6[64]={
  243,//_____.
 243};//______
 
+double baseb_errmsg_time;
+char *baseb_errmsg;
 char fft3_level[12]="           ";
 char fft3_skip[32]="            ";
 
@@ -380,6 +382,7 @@ int sg_ytop2;
 double sg_reset_time;
 int sg_valid;
 int corrpow_cnt;
+int corrpow_reset;
 
 int fftn_tmp_size;
 double *sg_fft;

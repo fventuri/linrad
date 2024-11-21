@@ -1,8 +1,8 @@
 #define GENPARM_VERNR 10415
-#define PROGRAM_NAME "Linrad-06.00pre-r1072"
+#define PROGRAM_NAME "Linrad-06.00pre-r1076"
 #define DLL_VERSION_NUMBER 5
 #define HELP_VERNR 65
-#define ERROR_VERNR 78
+#define ERROR_VERNR 79
 #define UI_VERNR 2230408
 #define AG_VERNR 5550024
 #define WG_VERNR 6660024

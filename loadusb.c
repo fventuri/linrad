@@ -160,8 +160,6 @@ if(strcmp(libname,"libudev.so")==0)pkg="udev";               //15
 if(strcmp(libname,"libportaudio.so")==0)pkg="portaudio";     //16
 if(strcmp(libname,"libairspyhf.so")==0)pkg="airspyhf";       //13
 
-
-
 #if BUILD == 0
 lir_text(5,line,"Run ");
 settextcolor(12);

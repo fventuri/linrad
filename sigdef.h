@@ -93,6 +93,8 @@ float im;
 // for the meter fraph
 #define DB2DBM 106
 
+extern double baseb_errmsg_time;
+extern char *baseb_errmsg;
 extern char fft3_level[12];
 extern char fft3_skip[32];
 
@@ -423,6 +425,7 @@ extern int sg_ytop2;
 extern double sg_reset_time;
 extern int sg_valid;
 extern int corrpow_cnt;
+extern int corrpow_reset;
 
 
 extern int fftn_tmp_size;

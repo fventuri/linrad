@@ -44,7 +44,8 @@ while(!kill_all_flag &&
   {
 // *******************************************************
 wait:;
-  if(thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)goto kill;
+  if(kill_all_flag || 
+     thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)goto kill;
   thread_status_flag[THREAD_FFT3]=THRFLAG_SEM_WAIT;
   lir_sched_yield();
   lir_await_event(EVENT_FFT3);
@@ -58,7 +59,8 @@ wait:;
       lir_sleep(3000);
       goto wait;;
       }
-    if(thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)goto kill;
+    if(kill_all_flag ||
+       thread_command_flag[THREAD_FFT3] == THRFLAG_KILL)goto kill;
     make_fft3_all();
     lir_sched_yield();
     }
@@ -512,12 +514,16 @@ else
   {
   if(fft1_correlation_flag == 2)
     {
+    if(fft1corr_reset_flag != corrpow_reset)
+      {
+      corrpow_reset=fft1corr_reset_flag;
+      corrpow_cnt=0;
+      } 
     d_z=&d_fft3[fft3_pa];
     if(corrpow_cnt < 100)corrpow_cnt++;
-    ia=fft3_size/2-bg_xpoints;
-    if(ia < 0)ia=0;
+    ia=fft3_size/8;
     ib=fft3_size/2-1.2*bg_carr_20db_points;
-// Compute power spectrum within the baseband window while
+// Compute power spectrum within 25% of the baseband while
 // excluding points within the carrier filter. Store in fft3_tmp
     j=0;
     for(i=ia; i<ib; i++)
@@ -616,7 +622,7 @@ else
       dt2/=dr2*i;
       }
     sprintf(fft3_level, "fft3 %6.2f",10*log10(1000*(dt1+dt2)));
-//fprintf(dmp1,"\n%s   %f   %f",fft3_level,dt1, dt2);
+//fprintf(stderr,"\n%s   %f   %f",fft3_level,dt1, dt2);
 // ö When fft3_size is large the entire transform is not much affected
 // when a glitch has occured. A better strategy would be to remove spurs
 // by zeroing the transform on all spurs besed on cleansum and then
@@ -646,9 +652,9 @@ else
       t1/=(float)sg_interleave_points/baseband_sampling_speed;
       skip_siganal=ceil(t1);
       }
-    sc[SC_SHOW_SIGANAL_INFO ]++;
     }
 corrpow_x:;        
+  if(fft1_correlation_flag == 2)sc[SC_SHOW_SIGANAL_INFO ]++;
   if(mix1_selfreq[0] != old_mix1_selfreq)return;
   k=bg_show_pa;
   iw=0;

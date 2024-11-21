@@ -108,8 +108,11 @@ lir_await_event(EVENT_BLOCKING_RXOUT);
 if(kill_all_flag) goto exit2;
 if(thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_ACTIVE)goto exit;
 lir_sched_yield();
-sys_func(THRFLAG_OPEN_RX_SNDOUT);
-lir_empty_da_device_buffer();
+if(ui.rx_dadev_no != DISABLED_DEVICE_CODE)
+  {
+  sys_func(THRFLAG_OPEN_RX_SNDOUT);
+  }
+if(rx_audio_out >= 0)lir_empty_da_device_buffer();  
 thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_ACTIVE;
 snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
 if(rxda_status != LIR_OK)
@@ -150,6 +153,7 @@ lir_sched_yield();
 min_daout_samps=daout_bufmask;
 sleep_cnt=0;
 wrnum=0;
+fflush(NULL);
 while(!kill_all_flag && 
          thread_command_flag[THREAD_BLOCKING_RXOUT]==THRFLAG_ACTIVE)
   {
@@ -228,7 +232,8 @@ if(thread_command_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE)
 // Perhaps when using OSS in RDWR mode???
 */
 idle:;
-if(rx_audio_out != -1)
+if(rx_audio_out != -1 && ui.rx_dadev_no != DISABLED_DEVICE_CODE)
+
   {
   sys_func(THRFLAG_CLOSE_RX_SNDOUT);
   while(rx_audio_out != -1)
@@ -247,7 +252,7 @@ if(thread_command_flag[THREAD_BLOCKING_RXOUT] ==
 
 exit2:;  
 thread_status_flag[THREAD_BLOCKING_RXOUT]=THRFLAG_RETURNED;
-if(rx_audio_out != -1)
+if(rx_audio_out != -1 && ui.rx_dadev_no != DISABLED_DEVICE_CODE)
   {
   sys_func(THRFLAG_CLOSE_RX_SNDOUT);
   }
@@ -278,9 +283,6 @@ double daspeed_time;
 clear_thread_times(THREAD_RX_OUTPUT);
 #endif
 blocking=TRUE;
-#if(OSNUM == OSNUM_WINDOWS)
-blocking=FALSE;
-#endif
 if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)blocking=FALSE;
 if(thread_status_flag[THREAD_RX_OUTPUT]==THRFLAG_INIT)
   {
@@ -789,7 +791,8 @@ while(!kill_all_flag &&
       }
 #endif
     }  
-  if(audio_dump_flag == 1 || rx_audio_out == -1)
+  if(audio_dump_flag == 1 || rx_audio_out == -1 ||
+            ui.rx_dadev_no == DISABLED_DEVICE_CODE)
     {
     while( ((daout_pa-daout_px+daout_size)&daout_bufmask) > 
                                                  snd[RXDA].block_bytes)
@@ -833,7 +836,7 @@ if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_IDLE)
 thread_status_flag[THREAD_RX_OUTPUT] = THRFLAG_IDLE;
 if(!blocking)
   {
-  if(rx_audio_out != -1)
+  if(rx_audio_out != -1 && ui.rx_dadev_no != DISABLED_DEVICE_CODE)
     {
     sys_func(THRFLAG_CLOSE_RX_SNDOUT);
     while(rx_audio_out != -1)
@@ -880,27 +883,30 @@ while(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)
 if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)goto exit2;
 if(!blocking)
   {
-  sys_func(THRFLAG_OPEN_RX_SNDOUT);
-  i=0;
-  while(rx_audio_out == -1)
+  if(ui.rx_dadev_no != DISABLED_DEVICE_CODE)
     {
-    if(kill_all_flag || 
+    sys_func(THRFLAG_OPEN_RX_SNDOUT);
+    i=0;
+    while(rx_audio_out == -1)
+      {
+      if(kill_all_flag || 
          thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
-    if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)
-      {
-      lirerr(679375);
-      goto exit2;
+      if(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_ACTIVE)
+        {
+        lirerr(679375);
+        goto exit2;
+        }
+      lir_sleep(20);
+      i++;
+      if(i>100000)
+        {
+        lirerr(1017);
+        goto exit2;
+        }
       }
-    lir_sleep(20);
-    i++;
-    if(i>100000)
-      {
-      lirerr(1017);
-      goto exit2;
-      }
+    snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
+    if(kill_all_flag)goto exit2;
     }
-  snd[RXDA].open_flag=CALLBACK_CMD_ACTIVE;
-  if(kill_all_flag)goto exit2;
   daout_pa=0;
   daout_px=0;
   daout_py=0;
@@ -955,7 +961,7 @@ run:;
 exit2:;
 if(!blocking)
   {
-  if(rx_audio_out != -1)
+  if(rx_audio_out != -1  && ui.rx_dadev_no != DISABLED_DEVICE_CODE)
     {
     sys_func(THRFLAG_CLOSE_RX_SNDOUT);
     while(rx_audio_out != -1)
@@ -964,7 +970,6 @@ if(!blocking)
       }
     }
   }    
-
 thread_status_flag[THREAD_RX_OUTPUT]=THRFLAG_RETURNED;
 while(thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_NOT_ACTIVE &&
       thread_command_flag[THREAD_RX_OUTPUT] != THRFLAG_KILL)

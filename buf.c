@@ -1745,7 +1745,7 @@ if(dmp!=NULL)
     }
   PERMDEB"\ntimf3_size %d, ",timf3_size);
   PERMDEB"timf3_sampling_speed %f\n",timf3_sampling_speed);
-  fflush(dmp);
+  fflush( dmp);
   }
 no_of_rx_overrun_errors=0;
 no_of_rx_underrun_errors=0;
@@ -2112,7 +2112,7 @@ if(!kill_all_flag)
   if(fft3_handle != NULL)memcheck(99,fft3mem,&fft3_handle);
   if(hires_handle != NULL)memcheck(99,hiresmem,&hires_handle);
   }
-if(dmp != NULL)fflush(dmp);
+if(dmp != NULL)fflush( dmp);
 if(diskwrite_flag == 1)
   {
   fclose(save_wr_file);

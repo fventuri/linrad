@@ -360,11 +360,16 @@ else
   {
   dmp = fopen("dmp", "w");
   dmp1 = fopen("dmp1", "w");
+  dmp2 = fopen("dmp2", "w");
+  dmp3 = fopen("dmp3", "w");
   DEB"\n******************************\n");
   }
 #else
   {  
   dmp=NULL;
+  dmp1=NULL;
+  dmp2=NULL;
+  dmp3=NULL;
   }
 #endif
 switch (screen_type)
@@ -427,10 +432,12 @@ XColor xco;
 XClassHint* classHint;
 XInitThreads();
 init_xlir();
+/* ööö  ÖÖ
 for(i=0; i<MAX_LIREVENT; i++)
   {
   lir_event_cond[i]=(pthread_cond_t) PTHREAD_COND_INITIALIZER;
-  }  
+  }
+*/    
 #if SERVER == 1
 pthread_create(&thread_identifier_html_server,NULL,
                                            (void*)thread_html_server, NULL);
@@ -1013,6 +1020,8 @@ XCloseDisplay(xdis);
 free(keyboard_buffer);
 if(dmp!=NULL)fclose(dmp);
 if(dmp1!=NULL)fclose(dmp1);
+if(dmp2!=NULL)fclose(dmp2);
+if(dmp3!=NULL)fclose(dmp3);
 #if SERVER == 1
 pthread_join(thread_identifier_html_server,0);
 #endif

@@ -207,6 +207,8 @@ int rx_channels;
 int twice_rxchan;
 FILE *dmp;
 FILE *dmp1;
+FILE *dmp2;
+FILE *dmp3;
 FILE *sndlog;
 FILE *wav_file;
 FILE *allan_file_ch1;

@@ -1,4 +1,4 @@
-000078
+000079
 [937]Size of fft larger than 65536.
 Could be caused by some bug related to the use of fft1 version 6
 Change fft1 version manually in the parameter file for the current
@@ -1147,6 +1147,10 @@ FM low pass filter filter.
 [1477]Too low samplingrate in the baseband to initialize
 FM low pass filter filter.
 [1478]Failed to open soundcard for RX input.
+[1479]Call to start Portaudio, but Portaudio already running.
+Enable DUMPFILE in options.h to see from where the call comes.
+[1480]Call to stopt Portaudio, but Portaudio not running.
+Enable DUMPFILE in options.h to see from where the call comes.
 [2600]The file par_sdrplay3 is corrupted or not consistent
 with other parameters. Use the U menu to set up your RSP device
 and do not forget to press W to save data in the main menu

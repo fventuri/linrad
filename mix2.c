@@ -54,7 +54,8 @@ while(!kill_all_flag &&
   lir_await_event(EVENT_MIX2);
   thread_status_flag[THREAD_MIX2]=THRFLAG_ACTIVE;
   lir_sched_yield();
-  while(thread_command_flag[THREAD_MIX2]==THRFLAG_ACTIVE &&
+  while(!kill_all_flag &&
+         thread_command_flag[THREAD_MIX2]==THRFLAG_ACTIVE &&
          ((fft3_pa-fft3_px+fft3_totsiz)&fft3_mask) >= fft3_block &&
         ((baseb_pa-baseb_py+baseband_size)&baseband_mask) < baseband_size-4*(int)mix2.size)
 
@@ -595,6 +596,7 @@ good_poldata:;
         }
       }
     }
+if(kill_all_flag || thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)return;
   if(bg.mixer_mode == 1)
     {
     if(fft1_correlation_flag > 1)
@@ -744,7 +746,7 @@ good_poldata:;
 */      }
     }
   }
-if(thread_command_flag[THREAD_MIX2] != THRFLAG_ACTIVE)return;
+if(kill_all_flag || thread_command_flag[THREAD_MIX2] != THRFLAG_ACTIVE)return;
 if(fm_pilot_size == 0)
   {    
   if(bg.mixer_mode == 1)
@@ -972,7 +974,7 @@ if(fm_pilot_size == 0)
       }  
     }        
   }
-if(thread_command_flag[THREAD_MIX2] != THRFLAG_ACTIVE)return;
+if(kill_all_flag || thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)return;
 if(genparm[CW_DECODE_ENABLE] != 0 && fft1_correlation_flag == 0)
   {
 // We want cw decoding. Compute baseb_wb_raw, a signal with a bandwidth
@@ -1077,7 +1079,7 @@ if(genparm[CW_DECODE_ENABLE] != 0 && fft1_correlation_flag == 0)
 last_point=(baseb_pa+mix2.new_points)&baseband_mask;
 ampfac=cg_size*daout_gain/bg_amplimit;
 // *******************************************************************
-if(thread_command_flag[THREAD_MIX2] != THRFLAG_ACTIVE)return;
+if(kill_all_flag || thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)return;
 switch (fft1_correlation_flag)
   {
   case 0:
@@ -1283,8 +1285,8 @@ switch (fft1_correlation_flag)
   case 3:
   timf3_pc=(timf3_pc+2*mix2.new_points*ui.rx_rf_channels)&timf3_mask;
   break;
-
   }
+if(kill_all_flag || thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)return;
 // **********************************************************
 // If morse decoding is enabled, compute the fourier transform
 // of the real part of baseb_wb. Since this array is not needed
@@ -1344,7 +1346,6 @@ if(genparm[CW_DECODE_ENABLE] != 0 && fft1_correlation_flag == 0)
     }
   }
 //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-
 if(fft1_correlation_flag <= 1)
   {
   cg_update_count++;
@@ -1993,7 +1994,7 @@ if(fft1_correlation_flag == 2)
       do_siganal();
       }
     if(kill_all_flag || 
-              thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)goto skip;
+              thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)return;
     }
   }
 if(fft1_correlation_flag == 3)
@@ -2010,7 +2011,7 @@ if(fft1_correlation_flag == 3)
     {
     do_allan();
     if(kill_all_flag || 
-                   thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)goto skip;
+                   thread_command_flag[THREAD_MIX2]!=THRFLAG_ACTIVE)return;
     }
   }
 skip:;

@@ -101,11 +101,17 @@ m_pBits=NULL;
 if(DUMPFILE)
   {
   dmp = fopen("dmp", "wc");
+  dmp1 = fopen("dmp1", "wc");
+  dmp2 = fopen("dmp2", "wc");
+  dmp3 = fopen("dmp3", "wc");
   DEB"\n******************************\n");
   }
 else
   {
   dmp=NULL;
+  dmp1=NULL;
+  dmp2=NULL;
+  dmp3=NULL;
   }
 dllcheck=fopen(dllversfilename,"r");
 if(dllcheck)
@@ -444,6 +450,9 @@ users_close_devices();
 lir_close_serport();
 ReleaseDC (linrad_hwnd, screen_hdc);
 if(dmp!=NULL)fclose(dmp);
+if(dmp1!=NULL)fclose(dmp1);
+if(dmp2!=NULL)fclose(dmp2);
+if(dmp3!=NULL)fclose(dmp3);
 if(parport_installed)
   {
   FreeLibrary(h_inpout);

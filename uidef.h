@@ -139,6 +139,9 @@ extern int graphics_flag;
 extern int audio_flag;
 extern FILE *dmp;
 extern FILE *dmp1;
+extern FILE *dmp2;
+extern FILE *dmp3;
+
 extern FILE *sndlog;
 extern FILE *wav_file;
 extern FILE *allan_file_ch1;
@@ -698,7 +701,8 @@ int show_rx_input_settings(int *line);
 
 
 int portaudio_startstop(void);
-void portaudio_stop(void);
+void portaudio_stop(int caller);
+int portaudio_start(int caller);
 void edit_diskread_times(void);
 
 void lir_init_event(int no);

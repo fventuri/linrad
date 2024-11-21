@@ -21,6 +21,8 @@ rm -f par*
 rm -f dsp*
 rm -f dmp
 rm -f dmp1
+rm -f dmp2
+rm -f dmp3
 rm -f save_par
 rm -f restore_par
 rm -f x.x

@@ -2628,7 +2628,7 @@ while(p0 != vgf_pa)
 for(i=0;i<32; i++)s[i]=' ';
 s[32]=0;
 lir_pixwrite(vgf_freq_xpix, vgf.ytop+text_height/2, s);
-sprintf(s,"%.7f Hz %.7f Hz %.0f%c",vg_basebfreq1,vg_basebfreq2,
+sprintf(s,"%.6f Hz %.6f Hz %.0f%c",vg_basebfreq1,vg_basebfreq2,
                                          vg_interchannel_phase,0xf7);
 lir_pixwrite(vgf_freq_xpix, vgf.ytop+text_height/2, s);
 }
@@ -3687,6 +3687,18 @@ lir_line(bfo100_xpixel, bg_y0,bfo100_xpixel,bg_y1,12);
 lir_line(flat_xpixel, bg_ymax,flat_xpixel,bg_y4-1,14);
 lir_line(curv_xpixel, bg_y4,curv_xpixel,bg_y3-1,14);
 frequency_readout();
+settextcolor(15);
+if(baseb_errmsg != NULL)
+  {
+  i=bg.yborder+text_height/2;
+  while(i<bg.ybottom-text_height)
+    {
+    lir_pixwrite(bg.xleft+5*text_width,i,"LIMIT");
+    lir_pixwrite(bg.xleft+12*text_width,i,baseb_errmsg);
+    i+=text_height;
+    }
+  settextcolor(7);
+  }
 }
 
 void screen_routine(void)

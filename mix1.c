@@ -61,6 +61,45 @@ float old_phrot_step,phrot_step;
 double dt1;
 double dt2,dt3,dt4,dr1,dr2,dr3,dr4,dw1,dw2,da1,da2;
 if(ss != 0 && fft1_correlation_flag != 0)return;
+if(mix1_selfreq[ss] != old_mix1_selfreq)
+  {
+  old_mix1_selfreq=mix1_selfreq[ss];
+  if(fft1_correlation_flag >= 2)
+    {
+// Wait for fft3 and mix2 threads to wait at the semaphores.
+while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT || 
+      thread_status_flag[THREAD_FFT3] != THRFLAG_SEM_WAIT)
+      {
+      lir_sleep(10000);
+      }
+// Clear pointers
+    timf3_pa=0;
+    timf3_px=0;
+    timf3_py=0;
+    timf3_ps=0;
+    timf3_pn=0;
+    timf3_pc=0;
+    fft3_pa=0;
+    fft3_px=0;
+    baseb_pa=0;
+    baseb_pb=0;
+    baseb_pc=0;
+    baseb_pd=0;
+    baseb_pe=0;
+    baseb_pf=0;
+    baseb_ps=0;
+    baseb_pm=0;
+    baseb_pn=0;
+    baseb_py=0;
+    baseb_px=0;
+    baseb_fx=0;
+    if(fft1_correlation_flag == 2)
+      {        
+      skip_siganal=1;
+      sc[SC_SHOW_SIGANAL_INFO ]++;
+      }
+    }
+  }  
 dfq=0;
 phrot_step=dfq*fftx_points_per_hz*2*PI_L/mix1.size;
 old_phrot_step=phrot_step_save;
@@ -989,45 +1028,6 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
     if(ib < mm*fft1_first_point-kk)ib=mm*fft1_first_point-kk;
     for(i=n; i<ib; i++)fftn_tmp[i]=0;
     for(i=ib; i<n2; i++)fftn_tmp[i]=x[i];
-    if(mix1_selfreq[ss] != old_mix1_selfreq)
-      {
-      old_mix1_selfreq=mix1_selfreq[ss];
-      if(fft1_correlation_flag >= 2)
-        {
-// Wait for fft3 and mix2 threads to wait at the semaphores.
-        while(thread_status_flag[THREAD_MIX2] != THRFLAG_SEM_WAIT || 
-              thread_status_flag[THREAD_FFT3] != THRFLAG_SEM_WAIT)
-          {
-          lir_sleep(10000);
-          }    
-// Clear pointers
-        timf3_pa=0;
-        timf3_px=0;
-        timf3_py=0;
-        timf3_ps=0;
-        timf3_pn=0;
-        timf3_pc=0;
-        fft3_pa=0;
-        fft3_px=0;
-        baseb_pa=0;
-        baseb_pb=0;
-        baseb_pc=0;
-        baseb_pd=0;
-        baseb_pe=0;
-        baseb_pf=0;
-        baseb_ps=0;
-        baseb_pm=0;
-        baseb_pn=0;
-        baseb_py=0;
-        baseb_px=0;
-        baseb_fx=0;
-        if(fft1_correlation_flag == 2)
-          {        
-          skip_siganal=1;
-          sc[SC_SHOW_SIGANAL_INFO ]++;
-          }
-        }
-      }  
     do_mix1(ss,0);
     }
   else

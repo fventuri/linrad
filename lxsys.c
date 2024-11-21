@@ -497,7 +497,7 @@ void lirerr(int errcod)
 fprintf(STDERR,"\nlir error %d",errcod);
 if(kill_all_flag) return;
 DEB"\nlirerr(%d)",errcod);
-if(dmp != 0)fflush(dmp);
+if(dmp != 0)fflush( dmp);
 lir_errcod=errcod;
 lir_set_event(EVENT_KILL_ALL);
 fflush(NULL);

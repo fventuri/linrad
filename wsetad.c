@@ -1373,22 +1373,47 @@ sndlog = fopen(rx_logfile_name, "w");
 if(sndlog == NULL)
   {
   lirerr(1016);
-  return;
+  goto set_rx_io_errexit;
   }
 write_log=TRUE;
+if(ui.use_alsa & 
+  (PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT+PORTAUDIO_TX_IN+PORTAUDIO_TX_OUT))
+  {
+  i=1;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(200);
+  lir_sched_yield();
+  if(kill_all_flag)goto set_rx_io_errexit;
+  if(!i)
+    {
+    clear_screen();
+    lir_text(5,5,"Portaudio is selected but can not start.");
+    lir_text(5,6,"Maybe a missing dll file?");
+    lir_text(5,7,"Try to re-select RX input or press ESC");
+    lir_text(10,10,press_any_key);
+    await_processed_keyboard();
+    if(kill_all_flag)goto set_rx_io_errexit;
+    ui.rx_addev_no=UNDEFINED_DEVICE_CODE;
+    ui.rx_dadev_no=UNDEFINED_DEVICE_CODE;
+    ui.tx_dadev_no=UNDEFINED_DEVICE_CODE;
+    ui.tx_addev_no=UNDEFINED_DEVICE_CODE;
+    ui.use_alsa&=~(PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT+
+                                        PORTAUDIO_TX_IN+PORTAUDIO_TX_OUT);
+    ui.use_alsa&=~PORTAUDIO_DLL_VERSION;
+    }
+  }    
+if(ui.rx_addev_no != DISABLED_DEVICE_CODE)
+  {
+  if(ui.rx_ad_channels == 0 && ui.rx_dadev_no != DISABLED_DEVICE_CODE)
+    {
+    ui.rx_addev_no=UNDEFINED_DEVICE_CODE;
+    }
+  if(ui.rx_max_da_channels == 0)
+    {
+    ui.rx_dadev_no=UNDEFINED_DEVICE_CODE;
+    }
+  }  
 begin_rx_set_io:;
 latency=0;
-i=portaudio_startstop();
-if(kill_all_flag)return;
-if(!i)
-  {
-  clear_screen();
-  lir_text(5,5,"Portaudio is selected but can not start.");
-  lir_text(5,6,"Maybe a missing dll file?");
-  lir_text(5,7,"Try to re-select RX input");
-  lir_text(10,10,press_any_key);
-  await_processed_keyboard();
-  }  
 // ******************************************************************
 // Show the current RX settings on the screen and do some validation
 // ******************************************************************
@@ -1414,7 +1439,7 @@ if(ui.use_extio != 0)
     else
       {
       lirerr(1237);
-      return;
+      goto set_rx_io_errexit;
       }  
     }        
   }  
@@ -1443,6 +1468,7 @@ if ( (ui.use_alsa&PORTAUDIO_RX_IN) != 0)
   int pa_device_max_channels;
   int pa_device_min_channels;
   asio_flag=FALSE;
+  if(portaudio_active_flag==FALSE)portaudio_start(200);
   err=pa_get_device_info (ui.rx_addev_no,
                           RXAD,
                           &pa_device_name,
@@ -1860,7 +1886,7 @@ line++;
 check_line(&line);
 lir_text(2,line,"X = To main menu.");
 await_processed_keyboard();
-if(kill_all_flag) return;
+if(kill_all_flag)goto set_rx_io_errexit;
 clear_screen();
 switch(lir_inkey)
   {
@@ -1944,6 +1970,7 @@ use_rx_sndcard:;
       if( ((ui.use_alsa&PORTAUDIO_DLL_VERSION)>>5) == 0)
         {
         i=select_portaudio_dll();
+        if(kill_all_flag)goto set_rx_io_errexit;
         if(i<0)
           {
           ui.use_alsa&=~PORTAUDIO_DLL_VERSION;
@@ -1960,8 +1987,9 @@ use_rx_sndcard:;
         goto use_rx_sndcard;
         }
       }
-    i=portaudio_startstop();
-    if(kill_all_flag)return;
+    i=1;
+    if(portaudio_active_flag==FALSE)i=portaudio_start(201);
+    if(kill_all_flag)goto set_rx_io_errexit;
     if(!i)goto use_rx_sndcard;
 //get a 'portaudio' selection list
     clear_screen();
@@ -1969,7 +1997,7 @@ use_rx_sndcard:;
       {
       asio_flag=FALSE;
       set_portaudio(RXAD, &line);
-      if(kill_all_flag)return;
+      if(kill_all_flag)goto set_rx_io_errexit;
 // Allocate a big buffer. The open routine might change the block size.
       timf1_bytes=16*snd[RXAD].block_frames;
       timf1_bytemask=timf1_bytes-1;
@@ -1977,7 +2005,7 @@ use_rx_sndcard:;
       if(timf1_char==NULL)
         {
         lirerr(23628);
-        return;
+        goto set_rx_io_errexit;
         }
       open_rx_sndin(TRUE);
       snd[RXAD].open_flag=CALLBACK_CMD_ACTIVE;
@@ -1989,7 +2017,7 @@ use_rx_sndcard:;
           "Drive routine: Open failed unexpectedly");
         line++;
         lir_text(0,line,"Try another driver for INPUT.");
-        if(kill_all_flag) return;
+        if(kill_all_flag)goto set_rx_io_errexit;
         settextcolor(7);
         line+=2;
         lir_text(15,line,press_any_key);
@@ -2067,7 +2095,7 @@ get_dev2_q:;
       sprintf(s,"Select %s device for Rx input by line number>",ss);
       lir_text(10,line,s);
       ui.rx_addev_no=lir_get_integer(61,line, 2, 0, no_of_addev-1);
-      if(kill_all_flag) return;
+      if(kill_all_flag)goto set_rx_io_errexit;
       }
     line++;
     if(line >= screen_last_line)screenerr(&line);
@@ -2085,7 +2113,7 @@ get_dev2:;
         clear_screen();
         goto get_dev2_q;
         }
-      if(kill_all_flag) return;
+      if(kill_all_flag)goto set_rx_io_errexit;
       if(lir_inkey == 'Y')
         {
         line++;
@@ -2093,7 +2121,7 @@ get_dev2:;
         lir_text(10,line,"Select a second device for Rx input>");
 dev2_n:;
         i=lir_get_integer(47,line, 2, 0, no_of_addev-1);
-        if(kill_all_flag) return;
+        if(kill_all_flag)goto set_rx_io_errexit;
         if(i==ui.rx_addev_no)goto dev2_n;
         ui.rx_addev_no+=256*(i+1);
         }
@@ -2160,14 +2188,14 @@ getfmt:;
 get_rxinrate:;
     lir_text(10,line,"Sampling speed (Hz)>");
     ui.rx_ad_speed=lir_get_integer(31,line, 6, 5000, 999999);
-    if(kill_all_flag) return;
+    if(kill_all_flag)goto set_rx_io_errexit;
     bits=16;
     if((ui.use_alsa&RXAD_USE_EXTENSIBLE) == RXAD_USE_EXTENSIBLE)
       {
 get_rxbits:;
       lir_text(40,line,"No of bits (16/24):");
       i=lir_get_integer(60,line, 2, 16, 24);
-      if(kill_all_flag) return;
+      if(kill_all_flag)goto set_rx_io_errexit;
       clear_screen();
       if(i==16)
         {
@@ -2210,30 +2238,30 @@ test_channels:;
       if(mmrs == MMSYSERR_ALLOCATED)
         {
         lirerr(1218);
-        return;
+        goto set_rx_io_errexit;
         }
       if(mmrs == MMSYSERR_BADDEVICEID)
         {
         lirerr(1219);
-        return;
+        goto set_rx_io_errexit;
         }
       if(mmrs == MMSYSERR_NODRIVER)
         {
         lirerr(1220);
-        return;
+        goto set_rx_io_errexit;
         }
       if(mmrs == MMSYSERR_NOMEM)
         {
         lirerr(1221);
-        return;
+        goto set_rx_io_errexit;
         }
       if(mmrs == WAVERR_BADFORMAT)
         {
         lirerr(1222);
-        return;
+        goto set_rx_io_errexit;
         }
       lirerr(1238);
-      return;
+      goto set_rx_io_errexit;
       }
     if(ui.rx_addev_no>255)
       {
@@ -2246,7 +2274,7 @@ test_channels:;
              "ERROR  Format not supported by second device. (Press any key)");
         await_keyboard();
         clear_screen();
-        if(kill_all_flag) return;
+        if(kill_all_flag)goto set_rx_io_errexit;
         goto get_rxinrate;
         }
       }
@@ -2367,7 +2395,7 @@ chsel:;
         default:
         break;
         }
-      if(kill_all_flag) return;
+      if(kill_all_flag)goto set_rx_io_errexit;
       settextcolor(7);
       line+=2;
       if(line >= screen_last_line)screenerr(&line);
@@ -2400,7 +2428,7 @@ set_rxin_exit:;
     if(timf1_char == NULL)
       {
       lirerr(1231231);
-      return;
+      goto set_rx_io_errexit;
       }
     init_sdr14();
     free(timf1_char);
@@ -2510,7 +2538,7 @@ set_rxin_exit:;
     {
     if(!start_iotest(&line, RXAD))
       {
-      if(kill_all_flag)return;
+      if(kill_all_flag)goto set_rx_io_errexit;
       goto set_rxout_exit;
       }
     }
@@ -2527,6 +2555,7 @@ pa_rxda:;
     if( ((ui.use_alsa&PORTAUDIO_DLL_VERSION) >> 5) == 0)
       {
       i=select_portaudio_dll();
+      if(kill_all_flag)goto set_rx_io_errexit;
       if(i<0)
         {
         ui.use_alsa&=~PORTAUDIO_DLL_VERSION;
@@ -2545,8 +2574,9 @@ go_pa_rxda:;
       goto go_pa_rxda;
       }
     }
-  i=portaudio_startstop();
-  if(kill_all_flag)return;
+  i=1;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(202);
+  if(kill_all_flag)goto set_rx_io_errexit;
   if(!i)goto go_pa_rxda;
 //get a 'portaudio' selection list
   clear_screen();
@@ -2625,7 +2655,7 @@ set_rxout_exit:;
     {
     stop_iotest(RXAD);
     }
-  if(kill_all_flag)return;
+  if(kill_all_flag)goto set_rx_io_errexit;
   lir_sleep(10000);
   break; 
   
@@ -2800,7 +2830,7 @@ get_losign:;
     lir_text(2,line,"Hit any key to go back to this menu and select option B or Z");
     settextcolor(7);
     await_processed_keyboard();
-    if (kill_all_flag) goto set_rx_io_errexit;
+    if (kill_all_flag)goto set_rx_io_errexit;
     break;
     } 
 //reurn to main menu
@@ -2817,8 +2847,9 @@ get_losign:;
 // ******************************************************************************** //
 goto begin_rx_set_io;
 set_rx_io_exit:;
-SNDLOG"\nNormal end");
+SNDLOG"\nNormal end\n");
 set_rx_io_errexit:;
+if(portaudio_active_flag==TRUE)portaudio_stop(200);
 fclose(sndlog);
 write_log=FALSE;
 return;
@@ -2953,11 +2984,6 @@ int pa_device_min_bytes;
 int pa_device_max_channels;
 int pa_device_min_channels;
 clear_screen();
-
-
-
-
-
 if(((unsigned int)ui.network_flag&NET_RX_INPUT) != 0)
   {
   lir_text(0,0,"Input from the network is currently selected.");
@@ -2987,17 +3013,30 @@ if(sndlog == NULL)
   }
 write_log=TRUE;
 latency=0;
-i=portaudio_startstop();
-if(kill_all_flag)return;
-if(!i)
+if(ui.use_alsa & 
+  (PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT+PORTAUDIO_TX_IN+PORTAUDIO_TX_OUT))
   {
-  clear_screen();
-  lir_text(5,5,"Portaudio is selected but can not start.");
-  lir_text(5,6,"Maybe a missing dll file?");
-  lir_text(5,7,"Try to re-select RX input");
-  lir_text(10,10,press_any_key);
-  await_processed_keyboard();
-  }  
+  i=1;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(300);
+  if(kill_all_flag)goto set_tx_io_errexit;
+  if(!i)
+    {
+    clear_screen();
+    lir_text(5,5,"Portaudio is selected but can not start.");
+    lir_text(5,6,"Maybe a missing dll file?");
+    lir_text(5,7,"Try to re-select RX input or press ESC");
+    lir_text(10,10,press_any_key);
+    await_processed_keyboard();
+    if(kill_all_flag)goto set_tx_io_errexit;
+    ui.rx_addev_no=UNDEFINED_DEVICE_CODE;
+    ui.rx_dadev_no=UNDEFINED_DEVICE_CODE;
+    ui.tx_dadev_no=UNDEFINED_DEVICE_CODE;
+    ui.tx_addev_no=UNDEFINED_DEVICE_CODE;
+    ui.use_alsa&=~(PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT+
+                                        PORTAUDIO_TX_IN+PORTAUDIO_TX_OUT);
+    ui.use_alsa&=~PORTAUDIO_DLL_VERSION;
+    }
+  }    
 begin_tx_set_io:;
 clear_screen();
 if(kill_all_flag)goto set_tx_io_errexit;
@@ -3247,7 +3286,7 @@ switch(lir_inkey)
   line++;
   lir_text(4,line,"C = OpenHPSDR");
   await_processed_keyboard();
-  if(kill_all_flag)return;
+  if(kill_all_flag)goto set_tx_io_errexit;
   clear_screen();
   ui.tx_soundcard_radio=0;
   line=2;
@@ -3261,7 +3300,7 @@ switch(lir_inkey)
         {
         if(start_iotest(&line,RXAD) == FALSE)
           {
-          if(kill_all_flag)return;
+          if(kill_all_flag)goto set_tx_io_errexit;
           goto set_txout_exit2;
           }
         }
@@ -3269,7 +3308,7 @@ switch(lir_inkey)
         {
         if(start_iotest(&line,RXDA) == FALSE)
           {
-          if(kill_all_flag)return;
+          if(kill_all_flag)goto set_tx_io_errexit;
           goto set_txout_exit;
           }
         }
@@ -3294,6 +3333,7 @@ go_sel_tx_output:;
       if( ((ui.use_alsa&PORTAUDIO_DLL_VERSION)>>5) == 0)
         {
         i=select_portaudio_dll();
+        if(kill_all_flag)goto set_tx_io_errexit;
         if(i<0)
           {
           ui.use_alsa&=~PORTAUDIO_DLL_VERSION;
@@ -3310,8 +3350,9 @@ go_sel_tx_output:;
         goto go_sel_tx_output;
         }
       }
-    i=portaudio_startstop();
-    if(kill_all_flag)return;   
+    i=1;
+    if(portaudio_active_flag==FALSE)i=portaudio_start(301);
+    if(kill_all_flag)goto set_tx_io_errexit;   
     if(!i)goto go_sel_tx_output;
     clear_screen();
     line=1;
@@ -3385,14 +3426,14 @@ getfmt:;
     line++;
     lir_text(10,line,"Sampling speed (Hz)>");
     ui.tx_da_speed=lir_get_integer(31,line, 6, 5000, 999999);
-    if(kill_all_flag) return;
+    if(kill_all_flag) goto set_tx_io_errexit;
     bits=16;
     if((ui.use_alsa&TXDA_USE_EXTENSIBLE) == TXDA_USE_EXTENSIBLE)
       {
 get_txbits:;
       lir_text(40,line,"No of bits (16/24):");
       i=lir_get_integer(60,line, 2, 16, 24);
-      if(kill_all_flag) return;
+      if(kill_all_flag) goto set_tx_io_errexit;
       clear_screen();
       if(i==16)
         {
@@ -3432,30 +3473,30 @@ test_channels:;
       if(mmrs == MMSYSERR_ALLOCATED)
         {
         lirerr(1218);
-        return;
+        goto set_tx_io_errexit;
         }
       if(mmrs == MMSYSERR_BADDEVICEID)
         {
         lirerr(1219);
-        return;
+        goto set_tx_io_errexit;
         }
       if(mmrs == MMSYSERR_NODRIVER)
         {
         lirerr(1220);
-        return;
+        goto set_tx_io_errexit;
         }
       if(mmrs == MMSYSERR_NOMEM)
         {
         lirerr(1221);
-        return;
+        goto set_tx_io_errexit;
         }
       if(mmrs == WAVERR_BADFORMAT)
         {
         lirerr(1222);
-        return;
+        goto set_tx_io_errexit;
         }
       lirerr(1238);
-      return;
+      goto set_tx_io_errexit;
       }
     if(ui.tx_da_bytes == 4)
       {
@@ -3534,7 +3575,7 @@ set_txout_exit2:;
       {
       if(start_iotest(&line,RXAD) == FALSE)
         {
-        if(kill_all_flag)return;
+        if(kill_all_flag)goto set_tx_io_errexit;
         goto set_txin_exit2;
         }
       }
@@ -3542,7 +3583,7 @@ set_txout_exit2:;
       {
       if(start_iotest(&line,RXDA) == FALSE)
         {
-        if(kill_all_flag)return;
+        if(kill_all_flag)goto set_tx_io_errexit;
         goto set_txin_exit1;
         }
       }
@@ -3551,7 +3592,7 @@ set_txout_exit2:;
     {
     if(start_iotest(&line,TXDA) == FALSE)
       {
-      if(kill_all_flag)return;
+      if(kill_all_flag)goto set_tx_io_errexit;
       goto set_txin_exit;
       }
     }
@@ -3575,6 +3616,7 @@ go_sel_tx_input:;
     if( ((ui.use_alsa&PORTAUDIO_DLL_VERSION)>>5) == 0)
       {
       i=select_portaudio_dll();
+      if(kill_all_flag)goto set_tx_io_errexit;
       if(i<0)
         {
         ui.use_alsa&=~PORTAUDIO_DLL_VERSION;
@@ -3592,8 +3634,9 @@ go_sel_tx_input:;
       goto go_sel_tx_input;
       }
     }
-  i=portaudio_startstop();
-  if(kill_all_flag)return;     
+  i=1;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(302);
+  if(kill_all_flag)goto set_tx_io_errexit;     
   if(!i)goto go_sel_tx_input;
   clear_screen();
   line=1;
@@ -3655,7 +3698,7 @@ go_sel_tx_input:;
     sprintf(s,"Select device for microphone input by line number>");
     lir_text(10,line,s);
     ui.tx_addev_no=lir_get_integer(61,line, 2, 0, no_of_addev-1);
-    if(kill_all_flag) return;
+    if(kill_all_flag) goto set_tx_io_errexit;
     }
 // Windows does not allow us to query the device for its capabilities.
 // Ask the user to specify what he wants.
@@ -3675,7 +3718,7 @@ go_sel_tx_input:;
 get_txad_bits:;
   lir_text(40,line,"Select no of bits (16/24):");
   i=lir_get_integer(66,line, 2, 16, 24);
-  if(kill_all_flag) return;
+  if(kill_all_flag) goto set_tx_io_errexit;
   if(i==24)
     {
     ui.use_alsa|=TXAD_USE_EXTENSIBLE;
@@ -3705,22 +3748,22 @@ try_channels:;
     if(mmrs == MMSYSERR_ALLOCATED)
       {
       lirerr(1218);
-      return;
+      goto set_tx_io_errexit;
       }
     if(mmrs == MMSYSERR_BADDEVICEID)
       {
       lirerr(1219);
-      return;
+      goto set_tx_io_errexit;
       }
     if(mmrs == MMSYSERR_NODRIVER)
       {
       lirerr(1220);
-      return;
+      goto set_tx_io_errexit;
       }
     if(mmrs == MMSYSERR_NOMEM)
       {
       lirerr(1221);
-      return;
+      goto set_tx_io_errexit;
       }
     if(mmrs == WAVERR_BADFORMAT)
       {
@@ -3733,10 +3776,10 @@ try_channels:;
         goto try_channels;
         }      
       lirerr(1222);
-      return;
+      goto set_tx_io_errexit;
       }
     lirerr(1238);
-    return;
+    goto set_tx_io_errexit;
     }
   ui.tx_ad_speed=get_mic_speed(&line, 8000, 192000);
 set_txin_exit:;
@@ -3794,13 +3837,10 @@ set_txin_exit2:;
   }
 SNDLOG"goto begin_tx_set_io\n\n");
 goto begin_tx_set_io;
-
-
 set_tx_io_exit:;
-SNDLOG"\nNormal end");
+SNDLOG"\nNormal end\n");
 set_tx_io_errexit:;
-SNDLOG"\n");
+if(portaudio_active_flag==TRUE)portaudio_stop(210);
 fclose(sndlog);
 write_log=FALSE;
-
 }

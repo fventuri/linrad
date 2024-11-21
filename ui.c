@@ -101,10 +101,6 @@ while(thread_command_flag[THREAD_SYSCALL] != THRFLAG_KILL)
   lir_await_event(EVENT_SYSCALL);
   switch (thread_command_flag[THREAD_SYSCALL])
     {
-    case THRFLAG_PORTAUDIO_STARTSTOP:
-    portaudio_startstop();
-    break;
-    
     case THRFLAG_OPEN_RX_SNDIN:
     open_rx_sndin(FALSE);
     break;
@@ -143,10 +139,6 @@ while(thread_command_flag[THREAD_SYSCALL] != THRFLAG_KILL)
 
     case THRFLAG_TX_SETUP:
     tx_setup();
-    break;
-
-    case THRFLAG_PORTAUDIO_STOP:
-    portaudio_stop();
     break;
 
     case THRFLAG_SET_SDRIP_ATT:
@@ -543,7 +535,7 @@ close_network_sockets();
 k=0;
 if(dmp != NULL)
   {
-  fflush(dmp);
+  fflush( dmp);
   lir_sync();
   }
 for(i=0; i<THREAD_MAX; i++)
@@ -578,7 +570,7 @@ while(j<20)
   j++;
   if(j > 0)fprintf( stderr,"%d ",j);
   fflush(NULL);
-  lir_sleep(100000);  
+  lir_sleep(80000);  
   k=0;
   for(i=0; i<THREAD_MAX; i++)
     {
@@ -628,7 +620,7 @@ if(dmp != 0)
                                               thread_command_flag[i]);
     }  
   PERMDEB"\n");
-  fflush(dmp);
+  fflush( dmp);
   }
 // Stay here until ctrlC or kill button in Windows or X11
 show_errmsg(2);
@@ -888,6 +880,9 @@ void init_semaphores(void)
 {
 int i;
 for(i=0; i<EVENT_AUTOINIT_MAX; i++)lir_init_event(i);
+lir_init_event(EVENT_MIX2);
+lir_init_event(EVENT_FFT3);
+
 }
 
 void free_semaphores(void)
@@ -901,7 +896,12 @@ int i;
 lir_sleep(50000);
 //if(FBDEV == 0)fflush(NULL);
 lir_sleep(50000);
-for(i=0; i<EVENT_AUTOINIT_MAX; i++)lir_close_event(i);
+for(i=0; i<EVENT_AUTOINIT_MAX; i++)
+  {
+  lir_close_event(i);
+  }
+lir_close_event(EVENT_MIX2);
+lir_close_event(EVENT_FFT3);
 }
 
 void do_xshift(int dir)
@@ -1577,7 +1577,7 @@ user_exit:;
 thread_status_flag[THREAD_USER_COMMAND]=THRFLAG_RETURNED;
 return;
 user_error_exit:;
-if(dmp!=NULL)fflush(dmp);
+if(dmp!=NULL)fflush( dmp);
 thread_status_flag[THREAD_USER_COMMAND]=THRFLAG_RETURNED;
 while(thread_command_flag[THREAD_USER_COMMAND] != THRFLAG_NOT_ACTIVE)
   {
@@ -1594,7 +1594,7 @@ if(dmp == NULL)
   return;
   }
 PERMDEB"\n%s ",s);
-fflush(dmp);
+fflush( dmp);
 lir_sync();
 }
 
@@ -1756,6 +1756,16 @@ return NULL;
 void process_current_lir_inkey(void)
 {
 if(lir_inkey == 13)lir_inkey = 10;
+if(lir_inkey==X_ESC_SYM)
+  {
+  kill_all();
+  while(!kill_all_flag)
+    {
+    lir_sleep(100);
+    }
+  lir_sched_yield();  
+  return;
+  }
 lir_inkey=toupper(lir_inkey);
 if(lir_inkey == 'G')
   {

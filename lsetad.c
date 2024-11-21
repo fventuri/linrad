@@ -1273,7 +1273,11 @@ if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)
   {
   return;
   }
-if(rx_audio_out == -1)return;
+if(rx_audio_out == -1)
+  {
+  lirerr(745241);
+  return;
+  }
 if(rx_audio_in == rx_audio_out &&
                    rx_input_thread == THREAD_RX_ADINPUT)return;
 if(tx_audio_in == rx_audio_out)return;
@@ -4245,8 +4249,33 @@ line=3;
 #if DARWIN == 1
 ui.use_alsa|=SOUND_SYSTEM_DEFINED;
 #endif
+if(ui.use_alsa & 
+  (PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT+PORTAUDIO_TX_IN+PORTAUDIO_TX_OUT))
+  {
+  i=1;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(200);
+  if(kill_all_flag)goto set_rx_io_errexit;
+  if(!i)
+    {
+    clear_screen();
+    lir_text(5,5,"Portaudio is selected but can not start.");
+    lir_text(5,6,"Maybe a missing dll file?");
+    lir_text(5,7,"Try to re-select RX input or press ESC");
+    lir_text(10,10,press_any_key);
+    await_processed_keyboard();
+    if(kill_all_flag)goto set_rx_io_errexit;
+    ui.rx_addev_no=UNDEFINED_DEVICE_CODE;
+    ui.rx_dadev_no=UNDEFINED_DEVICE_CODE;
+    ui.tx_dadev_no=UNDEFINED_DEVICE_CODE;
+    ui.tx_addev_no=UNDEFINED_DEVICE_CODE;
+    ui.use_alsa&=~(PORTAUDIO_RX_IN+PORTAUDIO_RX_OUT+
+                                        PORTAUDIO_TX_IN+PORTAUDIO_TX_OUT);
+    ui.use_alsa&=~SOUND_SYSTEM_DEFINED;
+    }
+  }    
+
 if((ui.use_alsa & SOUND_SYSTEM_DEFINED) ==0)select_sound_system();
-if(kill_all_flag)return;
+if(kill_all_flag)goto set_rx_io_errexit;
 write_log=TRUE;
 if(ui.rx_addev_no != DISABLED_DEVICE_CODE)
   {
@@ -4282,7 +4311,7 @@ if(ui.use_extio != 0)
     else
       {
       lirerr(1237);
-      return;
+      goto set_rx_io_errexit;
       }  
     }        
   }  
@@ -4332,6 +4361,7 @@ if(ui.rx_addev_no == UNDEFINED_DEVICE_CODE)
 latency=0;
 if ( (ui.use_alsa&PORTAUDIO_RX_IN) != 0)
   {
+  if(portaudio_active_flag==FALSE)portaudio_start(100);
   err=pa_get_device_info (ui.rx_addev_no,
                           RXAD,
                           &pa_device_name,
@@ -4553,6 +4583,7 @@ else
   {
   if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0)
     {
+    if(portaudio_active_flag==FALSE)portaudio_start(101);
     err=pa_get_device_info (ui.rx_dadev_no,
                             RXDA,
                             &pa_device_name,
@@ -4860,6 +4891,7 @@ use_sndcard:;
     if(lir_inkey == 'Y')
       {
       ui.use_alsa|=PORTAUDIO_RX_IN;
+      if(portaudio_active_flag==FALSE)portaudio_start(102);
       }
     else
       {
@@ -4868,13 +4900,15 @@ use_sndcard:;
         goto use_sndcard;
         }
       }
-    i=portaudio_startstop();
+    i=TRUE;  
+    if(portaudio_active_flag==FALSE)i=portaudio_start(103);
     if(kill_all_flag)goto set_rxin_exit;
     if(!i)goto use_sndcard;
     clear_screen();
 #else
     ui.use_alsa|=PORTAUDIO_RX_IN;
-    i=portaudio_startstop();
+    i=TRUE;
+    if(portaudio_active_flag==FALSE)i=portaudio_start(104);
     if(kill_all_flag)goto set_rxin_exit;
     if(!i)
       {
@@ -4904,7 +4938,7 @@ use_sndcard:;
       ui.rx_addev_no=select_alsadev(SND_PCM_STREAM_CAPTURE, &line);
       if(kill_all_flag)goto set_rx_io_errexit;
       alsa_get_native_samplerate(ui.rx_addev_no,SND_PCM_STREAM_CAPTURE,&line,&new_sample_rate);
-      if(kill_all_flag)return;
+      if(kill_all_flag)goto set_rx_io_errexit;
       ui.rx_ad_speed=(int)new_sample_rate;
 //get number of bytes and check
       if(alsa_dev_max_bytes > 2)
@@ -4912,7 +4946,7 @@ use_sndcard:;
         if(alsa_dev_max_bytes != 4)
           {
           lirerr(872341);
-          return;
+          goto set_rx_io_errexit;
           }
         if(alsa_dev_min_bytes == 4)
           {
@@ -5239,7 +5273,7 @@ set_rxin_exit:
     if(timf1_char == NULL)
       {
       lirerr(1231231);
-      return;
+      goto set_rx_io_errexit;
       }
     init_sdr14();
     free(timf1_char);
@@ -5392,6 +5426,7 @@ go_pa_rxda:;
   if(lir_inkey == 'Y')
     {
     ui.use_alsa|=PORTAUDIO_RX_OUT;
+    if(portaudio_active_flag==FALSE)i=portaudio_start(104);
     }
   else
     {
@@ -5400,12 +5435,14 @@ go_pa_rxda:;
       goto go_pa_rxda;
       }
     }
-  i=portaudio_startstop();
+  i=TRUE;  
+  if(portaudio_active_flag==FALSE)i=portaudio_start(105);
   if(kill_all_flag)goto set_rx_io_errexit;
   if(!i)goto go_pa_rxda;
 #else
   ui.use_alsa|=PORTAUDIO_RX_OUT;
-  i=portaudio_startstop();
+  i=TRUE;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(106);
   if(kill_all_flag)goto set_rx_io_errexit;
   if(!i)
     {
@@ -5734,6 +5771,7 @@ SNDLOG"\nNormal end");
 set_rx_io_errexit:;
 SNDLOG"\n");
 fclose(sndlog);
+if(portaudio_active_flag==TRUE)portaudio_stop(100);
 write_log=FALSE;
 }
 
@@ -5818,6 +5856,7 @@ if(ui.tx_dadev_no == UNDEFINED_DEVICE_CODE)
   }
 if( (ui.use_alsa&PORTAUDIO_TX_OUT) != 0)
   {
+  portaudio_start(110);
   err=pa_get_device_info (ui.tx_dadev_no,
                         TXDA,
                         &pa_device_name,
@@ -5896,7 +5935,7 @@ else
     }
   }  
 show_txda:;
-if(kill_all_flag)return;
+if(kill_all_flag)goto set_tx_io_errexit;
 if(tmptxt)
   {
   lir_text(24,line,tmptxt);
@@ -5955,6 +5994,7 @@ if(ui.tx_addev_no == UNDEFINED_DEVICE_CODE)
   }
 if ( (ui.use_alsa&PORTAUDIO_TX_IN) != 0)
   {
+  if(portaudio_active_flag==FALSE)i=portaudio_start(111);
   err=pa_get_device_info (ui.tx_addev_no,
                           TXAD,
                           &pa_device_name,
@@ -6032,7 +6072,7 @@ else
 #endif
   }
 show_txad:;  
-if(kill_all_flag)return;
+if(kill_all_flag)goto set_tx_io_errexit;
 if(tmptxt)
   {
   lir_text(24,line,tmptxt);
@@ -6089,7 +6129,7 @@ switch(lir_inkey)
   line++;
   lir_text(4,line,"C = OpenHPSDR");
   await_processed_keyboard();
-  if(kill_all_flag)return;
+  if(kill_all_flag)goto set_tx_io_errexit;
   clear_screen();
   ui.tx_soundcard_radio=0;
   line=2;
@@ -6103,7 +6143,7 @@ switch(lir_inkey)
         {
         if(start_iotest(&line,RXAD) == FALSE)
           {
-          if(kill_all_flag)return;
+          if(kill_all_flag)goto set_tx_io_errexit;
           goto set_txout_exit2;
           }
         }
@@ -6111,7 +6151,7 @@ switch(lir_inkey)
         {
         if(start_iotest(&line,RXDA) == FALSE)
           {
-          if(kill_all_flag)return;
+          if(kill_all_flag)goto set_tx_io_errexit;
           goto set_txout_exit;
           }
         }
@@ -6145,12 +6185,14 @@ go_sel_tx_output:;
         goto go_sel_tx_output;
         }
       } 
-    i=portaudio_startstop();
+    i=TRUE;  
+    if(portaudio_active_flag==FALSE)i=portaudio_start(112);
     if(kill_all_flag)goto set_tx_io_errexit;;
     if(!i)goto go_sel_tx_output;
 #else
     ui.use_alsa|=PORTAUDIO_TX_OUT;
-    i=portaudio_startstop();
+    i=TRUE;  
+    if(portaudio_active_flag==FALSE)i=portaudio_start(113);
     if(kill_all_flag)goto set_tx_io_errexit;
     if(!i)
       {
@@ -6201,7 +6243,7 @@ go_sel_tx_output:;
         if(alsa_dev_max_bytes != 4)
           {
           lirerr(327761);
-          return;
+          goto set_tx_io_errexit;
           }
         if(alsa_dev_min_bytes == 4)
           {
@@ -6351,7 +6393,7 @@ set_txout_exit2:;
       {
       if(start_iotest(&line,RXAD) == FALSE)
         {
-        if(kill_all_flag)return;
+        if(kill_all_flag)goto set_tx_io_errexit;
         goto set_txin_exit2;
         }
       }
@@ -6359,7 +6401,7 @@ set_txout_exit2:;
       {
       if(start_iotest(&line,RXDA) == FALSE)
         {
-        if(kill_all_flag)return;
+        if(kill_all_flag)goto set_tx_io_errexit;
         goto set_txin_exit1;
         }
       }
@@ -6368,7 +6410,7 @@ set_txout_exit2:;
     {
     if(start_iotest(&line,TXDA) == FALSE)
       {
-      if(kill_all_flag)return;
+      if(kill_all_flag)goto set_tx_io_errexit;
       goto set_txin_exit;
       }
     }
@@ -6401,12 +6443,14 @@ go_sel_tx_input:;
       goto go_sel_tx_input;
       }
     } 
-  i=portaudio_startstop();
+  i=TRUE;  
+  if(portaudio_active_flag==FALSE)i=portaudio_start(114);
   if(kill_all_flag)goto set_tx_io_errexit;;
   if(!i)goto go_sel_tx_input;
 #else
    ui.use_alsa|=PORTAUDIO_TX_IN;
-   i=portaudio_startstop();
+   i=TRUE;
+  if(portaudio_active_flag==FALSE)i=portaudio_start(115);
    if(kill_all_flag)goto set_tx_io_errexit;;
    if(!i)
      {
@@ -6602,6 +6646,7 @@ SNDLOG"\nNormal end");
 set_tx_io_errexit:;
 SNDLOG"\n");
 fclose(sndlog);
+if(portaudio_active_flag==TRUE)portaudio_stop(110);
 write_log=FALSE;
 }
 
