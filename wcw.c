@@ -1670,7 +1670,7 @@ do_baseb_reset:;
       }
     else
       {
-      if( (ui.network_flag & NET_RX_INPUT) != 0)
+      if(fft1_correlation_flag ==0 && (ui.network_flag & NET_RX_INPUT) != 0)
         {
         net_send_slaves_freq();
         }
@@ -1916,7 +1916,7 @@ clear_select:;
     }
   if(cg.meter_graph_on != 0)sc[SC_MG_REDRAW]++;
   workload_reset_flag++;
-  if( (ui.network_flag & NET_RX_INPUT) != 0)
+  if(fft1_correlation_flag ==0 && (ui.network_flag & NET_RX_INPUT) != 0)
     {
     net_send_slaves_freq();
     }

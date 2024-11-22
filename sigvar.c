@@ -372,6 +372,7 @@ float sg_first_logfreq;
 float sg_last_logfreq;
 int sg_first_logpoint;
 int sg_last_logpoint;
+int sg_first_logpixel;
 float sg_logoffset;
 float sg_log_xfac;
 float sg_log_scale;

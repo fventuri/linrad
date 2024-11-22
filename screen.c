@@ -1621,6 +1621,11 @@ while(ypix < sg_y0)
 y=sg_y0-1;
 x1=sg.xleft+text_width;
 x2=sg_last_xpixel;
+sg_first_logfreq=0.6*(float)bg_carr_20db_points/(fft3_size);
+t1=12.0/sg_siz;
+if(t1 > sg_first_logfreq)sg_first_logfreq=t1;
+sg_first_logpoint=0.5+sg_first_logfreq*sg_siz;;
+sg_first_logfreq*=baseband_sampling_speed;
 if(sg.xscale == 0)
   {
   fq_scale(x1, x2, y, sg_first_xpixel, -1., 
@@ -1629,13 +1634,8 @@ if(sg.xscale == 0)
 else
   {
 // Logarithmic scale
-// The lowest frequency we want to display is bin #8 in the sg transform
-// or 3/4 of the total width of the carrier filter whichever largest.
-  sg_first_logfreq=0.8*(float)bg_carr_20db_points/(fft3_size);
-  t1=8.0/sg_siz;
-  if(t1 > sg_first_logfreq)sg_first_logfreq=t1;
-  sg_first_logpoint=0.5+sg_first_logfreq*sg_siz;;
-  sg_first_logfreq*=baseband_sampling_speed;
+// The lowest frequency we want to display is bin #12 in the sg transform
+// or 0.6 times the total width of the carrier filter whichever largest.
   sg_last_logfreq=0.375*baseband_sampling_speed;;
   sg_last_logpoint=3*sg_siz/8;
   t1=.001*sg_first_logfreq;
@@ -1688,19 +1688,26 @@ else
       lir_line(xa+1,sg_y0,xa+1,sg_y0-3,15);
       if(xa < sg_last_xpixel-3*text_width)
         {
-        if(t1 < 1.0)
+        if(t1 < .1)
           {
-          sprintf(s,"%.1f",t1);
+          sprintf(s,"%.2f",t1);
           }
         else
-          {
-          if(t1 < 10)
+          { 
+          if(t1 < 1.0)
             {
-            sprintf(s," %d",(int)t1);
+            sprintf(s,"%.1f",t1);
             }
           else
             {
-            sprintf(s,"%d",(int)t1);
+            if(t1 < 10)
+              {
+              sprintf(s," %d",(int)t1);
+              }
+            else
+              {
+              sprintf(s,"%d",(int)t1);
+              } 
             }
           }
         lir_pixwrite(xa-3*text_width/2,sg_y0+text_height/2,s);
@@ -1723,8 +1730,8 @@ if(sg.xscale == 0)
   {
   if(sg.mode == 1 || sg.mode == 2)
     {
-    i=1+sg_first_xpixel+(sg_last_xpixel-sg_first_xpixel)/16;
-    i-=sg_pixels_per_point;
+    i=sg_first_xpixel+sg_first_logpoint*sg_pixels_per_point;
+    sg_first_logpixel=i;
     sg_line(i,sg.ybottom,sg_last_xpixel,sg.ybottom,2);
     sg_line(i,sg.ybottom-1,sg_last_xpixel,sg.ybottom-1,2);
     sg_line(i,sg.ybottom-2,sg_last_xpixel,sg.ybottom-2,2);
@@ -1926,10 +1933,13 @@ zz:;
       sg_oldpncspectrum[ix]=sg_pncspectrum[ix];
       sg_pncspectrum[ix]=iypc;
       sg_line(ixold,sg_pncspectrum[ixold],ix,iypc,pnc_color);
-      if(ix > sg_first_xpixel+(sg_last_xpixel-sg_first_xpixel)/16)
+      if(ix >= sg_first_logpixel)
         {
-        logsum_n++;
-        logsum_pn+=log10(pwrfac*pnc/sg_corrnum);
+        if(pnc_color == 14)
+          {
+          logsum_n++;
+          logsum_pn+=log10(pwrfac*pnc/sg_corrnum);
+          }
         }
       }
     else
@@ -1969,9 +1979,9 @@ zz:;
       n2=n/2;
       }     
     }
-  sprintf(s,"Avg %6.2f",-10*logsum_pn/logsum_n);
+  sprintf(s,"Avg %7.2f",10*logsum_pn/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
-  fprintf( stderr,"\n%d PN= %.2f",sg_corrnum,-10*logsum_pn/logsum_n);
+  fprintf( stderr,"\n%d PN= %.2f",sg_corrnum,10*logsum_pn/logsum_n);
   break;
 
   case 2:
@@ -2028,11 +2038,14 @@ zz:;
       sg_oldancspectrum[ix]=sg_ancspectrum[ix];
       sg_ancspectrum[ix]=iyac;
       sg_line(ixold,sg_ancspectrum[ixold],ix,sg_ancspectrum[ix],anc_color);
-      if(ix > sg_first_xpixel+(sg_last_xpixel-sg_first_xpixel)/16)
+      if(ix >= sg_first_logpixel)
         {
-        logsum_n++;
-        logsum_an+=log10(pwrfac*anc/sg_corrnum);
-        }
+        if(anc_color == 15)
+          {
+          logsum_n++;
+          logsum_an+=log10(pwrfac*anc/sg_corrnum);
+          }
+        }  
       }
     else
       {
@@ -2070,7 +2083,7 @@ zz:;
       n2=n/2;
       }     
     }
-  sprintf(s,"Avg %6.2f",-10*logsum_an/logsum_n);
+  sprintf(s,"Avg %7.2f",10*logsum_an/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
   fprintf( stderr,"\n%d AN= %.2f",sg_corrnum,-10*logsum_an/logsum_n);
   break;
@@ -2258,7 +2271,8 @@ while(dt1 <= vg.maxtau-.000001)
       {
       sprintf(s,"%3.0fs",dt1);
       }
-    jx=i-3*text_width+(strlen(s)+1)/2;  
+    jx=i-2-3*text_width+(strlen(s)+1)/2;  
+    if(dt1 >= 1000.)jx-=text_width;
     lir_pixwrite(jx, vg.ybottom-text_height,s);  
     for(k=1; k<10; k++)
       {
@@ -2517,7 +2531,6 @@ while(j<vgf_last_xpixel-4*text_width)
   j+=i;
   timestep+=t1;
   }
-
 }
 
 void show_vgf_buttons(void)
@@ -2874,30 +2887,56 @@ if(all)
         show_button(&bgbutt[BG_TOGGLE_EXPANDER],s);
         if(kill_all_flag) return;
         }
+      }  
 // ***************************************
-      if( bg_coherent == 0 )
-        {
-        button_color=BG_INACTIVE_BUTTON_COLOR;
-        }
-      else
-        {
-        button_color=BG_ACTIVE_BUTTON_COLOR;
-        }
-      settextcolor(button_color);
-      if(button_color == BG_INACTIVE_BUTTON_COLOR)
-        {
-        sprintf(s,"Off");
-        }
-      else
-        {
+    if( bg_coherent == 0 )
+      {
+      button_color=BG_INACTIVE_BUTTON_COLOR;
+      }
+    else
+      {
+      button_color=BG_ACTIVE_BUTTON_COLOR;
+      }
+    settextcolor(button_color);
+    if(button_color == BG_INACTIVE_BUTTON_COLOR)
+      {
+      sprintf(s,"Off");
+      }
+    else
+      {
       sprintf(s,"Coh%d",bg_coherent);
       }
-      show_button(&bgbutt[BG_TOGGLE_COHERENT],s);
-      if(kill_all_flag) return;
+    show_button(&bgbutt[BG_TOGGLE_COHERENT],s);
+    if(kill_all_flag) return;
 // **************************************  
-      if( bg_delay == 0 )
+    if( bg_delay == 0 )
+      {
+      button_color=BG_INACTIVE_BUTTON_COLOR;
+      }
+    else
+      {
+      button_color=BG_ACTIVE_BUTTON_COLOR;
+      }
+    settextcolor(button_color);
+    if(button_color == BG_INACTIVE_BUTTON_COLOR)
+      {
+      sprintf(s,"Off");
+      }
+    else
+      {
+      sprintf(s,"Del");
+      }
+    show_button(&bgbutt[BG_TOGGLE_PHASING],s);
+    if(kill_all_flag) return;
+    sprintf(s,"%3d",bg.delay_points);
+    show_button(&bgbutt[BG_SEL_DELPNTS],s);
+    if(kill_all_flag) return;
+// **************************************  
+    if(ui.rx_rf_channels == 2)
+      {
+      if( bg_twopol == 0 )
         {
-        button_color=BG_INACTIVE_BUTTON_COLOR;
+        button_color=BG_INACTIVE_BUTTON_COLOR; 
         }
       else
         {
@@ -2910,39 +2949,13 @@ if(all)
         }
       else
         {
-      sprintf(s,"Del");
-      }
-      show_button(&bgbutt[BG_TOGGLE_PHASING],s);
-      if(kill_all_flag) return;
-      sprintf(s,"%3d",bg.delay_points);
-      show_button(&bgbutt[BG_SEL_DELPNTS],s);
-      if(kill_all_flag) return;
-// **************************************  
-      if(ui.rx_rf_channels == 2)
-        {
-        if( bg_twopol == 0 )
-          {
-          button_color=BG_INACTIVE_BUTTON_COLOR; 
-          }
-        else
-          {
-          button_color=BG_ACTIVE_BUTTON_COLOR;
-          }
-        settextcolor(button_color);
-        if(button_color == BG_INACTIVE_BUTTON_COLOR)
-          {
-          sprintf(s,"Off");
-          }
-        else
-          {
-          sprintf(s,"X+Y");
-          }
-        show_button(&bgbutt[BG_TOGGLE_TWOPOL],s);
-        if(kill_all_flag) return;
+        sprintf(s,"X+Y");
         }
-      button_color = 7;
-      settextcolor(button_color);
+      show_button(&bgbutt[BG_TOGGLE_TWOPOL],s);
+      if(kill_all_flag) return;
       }
+    button_color = 7;
+    settextcolor(button_color);
     }  
   }  
 iw=0;

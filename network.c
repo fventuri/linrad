@@ -543,7 +543,7 @@ while(sc[SC_SHOW_FFT1]!=sd[SC_SHOW_FFT1])
   {
   if(kill_all_flag ||
             thread_command_flag[THREAD_LIR_SERVER] != THRFLAG_ACTIVE)return;
-  lir_sleep(10000);
+  lir_sleep(1000);
   }
 // Remove cursors no longer present.  
 for(i=0; i<MAX_FREQLIST; i++)
@@ -806,8 +806,6 @@ while(thread_command_flag[THREAD_RX_FFT1_NETINPUT] != THRFLAG_NOT_ACTIVE)
   lir_sleep(1000);
   }
 }
-
-
 
 void thread_rx_raw_netinput(void)
 {
@@ -1113,7 +1111,6 @@ readfloat:;
     goto readfloat;
 readfloatx:;    
     netrd_ib=0;
-
       }
     else
       {

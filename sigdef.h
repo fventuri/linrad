@@ -415,6 +415,7 @@ extern float sg_first_logfreq;
 extern float sg_last_logfreq;
 extern int sg_first_logpoint;
 extern int sg_last_logpoint;
+extern int sg_first_logpixel;
 extern float sg_log_scale;
 extern float sg_logoffset;
 extern float sg_log_xfac;

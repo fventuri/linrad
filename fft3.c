@@ -388,6 +388,7 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
                 add_mix1_cursor(0);
                 corr_afc_count=0;
                 sc[SC_SHOW_CENTER_FQ]++;  
+                corrpow_cnt=0;
                 return;
                 }
               }
@@ -451,7 +452,6 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
   }
 if(thread_command_flag[THREAD_FFT3] != THRFLAG_ACTIVE ||
                          mix1_selfreq[0] != old_mix1_selfreq)return;
-  
 // Now fft3_float contains transforms for all enabled channels.
 // In case the main channel is enabled, calculate power spectra
 // and rx channel correlations.
@@ -522,8 +522,11 @@ else
     d_z=&d_fft3[fft3_pa];
     if(corrpow_cnt < 100)corrpow_cnt++;
     ia=fft3_size/8;
-    ib=fft3_size/2-1.2*bg_carr_20db_points;
-// Compute power spectrum within 25% of the baseband while
+    if(ia > 100*bg_carr_20db_points)ia=100*bg_carr_20db_points;
+    ia=fft3_size/2-ia;
+    ib=fft3_size/2-bg_carr_20db_points;
+// Compute power spectrum within 25% of the baseband or a factor 100
+// larger than the carrier bandwidth whichever smallest while
 // excluding points within the carrier filter. Store in fft3_tmp
     j=0;
     for(i=ia; i<ib; i++)
@@ -653,8 +656,14 @@ else
       skip_siganal=ceil(t1);
       }
     }
-corrpow_x:;        
-  if(fft1_correlation_flag == 2)sc[SC_SHOW_SIGANAL_INFO ]++;
+corrpow_x:;
+//fprintf(stderr,"\ncorrpow_cnt %d",corrpow_cnt);  
+  if(fft1_correlation_flag == 2)
+    {
+    sc[SC_SHOW_SIGANAL_INFO ]++;
+    fft3_show_time=recent_time;
+    sc[SC_SHOW_FFT3]++;
+    }
   if(mix1_selfreq[0] != old_mix1_selfreq)return;
   k=bg_show_pa;
   iw=0;

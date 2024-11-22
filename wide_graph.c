@@ -393,7 +393,8 @@ if(rightpressed==BUTTON_RELEASED)
     {
     sc[SC_FREQ_READOUT]++;
     baseb_reset_counter++;
-    if( ((unsigned int)ui.network_flag & NET_RX_INPUT) != 0)
+    if(fft1_correlation_flag ==0 &&
+               ((unsigned int)ui.network_flag & NET_RX_INPUT) != 0)
       {
       net_send_slaves_freq();
       }

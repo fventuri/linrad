@@ -4022,7 +4022,6 @@ if(fft1_correlation_flag <= 1)
   bgbutt[BG_TOGGLE_COHERENT].x2=ix2;
   bgbutt[BG_TOGGLE_COHERENT].y1=iy1;
   bgbutt[BG_TOGGLE_COHERENT].y2=iy2;
-// ***********  make coherent bandwidth factor button ******************
   }
 else
   {
@@ -4032,6 +4031,7 @@ else
   }
 ix1=ix2+2;
 ix2=ix1+15*text_width/2;
+// ***********  make coherent bandwidth factor button ******************
 bgbutt[BG_SEL_COHFAC].x1=ix1;
 bgbutt[BG_SEL_COHFAC].x2=ix2;
 bgbutt[BG_SEL_COHFAC].y1=iy1;
