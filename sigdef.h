@@ -32,6 +32,8 @@
 // Max length of Morse decoding oscilloscope traces.
 #define MAX_CG_OSCW 768
 
+#define VGF_SHOW_FREQ 1
+#define VGF_SHOW_DIFF 2
 
 // Structure for Morse decoding data.
 typedef struct {
@@ -140,6 +142,8 @@ extern int bg_notch_pos[MAX_BG_NOTCHES];
 extern int bg_notch_width[MAX_BG_NOTCHES];
 extern int bg_agc_hang_pts;
 
+extern int output_mode_x;
+extern int output_mode_y;
 extern char *mg_behind_meter;
 extern short int *mg_rms_ypix;
 extern short int *mg_peak_ypix;
@@ -386,9 +390,11 @@ extern int vgf_yb;
 extern int vgf_first_xpixel;
 extern int vgf_last_xpixel;
 extern float *vgf_freq;
+extern float *vgf_phase;
 extern double vgf_mid_freq;
-extern int vgf_center_traces;
+extern double vgf_mid_phase;
 
+extern int vgf_center_traces;
 
 extern short int *vg_y1pix;
 extern short int *vg_y2pix;

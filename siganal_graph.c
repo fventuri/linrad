@@ -271,6 +271,7 @@ if(sg.avg < 1)sg.avg=1;
 new_averages_flag=1;
 make_modepar_file(GRAPHTYPE_SG);
 sc[SC_SG_BUTTONS]++;
+sc[SC_SG_UPDATE]++;
 }
 
 void make_sg_siz(void)
@@ -306,6 +307,7 @@ adjust_scale(&z);
 sg.ygain=z;
 make_modepar_file(GRAPHTYPE_SG);
 sc[SC_SG_REDRAW]++;
+sc[SC_SG_UPDATE]++;
 }
 
 void new_sg_ymax(void)
@@ -316,6 +318,7 @@ if(sg.ymax > 200)sg.ymax=200;
 sg.ymax=sg.ymax-sg.ymax%5;
 make_modepar_file(GRAPHTYPE_SG);
 sc[SC_SG_REDRAW]++;
+sc[SC_SG_UPDATE]++;
 }
 
 void fix_sg_xgain(void)
@@ -346,6 +349,7 @@ if(sg.xgain != t1)
   make_modepar_file(GRAPHTYPE_SG);
   }
 sc[SC_SG_REDRAW]++;
+sc[SC_SG_UPDATE]++;
 }
 
 void set_ytop2(void)
@@ -557,6 +561,8 @@ switch (mouse_active_flag-1)
   make_modepar_file(GRAPHTYPE_SG);
   resume_thread(THREAD_SCREEN);
   sc[SC_SG_REDRAW]++;
+  while(sc[SC_SG_REDRAW] != sd[SC_SG_REDRAW])lir_sleep(10000);
+  sc[SC_SG_UPDATE]++;
   leftpressed=BUTTON_IDLE;  
   mouse_active_flag=0;
   return;
@@ -568,6 +574,7 @@ switch (mouse_active_flag-1)
   sc[SC_SG_REDRAW]++;
   leftpressed=BUTTON_IDLE;  
   mouse_active_flag=0;
+  sc[SC_SG_UPDATE]++;
   return;
 
   case SG_NEW_FFT_N: 
@@ -621,6 +628,7 @@ finish:;
 leftpressed=BUTTON_IDLE;  
 mouse_active_flag=0;
 make_siganal_graph(TRUE,FALSE);
+if(sg_corrnum > 0)sc[SC_SG_UPDATE]++;
 }
 
 void mouse_on_siganal_graph(void)

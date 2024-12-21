@@ -153,6 +153,7 @@ void init_os_independent_globals(void)
 {
 FD *net_fds;
 int i;
+for(i=0; i<20; i++)mailbox[i]=0;
 wg_waterf_zero_time=0;
 net_fds=(FD*)(&netfd);
 allow_wse_parport=0;
@@ -237,6 +238,7 @@ fg_truncation_error=0;
 mg_meter_file=NULL;
 fft1_skip_flag=1;
 vgf_freq=NULL;
+vgf_phase=NULL;
 old_mix1_selfreq=-1;
 old_hwfreq=-2;
 }
@@ -754,6 +756,7 @@ if(savefile_parname[0]!=0)
     {
     s[i]=savefile_parname[i];
     i++;
+    if(1 >= 80)goto errx;
     }
   }  
 else
@@ -762,6 +765,7 @@ else
     {
     s[i]=rxpar_filenames[rx_mode][i];
     i++;
+    if(1 >= 80)goto errx;
     }
   }
 s[i  ]='_';
@@ -772,9 +776,13 @@ while(graphtype_names[type][j] != 0)
   s[i]=graphtype_names[type][j];
   i++;
   j++;
+  if(1 >= 80)goto errx;
   }
 s[i]=0;
 return fopen(s, mode);
+errx:;
+lirerr(733277);
+return NULL;
 }
 
 
@@ -939,6 +947,11 @@ while(k==1 && s[i] != 10 && i<MAX_NAMLEN)
   if(s[i]==13)s[i]=10;
   if(i==3 && s[i]==10)goto get_name;
   }
+if(i>255)
+  {
+  lirerr(945286);
+  return;
+  };  
 ch=s[i];
 s[i]=0;
 if(i>3)

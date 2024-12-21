@@ -442,7 +442,7 @@ if(firmware_flag)
     return;
     }
   k=0;
-  while(ss[k] != 0)  
+  while(ss[k] != 0 && k < 78)  
     {
     s[i]=ss[k];  
     k++;

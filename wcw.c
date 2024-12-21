@@ -1286,15 +1286,6 @@ while(thread_status_flag[THREAD_SCREEN]!=THRFLAG_ACTIVE &&
  lir_sleep(10000);
  }
 thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
-if(first_keypress == 1 && ui.autostart >= 'A' && ui.autostart <= 'G')
-  {
-  t1=fg.tune_frequency;
-  if(t1 < mix1_lowest_fq)t1=mix1_lowest_fq;
-  if(t1 > mix1_highest_fq)t1=mix1_highest_fq;
-  make_new_signal(0,t1);
-  baseb_reset_counter++;
-  first_keypress=2;
-  }
 idle_time=current_time();
 baseb_clear_time=idle_time;
 update_snd(RXDA);
@@ -1418,6 +1409,15 @@ while(!kill_all_flag &&
       thread_status_flag[THREAD_NARROWBAND_DSP]=THRFLAG_ACTIVE;
       }
     }
+if(fft1_ref != -1 && first_keypress == 1 && ui.autostart >= 'A' && ui.autostart <= 'G')
+  {
+  t1=fg.tune_frequency;
+  if(t1 < mix1_lowest_fq)t1=mix1_lowest_fq;
+  if(t1 > mix1_highest_fq)t1=mix1_highest_fq;
+  make_new_signal(0,t1);
+  baseb_reset_counter++;
+  first_keypress=2;
+  }
 // Here we do the mouse actions that affect the narrowband graphs.
 // Note that memory areas may become re-allocated and that no other
 // threads may try to acces the narrowband arrays in the meantime.
@@ -1573,9 +1573,9 @@ do_baseb_reset:;
     if(thread_status_flag[THREAD_FFT3] == THRFLAG_SEM_WAIT)
                                             lir_set_event(EVENT_FFT3);
     if(thread_status_flag[THREAD_MIX2] == THRFLAG_SEM_WAIT)
-    {
-    lir_set_event(EVENT_MIX2);
-    }
+      {
+      lir_set_event(EVENT_MIX2);
+      }
     if(thread_status_flag[THREAD_RX_OUTPUT] == THRFLAG_SEM_WAIT)
                                             lir_set_event(EVENT_BASEB);
     i=0;
@@ -1584,12 +1584,12 @@ do_baseb_reset:;
           thread_status_flag[THREAD_FFT3] != THRFLAG_IDLE ||
           (((ui.use_alsa&PORTAUDIO_RX_OUT) == 0) &&
           thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE))
-     {
-     i++;
-     lir_sleep(500);
-     if(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_KILL)
+      {
+      i++;
+      lir_sleep(500);
+      if(thread_command_flag[THREAD_NARROWBAND_DSP] == THRFLAG_KILL)
                                                          goto wcw_error_exit;
-     }
+      }
     if(mix1_selfreq[0] >= 0)
       {
       old_mix1_selfreq=mix1_selfreq[0];

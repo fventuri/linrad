@@ -1,4 +1,4 @@
-000065
+000066
 [1]KEYBOARD COMMANDS (available in most modes) 
 A = Numerical display, amplitudes
 E = Eliminate spur (If AFC present)
@@ -482,8 +482,10 @@ mode" equal to the number at the right hand side of this line of boxes.
 "Coh1" = "Binaural CW"
 "Coh2" = Coherent: I and Q to left and right ear respectively.
 "Coh3" = Full coherent processing with I to both ears.
+"Coh4" = Full coherent processing with Q to both ears.
 The coherent modes use a second filter that is "Rat  " times narrower than 
 the filter shown in yellow on the graph.
+
 In binaural CW mode, the narrow filter is typically adapted to the bandwidth 
 of the keying sidebands while the wide filter is 2 to 4 times larger.
 In coherent modes, the wide filter is adapted to the bandwidth of the keying 
@@ -506,6 +508,9 @@ is controlled by the Rat parameter must be wide enough to allow the full
 bandwidth of the carrier to pass.
 To get the current mode as default, make the mode parameter "Default output
 mode" equal to the number at the right hand side of this line of boxes. 
+
+The Coh3 mode provides synchronous detection of AM and the Coh4 mode
+provides synchronous detection of FM
 [48]Press the left mouse button to toggle delay between ears.
 This mode can be enabled only when "Coh" or "X+Y" is not selected.
 This mode will delay the signal to one ear, thus creating a frequency
@@ -1204,9 +1209,9 @@ in the line of boxes in the baseband graph to their standard value.
 The user may select a combination of mode, bits, channels, delay
 X+Y and other things as the processing for a particular mode.
 (I.e. Coh2 for weak signal CW and X+Y for normal CW) 
-The combination of selections will produce a number (0 to 200) which
-is displayed at the right hand side of the line of boxes in the baseband
-graph. 
+The combination of selections will produce a number (0 to 262) which
+is displayed at the right hand side of the baseband graph on the
+line which holds the control boxes.
 Set default output mode to the number you find in the baseband graph
 when you have selected your favorite processing method for the
 current receive mode.
@@ -1939,7 +1944,7 @@ S = Save old correlation traces. This helps to see how statistics improve.
 A = Allan variance
 H = Hadamard variance
 [370]Enter milliHZ for the range of the Y-scale..
-[371]Enter parts per million for the range of the amplitude scale here.
+[371]ö
 [372]Enter the time between points for frequencies and amplitudes.
 [373]Click this box to center the 20 latest points of the traces vertically.
 [374]Press left mouse button to change direction.
@@ -1971,4 +1976,9 @@ pair -3 dB, +38 degrees becomes +3 dB, -142 degrees).
 (channel 1 attenuated).
 [395]Make the present values of gain and phase equal to these given below (in numerical input fields for gain and phase).
 [396]Enter angle for azimuth correction here.
+[397]Select what to show in the frequency vs time graph.
+1=Show frequencies only.
+2=Show frequency difference and interchannel phase only.
+3=Show frequencies and differences.
+[398]Enter gain for interchannel phase.
 [0]

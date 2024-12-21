@@ -646,7 +646,15 @@ if(i==0)
   }
 if(s[0] != '[')goto gtnum;
 j=0;
-while(fread(&s[j],1,1,msg_file)==1 && s[j] != ']')j++;
+while(fread(&s[j],1,1,msg_file)==1 && s[j] != ']')
+  {
+  j++;
+  if(j > 79)
+    {
+    lirerr(966572);
+    goto finish_err_close;
+    }
+  }  
 s[j]=0;
 sscanf(s,"%d",&k);
 if(k != msg_no)goto gtnum;

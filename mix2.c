@@ -1811,8 +1811,7 @@ else
             t1=sqrt(baseb_totpwr[p0]);
             am_dclevel1=am_dclevel1*am_dclevel_factor1+t1*am_dclevel_factor2;
             baseb_out[2*p0  ]=t1-am_dclevel1;     
-            baseb_out[2*p0+1]=0;     
-
+            baseb_out[2*p0+1]=baseb_out[2*p0  ];     
             p0=(p0+1)&baseband_mask;
             }
           }  
@@ -1917,50 +1916,73 @@ else
     break;
        
     case 3:
-    if(fft1_correlation_flag <= 1)
 // Use the carrier phase to make I/Q demodulator.
 // We already did it in the coherent function so just use the data.
 // Send I to both ears, but only if greater than zero. Skip Q.
-      {  
-      if(rx_mode == MODE_AM)
+    if(use_bfo != 0)
+      {
+      while(p0 != last_point)
         {
-        while(p0 != last_point)
+        if(baseb[2*p0] > 0)
           {
           baseb_out[2*p0]=baseb[2*p0];
-          am_dclevel1=am_dclevel1*am_dclevel_factor1+baseb_out[2*p0]*am_dclevel_factor2;
-          baseb_out[2*p0  ]-=am_dclevel1;     
-          p0=(p0+1)&baseband_mask;
-          }
-        }
-      else
-        {
-        if(rx_mode == MODE_FM)
+          }     
+        else 
           {
-          while(p0 != last_point)
-            {
-            am_dclevel2=am_dclevel2*
-                        am_dclevel_factor1+baseb[2*p0+1]*am_dclevel_factor2;
-            baseb_out[2*p0  ]=baseb[2*p0+1];     
-            baseb_out[2*p0+1]=baseb[2*p0+1];     
-            p0=(p0+1)&baseband_mask;
-            }
-          }
-        else
-          {  
-          while(p0 != last_point)
-            {
-            if(baseb[2*p0] > 0)
-              {
-              baseb_out[2*p0]=baseb[2*p0];
-              }     
-            else 
-              {
-              baseb_out[2*p0]=0;
-              }     
-            baseb_out[2*p0+1]=0;     
-            p0=(p0+1)&baseband_mask;
-            }
-          }
+          baseb_out[2*p0]=0;
+          }     
+        baseb_out[2*p0+1]=baseb_out[2*p0];     
+        p0=(p0+1)&baseband_mask;
+        }
+      }  
+// Use the carrier phase to make I/Q demodulator.
+// We already did it in the coherent function so just use the data.
+// Send I to both ears, Remove thr DC component Skip Q.
+    else
+      {
+      while(p0 != last_point)
+        {
+        baseb_out[2*p0]=baseb[2*p0];
+        am_dclevel1=am_dclevel1*am_dclevel_factor1+baseb_out[2*p0]*am_dclevel_factor2;
+        baseb_out[2*p0  ]-=am_dclevel1;     
+        baseb_out[2*p0+1]=baseb_out[2*p0];     
+        p0=(p0+1)&baseband_mask;
+        }
+      }
+    break;
+       
+    case 4:
+// Use the carrier phase to make I/Q demodulator.
+// We already did it in the coherent function so just use the data.
+// Send Q to both ears, but only if greater than zero. Skip I.
+    if(use_bfo != 0)
+      {
+      while(p0 != last_point)
+        {
+        if(baseb[2*p0] > 0)
+          {
+          baseb_out[2*p0]=baseb[2*p0];
+          }     
+        else 
+          {
+          baseb_out[2*p0]=0;
+          }     
+        baseb_out[2*p0+1]=baseb_out[2*p0];     
+        p0=(p0+1)&baseband_mask;
+        }
+      }  
+// Use the carrier phase to make I/Q demodulator.
+// We already did it in the coherent function so just use the data.
+// Send Q to both ears, remove the DC component. Skip I.
+    else
+      {
+      while(p0 != last_point)
+        {
+        baseb_out[2*p0]=baseb[2*p0+1];
+        am_dclevel1=am_dclevel1*am_dclevel_factor1+baseb_out[2*p0]*am_dclevel_factor2;
+        baseb_out[2*p0  ]-=am_dclevel1;     
+        baseb_out[2*p0+1]=baseb_out[2*p0];     
+        p0=(p0+1)&baseband_mask;
         }
       }
     break;
@@ -1975,7 +1997,7 @@ if(fft1_correlation_flag == 2)
 // Baseb contains coh-detected amplitude and phase modulation.
 // Four arrays of size mix2.new_points.
 // Wait until we have fft3_size 
-//last_point=(baseb_pa+mix2.new_points)&baseband_mask;
+// last_point=(baseb_pa+mix2.new_points)&baseband_mask;
   if(correlation_reset_flag != fft1corr_reset_flag)
     {
     make_siganal_graph(TRUE,TRUE);

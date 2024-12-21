@@ -763,10 +763,11 @@ extern char *uiparm_text[MAX_UIPARM];
 #define VGF_LEFT 2
 #define VGF_RIGHT 3
 #define VGF_NEW_FREQGAIN 4
-#define VGF_NEW_AMPLGAIN 5
-#define VGF_NEW_TIME 6
-#define VGF_NEW_CENTER_TRACES 7
-#define MAX_VGFBUTT 8
+#define VGF_NEW_TIME 5
+#define VGF_NEW_CENTER_TRACES 6
+#define VGF_NEW_SHOW_MODE 7
+#define VGF_NEW_PHASEGAIN 8
+#define MAX_VGFBUTT 9
 
 // Definitions for type COH_GRAPH
 #define CG_TOP 0
@@ -954,11 +955,13 @@ int ytop;
 int ybottom;
 int xleft;
 int xright;
+int show;
+int phasegain;
 int check;
 float freqgain;
 float time;
 } VGF_PARMS;
-#define MAX_VGF_INTPAR 5
+#define MAX_VGF_INTPAR 7
 extern char *vgf_intpar_text[MAX_VGF_INTPAR];
 #define MAX_VGF_FLOATPAR 2
 extern char *vgf_floatpar_text[MAX_VGF_FLOATPAR];

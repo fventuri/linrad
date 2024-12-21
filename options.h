@@ -19,8 +19,8 @@
 // portaudio devices. Those devices cause a crash on assert error
 // due to a bug in ALSA. See pa.c 
 
-#define DUMPFILE TRUE
-//#define DUMPFILE FALSE
+//#define DUMPFILE TRUE
+#define DUMPFILE FALSE
 
 // Functions deb_timing_info, xx,qt0,qt1,qt2,qq,qq1,qq2 and qq3 
 // may be helpful.
@@ -228,9 +228,3 @@
 //#define DISABLE_AFEDRI_SERIAL_NUMBER TRUE
 #define DISABLE_AFEDRI_SERIAL_NUMBER FALSE
 // **********************************************************************
-// Show the frequency difference between the channels in the Allan window,
-// (correlation_flag = 3)
-#define SHOW_ALLAN_FREQDIFF TRUE
-//#define SHOW_ALLAN_FREQDIFF FALSE
-// **********************************************************************
-

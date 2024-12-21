@@ -3087,7 +3087,7 @@ bg.fm_subtract=new_bg_fm_subtract;
 // ----------------------------------------------------
 if(genparm[CW_DECODE_ENABLE] != 0)new_bg_agc_flag=0;
 if(new_bg_agc_flag > 2)new_bg_agc_flag=0;
-if(new_bg_coherent > 3)new_bg_coherent=0;
+if(new_bg_coherent > 4)new_bg_coherent=0;
 if(new_bg_twopol != 0)
   {
   if(new_bg_agc_flag == 1 )new_bg_agc_flag=2;
@@ -3132,11 +3132,18 @@ else
   {  
   bg_delay=new_bg_delay;
   }
-if(bg_coherent > 0 && bg_coherent != 3)
+if(bg_coherent > 0 && bg_coherent < 3)
   {
   if(ui.rx_max_da_channels == 1)
     {
-    bg_coherent=3;
+    if(rx_mode == MODE_FM)
+      {
+      bg_coherent=4;
+      }
+    else
+      {
+      bg_coherent=3;
+      }
     } 
   else
     {
@@ -3144,7 +3151,7 @@ if(bg_coherent > 0 && bg_coherent != 3)
     new_daout_channels=2;
     }    
   }
-if(bg_coherent==3)baseb_channels=1;
+if(bg_coherent >=3 )baseb_channels=1;
 if(bg_delay != 0)
   {
   if(ui.rx_max_da_channels == 1)
@@ -3190,7 +3197,7 @@ if( bcha != baseb_channels ||
     dela != bg_delay)mix2.size=-1;
 bg.ch2_phase=new_bg_ch2_phase;
 if(bg.ch2_phase >= MAX_CH2_PHASES)bg.ch2_phase=0;
-if(rx_mode != MODE_SSB || bg_coherent==3 )
+if(rx_mode != MODE_SSB || bg_coherent >= 3)
   {
   if(bg.ch2_phase == MAX_CH2_PHASES-1)bg.ch2_phase=0;
   }
@@ -3199,6 +3206,8 @@ if(  baseb_channels != 1 ||
      bg_delay != 0 ||
      bg_twopol != 0)bg.ch2_phase=0;
 da_ch2_sign=ch2_signs[bg.ch2_phase];
+genparm[OUTPUT_MODE]=(bg_twopol<<8)+(bg_delay<<7)+(bg_coherent<<4)+
+                     (bg_expand<<2)+(rx_daout_channels<<1)+rx_daout_bytes;
 }
 
 void show_bg_maxamp(void)
@@ -3231,6 +3240,7 @@ hide_mouse(bg_amp_indicator_x,bg_amp_indicator_x+text_width/2,
 lir_fillbox(bg_amp_indicator_x,bg_amp_indicator_y,text_width/2,3,color);
 bg_maxamp=0;
 }
+
 
 void make_baseband_graph(int clear_old)
 {
@@ -3856,6 +3866,8 @@ if(fft1_correlation_flag <= 1)
   bgbutt[BG_NOTCH_POS].y1=iy1;
   bgbutt[BG_NOTCH_POS].y2=iy2;
   }
+output_mode_x=bg.xright-3*text_width-2;
+output_mode_y=bg.ybottom-3-2*text_height;
 make_button(bg.xleft+text_width,bg.ytop+text_height/2+3,
                                          bgbutt,BG_PIX_PER_PNT_DEC,26);
 make_button(bg.xleft+3*text_width,bg.ytop+text_height/2+3,
@@ -3980,7 +3992,6 @@ else
   }
 freq_readout_y1=bg.yborder+2;
 squelch_on=-2;
-sc[SC_FFT3_SCALE]++;
 // *************  Make button to select no of channels for mono modes
 if(fft1_correlation_flag <= 1)
   {
@@ -4022,6 +4033,7 @@ if(fft1_correlation_flag <= 1)
   bgbutt[BG_TOGGLE_COHERENT].x2=ix2;
   bgbutt[BG_TOGGLE_COHERENT].y1=iy1;
   bgbutt[BG_TOGGLE_COHERENT].y2=iy2;
+// ***********  make coherent bandwidth factor button ******************
   }
 else
   {
@@ -4031,7 +4043,6 @@ else
   }
 ix1=ix2+2;
 ix2=ix1+15*text_width/2;
-// ***********  make coherent bandwidth factor button ******************
 bgbutt[BG_SEL_COHFAC].x1=ix1;
 bgbutt[BG_SEL_COHFAC].x2=ix2;
 bgbutt[BG_SEL_COHFAC].y1=iy1;
@@ -4071,7 +4082,7 @@ if(fft1_correlation_flag <= 1)
     }
   }  
 make_bg_yfac();
-if(fft1_correlation_flag < 1)
+if(fft1_correlation_flag <= 1)
   {
   make_bg_filter(); 
   }
@@ -4084,9 +4095,9 @@ make_modepar_file(GRAPHTYPE_BG);
 bg_flag=1;
 daout_gain_y=-1;
 //make_daout_gain();
-i=bg_twopol;                 //bit 7
-i=(i<<1)+bg_delay;           //bit 6
-i=(i<<2)+bg_coherent;        //bits 4 and 5
+i=bg_twopol;                 //bit 8
+i=(i<<1)+bg_delay;           //bit 7
+i=(i<<3)+bg_coherent;        //bits 4 to 6
 i=(i<<2)+bg_expand;          //bits 2 and 3
 i=(i<<1)+rx_daout_channels-1;   //bit 1
 i=(i<<1)+rx_daout_bytes-1;      //bit 0
@@ -4099,10 +4110,6 @@ check_bg_fm_audio_bw();
 make_agc_amplimit();
 bg_waterf_block=(bg_waterf_y2-bg_waterf_y1+1)*bg_xpixels;
 make_bg_waterf_cfac();
-if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
-  {
-  sc[SC_SHOW_WHEEL]++;
-  }
 bg_old_y1=bg.ytop;
 bg_old_y2=bg.ybottom;
 bg_old_x1=bg.xleft;
@@ -4146,11 +4153,16 @@ else
   bg_waterfall_blank_points=1+(genparm[BG_WATERF_BLANKED_PERCENT]*bg_xpixels)/100;
   }  
 resume_thread(THREAD_SCREEN);
+sc[SC_FFT3_SCALE]++;
+if(genparm[AFC_ENABLE]==0 || genparm[AFC_LOCK_RANGE] == 0)
+  {
+  sc[SC_SHOW_WHEEL]++;
+  }
 if(mix1_selfreq[0]>0)sc[SC_FREQ_READOUT]++;
 sc[SC_BG_FQ_SCALE]++;
 sc[SC_BG_BUTTONS]++;
 }
-
+    
 void init_baseband_graph(void)
 {
 int i,errcnt;
@@ -4305,9 +4317,9 @@ if(fft1_correlation_flag >= 2)genparm[OUTPUT_MODE]=3;
 new_daout_bytes=1+(genparm[OUTPUT_MODE]&1);           //bit 0
 new_daout_channels=1+((genparm[OUTPUT_MODE]>>1)&1);   //bit 1
 bg_expand=(genparm[OUTPUT_MODE]>>2)&3;                //bit 2 and 3
-new_bg_coherent=(genparm[OUTPUT_MODE]>>4)&3;          //bits 4 and 5
-new_bg_delay=(genparm[OUTPUT_MODE]>>6)&1;             //bit 6
-new_bg_twopol=(genparm[OUTPUT_MODE]>>7)&1;            //bit 7 
+new_bg_coherent=(genparm[OUTPUT_MODE]>>4)&7;          //bits 4 to 6
+new_bg_delay=(genparm[OUTPUT_MODE]>>7)&1;             //bit 7
+new_bg_twopol=(genparm[OUTPUT_MODE]>>8)&1;            //bit 8 
 new_bg_fm_mode=bg.fm_mode;
 new_bg_fm_subtract=bg.fm_subtract;
 new_bg_agc_flag=bg.agc_flag;

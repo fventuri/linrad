@@ -218,9 +218,7 @@ call to ioctl failed. (SNDCTL_DSP_GETFMTS)
 call to ioctl failed. (SNDCTL_DSP_SPEED)
 [1073]routine:set_analog_io      file:lsetad.c                      
 call to ioctl failed. (SNDCTL_DSP_SPEED)
-[1074]
-ö not used any more
-
+[1074]Failed to set thread blocking rxout to idle state. file:rxout.c
 [1075]routine:read_eme_database      file:eme.c                      
 Failed to get scratch memory.
 [1076]The timing for the rise time or for the pilot tone
@@ -556,7 +554,7 @@ Device already allocated.
 [1194]Failed to configure Perseus FPGA. 
 [1195]Failed to start asynchronous input from the Perseus.
 [1196]Could not get sampling rates for Perseus. Error in libperseus-sdr.
-[1197]Ö
+[1197]The blocking rx output thread did not respond in time. file:rxout.c
 [1198]routine: init_fft1_filtercorr   file:fft1.c
 The save file is corrupted. Can not process old data.
 Probable cause: Incorrect calibration file.
@@ -603,8 +601,8 @@ image suppression.
 [1205]Failed call: ioctl(audio_out,SNDCTL_DSP_RESET,0)
 [1206]Failed to open s-meter.txt.
 [1207]s-meter.txt not open.
-[1208]öÖ
-[1209]öÖ
+[1208]The blocking rx output thread did not respond in time. file:rxout.c 
+[1209]One or more threads failed to start. file:menu.c
 [1210]öÖ
 [1211]öÖ
 [1212]öÖ
@@ -775,7 +773,7 @@ no configurations available.
 [1310]open_rx_sndout:resampling setup failed.
 [1311]open_rx_sndout:Could not set sampling speed.
 [1312]open_rx_sndout:Unable to set period size for playback.
-[1313[open_rx_sndout/snd_pcm_get_params.
+[1313]open_rx_sndout/snd_pcm_get_params.
 Can't recover from underrun - prepare failed.
 [1314]routine:make_radar_graph    file:radar.c
 Failed to allocate memory for radar.

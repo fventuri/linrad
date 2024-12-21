@@ -239,8 +239,8 @@ float fm1_sampling_speed;
 int fm1_size;
 int fm1_mask;
 int bg_agc_hang_pts;
-
-
+int output_mode_x;
+int output_mode_y;
 float *fmfil55_fir;
 int fmfil55_size;
 int fmfil55_n;
@@ -349,7 +349,9 @@ int vgf_xpixels;
 int vgf_yt;
 int vgf_yb;
 float *vgf_freq;
+float *vgf_phase;
 double vgf_mid_freq;
+double vgf_mid_phase;
 int vgf_tau;
 int vgf_n;
 int vgf_center_traces;

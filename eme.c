@@ -744,7 +744,7 @@ err1131:;
       return;
       }
     }
-  if(j == 0 || k == 0)goto err1131;
+  if(j == 0 || k == 0 || j > 79)goto err1131;
   s[j]=0;
   sscanf(s,"%d",&dx_no);
   if(dx_no > MAX_DXCALLS)goto err1131;
@@ -774,7 +774,7 @@ read_dx:;
       return;
       }
     }
-  if(j == 0 || k == 0)
+  if(j == 0 || k == 0 || j > 79)
     {
     lirerr(1131);
     return;

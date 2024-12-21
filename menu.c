@@ -645,6 +645,8 @@ if(ui.rx_rf_channels == 2)
   if(pg.enable_phasing != 0) init_phasing_window();
   if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
   }
+linrad_thread_create(THREAD_SCREEN);
+if(kill_all_flag) goto normal_rx_x;
 init_baseband_graph();
 if(kill_all_flag || lir_status != LIR_OK) goto normal_rx_x;
 init_coherent_graph();
@@ -705,8 +707,6 @@ linrad_thread_create(THREAD_FFT3);
 if(kill_all_flag) goto normal_rx_x;
 linrad_thread_create(THREAD_WIDEBAND_DSP);
 if(kill_all_flag) goto normal_rx_x;
-linrad_thread_create(THREAD_SCREEN);
-if(kill_all_flag) goto normal_rx_x;
 if((ui.use_alsa&PORTAUDIO_RX_OUT) == 0)
   {
   linrad_thread_create(THREAD_BLOCKING_RXOUT);
@@ -741,7 +741,23 @@ while(thread_status_flag[THREAD_RX_OUTPUT]!=THRFLAG_IDLE ||
   i++;
   if(i>200)
     {
-    lirerr(116711);
+    fprintf( stderr,"\nTHREAD_RX_OUTPUT] %d %d",
+             THRFLAG_IDLE,thread_status_flag[THREAD_RX_OUTPUT]);
+    fprintf( stderr,"\nTHREAD_USER_COMMAND] %d %d",
+             THRFLAG_ACTIVE,thread_status_flag[THREAD_USER_COMMAND]);
+    fprintf( stderr,"\nTHREAD_NARROWBAND_DSP] %d %d",
+             THRFLAG_SEM_WAIT,thread_status_flag[THREAD_NARROWBAND_DSP]);
+    fprintf( stderr,"\nTHREAD_WIDEBAND_DSP] %d %d",
+             THRFLAG_ACTIVE,thread_status_flag[THREAD_WIDEBAND_DSP]);
+    fprintf( stderr,"\nTHREAD_MIX2] %d %d",
+             THRFLAG_SEM_WAIT,thread_status_flag[THREAD_MIX2]);
+    fprintf( stderr,"\nTHREAD_FFT3] %d %d",
+             THRFLAG_SEM_WAIT,thread_status_flag[THREAD_FFT3]);
+    if((ui.use_alsa&PORTAUDIO_RX_OUT) == 0)
+    fprintf( stderr,"\nTHREAD_BLOCKING_RXOUT]%d %d",
+             THRFLAG_IDLE,thread_status_flag[THREAD_BLOCKING_RXOUT]);
+    fflush(NULL);
+    lirerr(1209);
     goto normal_rx_x;
     }
   lir_sleep(5000);

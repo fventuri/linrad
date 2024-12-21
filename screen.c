@@ -596,7 +596,7 @@ else
   sprintf(s,"%.9f",hwfreq);
   }    
 k=0;
-while(s[k]!='.')k++;
+while(s[k]!='.' && s[k] != 0)k++;
 j=k;
 while(s[j]!=0)j++;
 ia=freq_readout_x1;
@@ -1494,7 +1494,7 @@ timf2_ovfl++;
 
 void show_sg_buttons(void)
 {
-char s[80], ss[8];
+char s[80], ss[32];
 int i,k;
 settextcolor(7);
 sprintf(s,"%c",sg_modes[sg.mode]);
@@ -2554,9 +2554,13 @@ else
   sprintf(s,"mHz %6.5f",vgf.freqgain);
   }
 show_button(&vgfbutt[VGF_NEW_FREQGAIN],s);
+sprintf(s,"Ph %4d",vgf.phasegain);
+show_button(&vgfbutt[VGF_NEW_PHASEGAIN],s);
 s[0]=42;
 s[1]=0;
 show_button(&vgfbutt[VGF_NEW_CENTER_TRACES],s);
+s[0]=vgf.show+'0';
+show_button(&vgfbutt[VGF_NEW_SHOW_MODE],s);
 }
 
 void redraw_allanfreq_graph(void)
@@ -2571,13 +2575,10 @@ fill_vgf_graph();
 void update_allanfreq_graph(void)
 {
 char s[40];
-int i, k, m, n, p0, iy0;
-double dy1, dy2, dt1, dt2;
+int i, k, m, n, p0, iy0, dy;
+double dy1, dy2, dy3, dt1, dt2, dt3;
 int x, iy1, y2;
-#if SHOW_ALLAN_FREQDIFF == TRUE
-double dy3;
 int y3;
-#endif
 // Look for frequency as a function of time
 k=(vgf_pa+1-vgf_px+vgf_size)&vgf_mask;
 if(k < 5)return;
@@ -2593,19 +2594,23 @@ else
 m=vgf_pa;   
 dt1=0;
 dt2=0;
+dt3=0;
 n=0;
 while(p0 != m)
   {
   dt1+=vgf_freq[2*p0  ];
   dt2+=vgf_freq[2*p0+1];
+  dt3+=vgf_phase[p0];
   p0=(p0+1)&vgf_mask;
   n++;
   }
 dt1/=n;
 dt2/=n;
+dt3/=n;
 if(vgf_mid_freq == BIGDOUBLE || vgf_center_traces == TRUE)
   {
   vgf_mid_freq=(dt1+dt2)/2.0;
+  vgf_mid_phase=dt3;
   redraw_allanfreq_graph();
   fill_vgf_graph();
   vgf_center_traces=FALSE;
@@ -2616,25 +2621,37 @@ fill_vgf_graph();
 p0=vgf_px;
 x=vgf_first_xpixel;
 iy0=(vgf_yt+vgf_yb)/2;
+dy=vgf.phasegain*(vgf_yb-vgf_yt)/2;
 while(p0 != vgf_pa)
   {
-  dy1=vgf_freq[2*p0  ]-vgf_mid_freq;
-  dy2=vgf_freq[2*p0+1]-vgf_mid_freq;
-  iy1=iy0-dy1*1000.0/vgf.freqgain;
-  y2=iy0-dy2*1000.0/vgf.freqgain;
-  if(iy1 < vgf_yt)iy1=vgf_yt;
-  if(y2 < vgf_yt)y2=vgf_yt;
-  if(iy1 > vgf_yb)iy1=vgf_yb;
-  if(y2 > vgf_yb)y2=vgf_yb;
-  lir_setpixel(x,iy1,10);
-  lir_setpixel(x,y2,55);
-#if SHOW_ALLAN_FREQDIFF == TRUE
-  dy3=vgf_freq[2*p0  ]-vgf_freq[2*p0+1];
-  y3=iy0-dy3*1000.0/vgf.freqgain;
-  if(y3 < vgf_yt)y3=vgf_yt;
-  if(y3 > vgf_yb)y3=vgf_yb;
-  lir_setpixel(x,y3,14);
- #endif 
+  if(vgf.show & VGF_SHOW_FREQ)
+    {
+    dy1=vgf_freq[2*p0  ]-vgf_mid_freq;
+    dy2=vgf_freq[2*p0+1]-vgf_mid_freq;
+    iy1=iy0-dy1*1000.0/vgf.freqgain;
+    y2=iy0-dy2*1000.0/vgf.freqgain;
+    if(iy1 < vgf_yt)iy1=vgf_yt;
+    if(y2 < vgf_yt)y2=vgf_yt;
+    if(iy1 > vgf_yb)iy1=vgf_yb;
+    if(y2 > vgf_yb)y2=vgf_yb;
+    lir_setpixel(x,iy1,10);
+    lir_setpixel(x,y2,55);
+    }
+  if(vgf.show & VGF_SHOW_DIFF)
+    {
+    dy3=vgf_freq[2*p0  ]-vgf_freq[2*p0+1];
+    y3=iy0-dy3*1000.0/vgf.freqgain;
+    if(y3 < vgf_yt)y3=vgf_yt;
+    if(y3 > vgf_yb)y3=vgf_yb;
+    lir_setpixel(x,y3,14);
+    dy3=vgf_phase[p0]-vgf_mid_phase;
+    if(dy3 > 0.5)dy3-=1.0;
+    if(dy3 < -0.5)dy3+=1.0;
+    y3=iy0+dy*dy3;
+    if(y3 < vgf_yt)y3=vgf_yt;
+    if(y3 > vgf_yb)y3=vgf_yb;
+    lir_setpixel(x,y3,11);
+    }
   x++;
   p0=(p0+1)&vgf_mask;
   }
@@ -2757,6 +2774,8 @@ char s[80];
 char fmsubtr[3]={'S','X','M'};
 // First make buttons that use the default colour (=7)
 hide_mouse(bg.xleft, bg.xright, bg.yborder, bg.ybottom);
+sprintf(s,"%3d",genparm[OUTPUT_MODE]);
+lir_pixwrite(output_mode_x,output_mode_y,s);
 if(all)
   {
   sprintf(s,"%4d",bg.fft_avgnum);
@@ -2887,7 +2906,51 @@ if(all)
         show_button(&bgbutt[BG_TOGGLE_EXPANDER],s);
         if(kill_all_flag) return;
         }
-      }  
+// **************************************  
+      if( bg_delay == 0 )
+        {
+        button_color=BG_INACTIVE_BUTTON_COLOR;
+        }
+      else
+        {
+        button_color=BG_ACTIVE_BUTTON_COLOR;
+        }
+      settextcolor(button_color);
+      if(button_color == BG_INACTIVE_BUTTON_COLOR)
+        {
+        sprintf(s,"Off");
+        }
+      else
+        {
+        sprintf(s,"Del");
+        }  
+      show_button(&bgbutt[BG_TOGGLE_PHASING],s);
+// **************************************  
+      if(ui.rx_rf_channels == 2)
+        {
+        if( bg_twopol == 0 )
+          {
+          button_color=BG_INACTIVE_BUTTON_COLOR; 
+          }
+        else
+          {
+          button_color=BG_ACTIVE_BUTTON_COLOR;
+          }
+        settextcolor(button_color);
+        if(button_color == BG_INACTIVE_BUTTON_COLOR)
+          {
+          sprintf(s,"Off");
+          }
+        else
+          {
+          sprintf(s,"X+Y");
+          }
+        show_button(&bgbutt[BG_TOGGLE_TWOPOL],s);
+        if(kill_all_flag) return;
+        }
+      button_color = 7;
+      settextcolor(button_color);
+      }
 // ***************************************
     if( bg_coherent == 0 )
       {
@@ -2908,54 +2971,12 @@ if(all)
       }
     show_button(&bgbutt[BG_TOGGLE_COHERENT],s);
     if(kill_all_flag) return;
-// **************************************  
-    if( bg_delay == 0 )
-      {
-      button_color=BG_INACTIVE_BUTTON_COLOR;
-      }
-    else
-      {
-      button_color=BG_ACTIVE_BUTTON_COLOR;
-      }
+    button_color=7;  
     settextcolor(button_color);
-    if(button_color == BG_INACTIVE_BUTTON_COLOR)
-      {
-      sprintf(s,"Off");
-      }
-    else
-      {
-      sprintf(s,"Del");
-      }
-    show_button(&bgbutt[BG_TOGGLE_PHASING],s);
     if(kill_all_flag) return;
     sprintf(s,"%3d",bg.delay_points);
     show_button(&bgbutt[BG_SEL_DELPNTS],s);
     if(kill_all_flag) return;
-// **************************************  
-    if(ui.rx_rf_channels == 2)
-      {
-      if( bg_twopol == 0 )
-        {
-        button_color=BG_INACTIVE_BUTTON_COLOR; 
-        }
-      else
-        {
-        button_color=BG_ACTIVE_BUTTON_COLOR;
-        }
-      settextcolor(button_color);
-      if(button_color == BG_INACTIVE_BUTTON_COLOR)
-        {
-        sprintf(s,"Off");
-        }
-      else
-        {
-        sprintf(s,"X+Y");
-        }
-      show_button(&bgbutt[BG_TOGGLE_TWOPOL],s);
-      if(kill_all_flag) return;
-      }
-    button_color = 7;
-    settextcolor(button_color);
     }  
   }  
 iw=0;
@@ -3638,7 +3659,7 @@ update_squelch_buttons();
 sprintf(s,"Reserved for blanker");
 i=(bg.xright-bg.xleft)/text_width-12;
 if(i<0)i=0;
-s[i]=0;
+if(i<(int)strlen(s))s[i]=0;
 lir_pixwrite(bg.xleft+6*text_width,bg.ybottom-text_height-2,s);
 old=daout_gain_y;
 t1=log10(bg.output_gain*DA_GAIN_REF)/DA_GAIN_RANGE;
@@ -3739,6 +3760,8 @@ screen_overload_count=0;
 local_reset=workload_reset_flag;
 local_bg_yborder=bg.yborder;
 local_wg_yborder=wg.yborder;
+local_squelch_on=-1;
+local_squelch_on=squelch_on;
 if(genparm[AFC_ENABLE]!=0 && genparm[AFC_LOCK_RANGE] != 0)show_ag_buttons();  
 bg_maxamp_time=current_time();
 cursor_blink_time=bg_maxamp_time+2;
@@ -3783,7 +3806,6 @@ if(truncate_flag != 0)
 s_meter_avg_filled_flag=FALSE;
 local_workload_counter=workload_counter;
 latest_expose_time = expose_time;
-local_squelch_on=-1;
 restart:;
 thread_status_flag[THREAD_SCREEN]=THRFLAG_ACTIVE;
 while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
@@ -3979,13 +4001,13 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
       make_hg_yscale();
       if(kill_all_flag) goto screen_exit;
       }
-    }   
+    }
   if(sd[SC_BG_WATERF_REDRAW]!=sc[SC_BG_WATERF_REDRAW])
     {
     sd[SC_BG_WATERF_REDRAW]=sc[SC_BG_WATERF_REDRAW];
     redraw_bg_waterfall();
     if(kill_all_flag) goto screen_exit;
-    } 
+    }
   if(sd[SC_CG_REDRAW]!=sc[SC_CG_REDRAW])
     {
     sd[SC_CG_REDRAW]++;
@@ -4051,7 +4073,7 @@ while(thread_command_flag[THREAD_SCREEN]==THRFLAG_ACTIVE)
     }
   if(fg.passband_center != old_passband_center)
     {
-    show_center_frequency();
+    if(old_passband_center != -1)show_center_frequency();
     sd[SC_SHOW_CENTER_FQ]=sc[SC_SHOW_CENTER_FQ];
     old_passband_center=fg.passband_center;
     }
@@ -4368,5 +4390,3 @@ while(thread_command_flag[THREAD_SCREEN] != THRFLAG_NOT_ACTIVE)
   }
 thread_status_flag[THREAD_SCREEN]=THRFLAG_NOT_ACTIVE;
 }
-
-

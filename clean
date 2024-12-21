@@ -24,8 +24,6 @@ rm -f save_par
 rm -f restore_par
 rm -f x.x
 rm -f x.y
-rm -f x.txt
-rm -f y.y
 rm -f cmpxchg.txt
 rm -f getitimer.txt
 rm -f todo.txt

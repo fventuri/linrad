@@ -189,6 +189,7 @@ while(((baseb_pa-ia+baseband_size)&baseband_mask) > 1)
           vg_interchannel_phase-=round(vg_interchannel_phase);
           if(vg_interchannel_phase > 0.5)vg_interchannel_phase-=1.0;
           if(vg_interchannel_phase < -0.5)vg_interchannel_phase+=1.0;
+          vgf_phase[vgf_pa]=2*vg_interchannel_phase;
           vg_interchannel_phase*=360;
           vgf_freq[2*vgf_pa  ]=vg_basebfreq1;
           vgf_freq[2*vgf_pa+1]=vg_basebfreq2;
@@ -621,8 +622,22 @@ void new_vgf_freqgain(void)
 {
 float t1;
 t1=vgf.freqgain;
+if(t1 < 0)t1=0.01;
 vgf.freqgain=numinput_float_data;
 if(vgf.freqgain != t1)
+  {
+  make_modepar_file(GRAPHTYPE_VGF);
+  sc[SC_VGF_REDRAW]++;
+  }
+}
+
+void new_vgf_phasegain(void)
+{
+int i;
+i=vgf.phasegain;
+if(i < 1)i=1;
+vgf.phasegain=numinput_int_data;
+if(vgf.phasegain != i)
   {
   make_modepar_file(GRAPHTYPE_VGF);
   sc[SC_VGF_REDRAW]++;
@@ -669,8 +684,8 @@ for(event_no=0; event_no<MAX_VGFBUTT; event_no++)
       msg_no=370;
       break;
       
-      case VGF_NEW_AMPLGAIN:
-      msg_no=371;
+      case VGF_NEW_PHASEGAIN:
+      msg_no=398;
       break;
       
       case VGF_NEW_TIME:
@@ -679,6 +694,10 @@ for(event_no=0; event_no<MAX_VGFBUTT; event_no++)
 
       case VGF_NEW_CENTER_TRACES:
       msg_no=373;
+      break;
+
+      case VGF_NEW_SHOW_MODE:
+      msg_no=397;
       break;
       }
     }  
@@ -754,11 +773,25 @@ switch (mouse_active_flag-1)
   par_from_keyboard_routine=new_vgf_freqgain;
   return;
       
+  case VGF_NEW_PHASEGAIN:
+  mouse_active_flag=1;
+  numinput_xpix=vgfbutt[VGF_NEW_PHASEGAIN].x1+7*text_width/2-1;
+  numinput_ypix=vgfbutt[VGF_NEW_PHASEGAIN].y1+2;
+  numinput_chars=4;    
+  erase_numinput_txt();
+  numinput_flag=FIXED_INT_PARM;
+  par_from_keyboard_routine=new_vgf_phasegain;
+  return;
+      
   case VGF_NEW_CENTER_TRACES:
   vgf_center_traces=TRUE;
   goto finish;
-  break;
   
+  case VGF_NEW_SHOW_MODE:
+  vgf.show++;
+  if(vgf.show > 3)vgf.show=1;
+  goto finish;
+
   default:
 // This should never happen.    
   lirerr(211053);
@@ -1092,16 +1125,17 @@ vgfbutt[VGF_NEW_FREQGAIN].x2=x2;
 vgfbutt[VGF_NEW_FREQGAIN].y1=iy1;
 vgfbutt[VGF_NEW_FREQGAIN].y2=y2;
 x1=x2+text_width;
-x2=x1+31*text_width/2;
-vgfbutt[VGF_NEW_AMPLGAIN].x1=x1;
-vgfbutt[VGF_NEW_AMPLGAIN].x2=x2;
-vgfbutt[VGF_NEW_AMPLGAIN].y1=iy1;
-vgfbutt[VGF_NEW_AMPLGAIN].y2=y2;
+x2=x1+15*text_width/2;
+vgfbutt[VGF_NEW_PHASEGAIN].x1=x1;
+vgfbutt[VGF_NEW_PHASEGAIN].x2=x2;
+vgfbutt[VGF_NEW_PHASEGAIN].y1=iy1;
+vgfbutt[VGF_NEW_PHASEGAIN].y2=y2;
 x1=vgf.xright-3*text_width/2;
 iy1=vgf.ytop+text_height-2;
 make_button(x1,iy1,vgfbutt,VGF_NEW_CENTER_TRACES,42);
+x1-=3*text_width/2+2;
 vgf_freq_xpix=x1-33*text_width;
-
+make_button(x1,iy1,vgfbutt,VGF_NEW_SHOW_MODE,vgf.show+'0');
 fix_ampfreq_time();
 make_modepar_file(GRAPHTYPE_VGF);
 if(!reset)
@@ -1133,21 +1167,31 @@ vgf_default:
   vgf.ytop=3*screen_height/4;
   vgf.ybottom=vgf.ytop+8.5*text_height;
   vgf.freqgain=0.01;
+  vgf.phasegain=1;
   vgf.time=1.0;
   vgf.check=VGF_VERNR;
+  vgf.show=0;
   }
+if(vgf.freqgain < 0.00001)vgf.freqgain=0.00001;
+if(vgf.freqgain > 10000.)vgf.freqgain=10000;
+if(vgf.phasegain < 1)vgf.phasegain=1;
+if(vgf.phasegain > 9999)vgf.phasegain=9999;
 if(vgf.time < 0.01)vgf.time=0.01;
 if(vgf.time > 30)vgf.time=30;
 if(vg.maxtau > genparm[BASEBAND_STORAGE_TIME]/4)
               vg.maxtau=genparm[BASEBAND_STORAGE_TIME]/4;
 if(vg.mintau < .0099F ||
    vgf.check != VGF_VERNR)goto vgf_default;
+vgf.show &= 3;
+if(vgf.show ==0)vgf.show=1; 
 allanfreq_graph_scro=no_of_scro;
 vgf_size=screen_width;
 make_power_of_two(&vgf_size);
 vgf_mask=vgf_size-1;
 if(vgf_freq == NULL)vgf_freq=malloc(2*vgf_size*sizeof(float));
+if(vgf_phase == NULL)vgf_phase=malloc(vgf_size*sizeof(float));
 for(k=0; k<2*vgf_size; k++)vgf_freq[k]=0;
+for(k=0; k<vgf_size; k++)vgf_phase[k]=0;
 make_allanfreq_graph(FALSE,TRUE);
 no_of_scro++;
 vgf_flag=1;

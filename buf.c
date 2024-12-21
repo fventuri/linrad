@@ -2132,5 +2132,6 @@ afc_handle=chk_free(afc_handle);
 baseband_handle=chk_free(baseband_handle);
 dx=chk_free(dx);
 vgf_freq=chk_free(vgf_freq);
+vgf_phase=chk_free(vgf_phase);
 }
 

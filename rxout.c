@@ -856,19 +856,19 @@ else
     {
     thread_command_flag[THREAD_BLOCKING_RXOUT] = THRFLAG_IDLE;
     i=0;
-    if(thread_status_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_BLOCKING)
-      {
-      lir_set_event(EVENT_BLOCKING_RXOUT);
-      }
     while(thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_IDLE)
       {
+     if(thread_status_flag[THREAD_BLOCKING_RXOUT] == THRFLAG_BLOCKING)
+        {
+        lir_set_event(EVENT_BLOCKING_RXOUT);
+        }
       i++;
       lir_sched_yield();
-      lir_sleep(3000);
+      lir_sleep(5000);
       if(kill_all_flag)goto exit2;
-      if(i>500)
+      if(i>1000)
         {
-        lirerr(776123);
+        lirerr(1074);
         goto exit2;
         }
       }  
@@ -925,10 +925,10 @@ else
     while(thread_status_flag[THREAD_BLOCKING_RXOUT] != THRFLAG_BLOCKING)
       {
       i++;
-      lir_sleep(10);
-      if(i>1000)
+      lir_sleep(30);
+      if(i>3000)
         {
-        lirerr(388421);
+        lirerr(1197);
         goto exit2;
         }
       }
@@ -940,7 +940,7 @@ else
       lir_sleep(3000);
       if(i>300)
         {
-        lirerr(388421);
+        lirerr(1208);
         goto exit2;
         }
       }

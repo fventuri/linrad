@@ -650,7 +650,9 @@ char *vgf_intpar_text[MAX_VGF_INTPAR]={"ytop",               //1
                                        "ybottom",            //2
                                        "xleft",              //3
                                        "xright",             //4
-                                       "Check"};              //5
+                                       "show",               //5
+                                       "Phase gain",         //6
+                                       "Check"};             //7
 
 char *vgf_floatpar_text[MAX_VGF_FLOATPAR]={"Freq gain",      //1
                                            "Time step"};     //2

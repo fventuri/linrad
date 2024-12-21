@@ -767,6 +767,7 @@ if(x+i <= screen_last_col)
 else 
   {
   j=1+screen_last_col-x;
+  if(j > 511)j=511;
   if(j > 0)
     {
     for(i=0; i<j; i++)s[i]=txt[i];
