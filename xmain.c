@@ -987,8 +987,11 @@ skipmenu:;
 refresh_screen_flag=FALSE;
 lir_refresh_screen();
 pthread_join(thread_identifier_refresh_screen,0);
-lir_set_event(EVENT_KILL_ALL);
-pthread_join(thread_identifier_kill_all,0);
+if(thread_status_flag[THREAD_KILL_ALL]==THRFLAG_ACTIVE)
+  {
+  lir_set_event(EVENT_KILL_ALL);
+  pthread_join(thread_identifier_kill_all,0);
+  }
 lir_remove_mouse_thread();
 pthread_join(thread_identifier_mouse,0);
 //XSync(xdis,True);    ööööööö does never return in Ubuntu 11.04

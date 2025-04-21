@@ -1535,22 +1535,18 @@ show_button(&sgbutt[SG_NEW_XGAIN],s);
 
 void sg_line(int x1, int iy1, int x2, int y2, char c)
 {
-int y;
-if(sg.xscale == 0)
+if(x2 > sg.xright-21*text_width)
   {
-  y=sg.ytop;
-  }
-else
-  {
-  y=sg_ytop2;
-  }
-//if(sg.mode != 3)
-  {    
-  if(x2 > sg.xright-21*text_width)
+  if(sg.mode == 3)
     {
-    if(iy1 < y+11*text_height || y2 < y+11*text_height)return;
-    if(iy1 < y+11*text_height)iy1=y+11*text_height;
-    if(y2 < y+11*text_height)y2=y+11*text_height;
+    if((iy1 > sg.ytop+2*sg_mode3_ypix && 
+        iy1 < sg.ytop+2*sg_mode3_ypix+11*text_height) || 
+        (y2 > sg.ytop+2*sg_mode3_ypix && 
+         y2 < sg.ytop+2*sg_mode3_ypix+11*text_height))return; 
+    }
+  else      
+    {
+    if(iy1 < sg.ytop+11*text_height || y2 < sg.ytop+11*text_height)return;
     }
   }  
 lir_line(x1,iy1,x2,y2,c);
@@ -1677,7 +1673,7 @@ else
       if(sg.mode == 3)
         {
         lir_line(xa,sg_ytop2,xa,sg.ytop,SG_DBSCALE_COLOR);  
-        k=sg_ytop2+11*text_width;
+        k=sg_ytop2+11*text_height;
         }
       }
     lir_line(xa,sg_y0,xa,k,SG_DBSCALE_COLOR);
@@ -2085,7 +2081,7 @@ zz:;
     }
   sprintf(s,"Avg %7.2f",10*logsum_an/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
-  fprintf( stderr,"\n%d AN= %.2f",sg_corrnum,-10*logsum_an/logsum_n);
+  fprintf( stderr,"\n%d AN= %.2f",sg_corrnum,10*logsum_an/logsum_n);
   break;
 
   case 3:
@@ -2774,7 +2770,7 @@ char s[80];
 char fmsubtr[3]={'S','X','M'};
 // First make buttons that use the default colour (=7)
 hide_mouse(bg.xleft, bg.xright, bg.yborder, bg.ybottom);
-sprintf(s,"%3d",genparm[OUTPUT_MODE]);
+sprintf(s,"%3d",current_output_mode);
 lir_pixwrite(output_mode_x,output_mode_y,s);
 if(all)
   {
@@ -3649,7 +3645,7 @@ if(fft1_correlation_flag <= 1)
      bg_delay == 0 &&
      bg_twopol == 0)
     {
-    s[0]=ch2_phase_symbol[bg.ch2_phase];
+    s[0]=ch2_phase_symbol[bg_ch2_phase];
     show_button(&bgbutt[BG_TOGGLE_CH2_PHASE],s);
     }
   s[0]='0'+rx_daout_channels;
@@ -3661,12 +3657,6 @@ i=(bg.xright-bg.xleft)/text_width-12;
 if(i<0)i=0;
 if(i<(int)strlen(s))s[i]=0;
 lir_pixwrite(bg.xleft+6*text_width,bg.ybottom-text_height-2,s);
-old=daout_gain_y;
-t1=log10(bg.output_gain*DA_GAIN_REF)/DA_GAIN_RANGE;
-daout_gain_y=(bg_y0+bg_ymax)/2-t1*(bg_y0-bg_ymax);
-make_daout_gain();
-update_bar(bg_vol_x1,bg_vol_x2,bg_y0,daout_gain_y,old,
-                                                 BG_GAIN_COLOR,bg_volbuf);
 for(i=0; i<screen_height; i++)bg_background[i]=0;
 db_scalestep=1.3*bg.db_per_pixel*text_height;
 adjust_scale(&db_scalestep);
@@ -3706,6 +3696,12 @@ while( scale_y > bg_ymax)
   scale_y-=db_scalestep/bg.db_per_pixel;
   scale_value+=db_scalestep;
   }
+old=daout_gain_y;
+t1=log10(bg.output_gain*DA_GAIN_REF)/DA_GAIN_RANGE;
+daout_gain_y=(bg_y0+bg_ymax)/2-t1*(bg_y0-bg_ymax);
+make_daout_gain();
+update_bar(bg_vol_x1,bg_vol_x2,bg_y0,daout_gain_y,old,
+                                                 BG_GAIN_COLOR,bg_volbuf);
 for(i=bg_first_xpixel; i<=bg_last_xpixel; i+=bg.pixels_per_point)
   {
   if(bg_carrfilter_y[i] > 0)lir_setpixel(i,bg_carrfilter_y[i],58);

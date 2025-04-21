@@ -1790,6 +1790,8 @@ return 100;
 DWORD WINAPI winthread_perseus_input(PVOID arg)
 {
 (void) arg;
+input_wait_flag=TRUE;
+lir_sched_yield();
 SetThreadPriority(GetCurrentThread(),THREAD_PRIORITY_TIME_CRITICAL);
 perseus_input();
 return 100;

@@ -137,6 +137,7 @@ extern unsigned int sd[MAX_SC];
 #define DA_GAIN_RANGE 10.
 #define DA_GAIN_REF 1.
 
+extern int current_output_mode;
 extern char *graphtype_names[MAX_GRAPHTYPES];
 extern char *graphtype_parptr[MAX_GRAPHTYPES];
 extern char **graphtype_partexts_int[MAX_GRAPHTYPES];
@@ -148,8 +149,7 @@ extern int waterfall_yield_interval;
 extern int screen_loop_counter;
 extern int screen_loop_counter_max;
 
-#define MAX_CH2_PHASES 3
-extern char ch2_phase_symbol[MAX_CH2_PHASES];
+extern char ch2_phase_symbol[2];
 
 extern int numinput_flag;
 extern int numinput_xdiff;

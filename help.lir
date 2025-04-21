@@ -1,4 +1,4 @@
-000066
+000067
 [1]KEYBOARD COMMANDS (available in most modes) 
 A = Numerical display, amplitudes
 E = Eliminate spur (If AFC present)
@@ -25,7 +25,7 @@ F2 = Toggle S-meter averaging
 F3 = Skip D/A output (For fast processing of disk files.)
 shift F3 = Stop disk file processing (to study morse decode intermediates)
 F4 = Show RF envelope vs time as an oscilloscope function in Tx test mode
-F5 = Pause processing. Useful for wideband recordings
+F5 = Pause/Resume processing. Particularly useful for wideband recordings.
 F7 = Add random noise (for test only)
 F8 = Reduce the strong signal when F11 is in use.
 F9 = Truncate input (for test only)
@@ -66,7 +66,7 @@ F2 = Toggle S-meter averaging
 F3 = Skip D/A output (For fast processing of disk files.)
 shift F3 = Stop disk file processing (to study morse decode intermediates)
 F4 = Show RF envelope vs time as an oscilloscope function in Tx test mode.
-F5 = Pause processing. Useful for wideband recordings on slow computers.
+F5 = Pause/Resume processing. Particularly useful for wideband recordings.
 F9 = Truncate input (for test only)
 Up =Increase bandwidth.
 Down = Decrease bandwidth.
@@ -1265,9 +1265,14 @@ This idea seems obsoleted by 2009 so this mode can be used
 as just another CW mode.
 [283]The SSB MODE is the same code as used in CW modes
 but it does not allow any AFC.
-[284]The FM MODE has a simple frequency detector.
-There are interesting possibilities for improvement both
-on narrowband FM and on wideband (broadcast) FM.
+Contrary to CW modes the frequency shown in the baseband is the frequency of
+the BFO (the suppressed carrier) not the signal itself.
+[284]The FM MODE has three different modes.
+FM0 a simple frequency detector.
+FM1 to FM3 detectors using fft to find the instantaeous frequency.
+For NBFM, where higher order sidebands are very weak the Coh modes may give
+a better readability on weak signals.
+At higher bandwidths a stereo decoder is available.
 [285]The AM MODE has a conventional AM detector by default.
 In this mode it is possible to use AFC and coherent detection
 of the AM signal to produce a stereo signal that may help

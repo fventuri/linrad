@@ -557,13 +557,13 @@ if(fft1_correlation_flag == 0)
   if(pg.azimuth == 0)
     {
     sprintf(s,"E => Start polarization           %d",dpg.startpol);
+    lir_text(5,line,s); 
+    line++;
     }
   else  
     {
     dpg.startpol=0;
     }
-  lir_text(5,line,s); 
-  line++;
   sprintf(s,"F => Initial averaging            %d",dpg.avg);
   lir_text(5,line,s); 
   line++;

@@ -1725,40 +1725,42 @@ while( xd < x2)
         {
         xa=(fq_x+xb)/2;
         lir_line(xa,ya,xa,yb,14);
-        if(kill_all_flag) return;
         }
       else
         {  
         t1=0.2*(fq_x-xb)+0.5;
         xa=t1;
         lir_line(xb+xa,ya,xb+xa,yb,15);
-        if(kill_all_flag) return;
         lir_line(fq_x-xa,ya,fq_x-xa,yb,15);
-        if(kill_all_flag) return;
         t1=0.4*(fq_x-xb)+0.5;
         xa=t1;
         lir_line(xb+xa,ya,xb+xa,yb,15);
-        if(kill_all_flag) return;
         lir_line(fq_x-xa,ya,fq_x-xa,yb,15);
-        if(kill_all_flag) return;
         }
       }
     xb=fq_x;  
     lir_line(fq_x,ya,fq_x,yb,15);
-    if(kill_all_flag) return;
     lir_line(fq_x+1,ya,fq_x+1,yb,15);
-    if(kill_all_flag) return;
     lir_line(fq_x-1,ya,fq_x-1,yb,15);
-    if(kill_all_flag) return;
-    m=sg.ytop-1;
-    if(fq_x > sg_last_xpixel-21*text_width)m+=13*text_height-2;    
+// If we are making the scale for the siganal graph, draw the vertical lines.
     if(first_xpixel == sg_first_xpixel)
       {
+      m=sg.ytop;
+      if(fq_x > sg_last_xpixel-20*text_width)
+        {
+        m+=11*text_height;
+        if(sg.mode == 3)
+          {
+          lir_line(fq_x,sg_ytop2,fq_x,sg.ytop,SG_DBSCALE_COLOR);
+          m=sg_ytop2+11*text_height;
+          }
+        }  
       lir_line(fq_x,sg_y0,fq_x,m,SG_DBSCALE_COLOR);  
       }
     }
   fq_x+=fq_xstep;
   fq_value+=fq_valstep;
+  if(kill_all_flag) return;
   }    
 }
 

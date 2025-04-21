@@ -102,11 +102,11 @@
 #define THREAD_MIX2 55
 #define THREAD_FFT3 56
 #define THREAD_MAX 57
-
+#define THREAD_KILL_ALL THREAD_MAX
 #define MAX_FFT1_THREADS (THREAD_FFT1B6-THREAD_FFT1B1+1)
 
 extern volatile int32_t thread_command_flag[THREAD_MAX];
-extern volatile int32_t thread_status_flag[THREAD_MAX];
+extern volatile int32_t thread_status_flag[THREAD_MAX+1];
 extern int thread_waitsem[THREAD_MAX];
 extern char mouse_thread_flag;
 extern float thread_workload[THREAD_MAX];

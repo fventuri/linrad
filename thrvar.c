@@ -30,7 +30,7 @@
 
 
 volatile int32_t thread_command_flag[THREAD_MAX];
-volatile int32_t thread_status_flag[THREAD_MAX];
+volatile int32_t thread_status_flag[THREAD_MAX+1];
 char mouse_thread_flag;
 float thread_workload[THREAD_MAX];
 double thread_tottim1[THREAD_MAX];

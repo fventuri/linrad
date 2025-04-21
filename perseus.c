@@ -44,6 +44,7 @@
 #include "osnum.h"
 #include "globdef.h"
 #include <string.h>
+#include <ctype.h>
 #ifdef __FreeBSD__ 
 #include <sys/time.h>
 #endif
@@ -57,6 +58,7 @@
 #include "fft1def.h"
 #include "screendef.h"
 #include "options.h"
+#include "keyboard_def.h"
 
 #if OSNUM == OSNUM_WINDOWS
 #include "wscreen.h"
@@ -108,9 +110,10 @@ int clock_adjust;
 int presel;
 int preamp;
 int dither;
+int serno;
 int check;
 }P_PERSEUS;
-#define MAX_PERSEUS_PARM 6
+#define MAX_PERSEUS_PARM 7
 
 
 char *perseus_parfil_name="par_perseus";
@@ -122,7 +125,8 @@ char *perseus_parm_text[MAX_PERSEUS_PARM]={"Rate no",           //0
                                            "Preselector",       //2
                                            "Preamp",            //3
                                            "Dither",            //4
-                                           "Check"};            //5
+                                           "Serial number",     //5
+                                           "Check"};            //6
 #define MAX_PERSEUS_FILTER 10
 float perseus_filter_cutoff[MAX_PERSEUS_FILTER+1]={
                   1.7,
@@ -150,6 +154,7 @@ unsigned char hwver;         // Product version
 unsigned char signature[6];  // Microtelecom Original Product Signature
 } eeprom_prodid;
 #pragma pack()
+eeprom_prodid prodid;
 
 int no_of_perseus_rates;
 #define PERSEUS_RATES_BUFSIZE 20
@@ -161,9 +166,9 @@ P_PERSEUS pers;
 
 #if(OSNUM == OSNUM_WINDOWS)
 #include "wdef.h"
-#if defined(interface)
-#undef interface
-#endif
+  #if defined(interface)
+  #undef interface
+  #endif
 extern char *unable_to_load;
 
 // Microtelecom original FPGA bitstream signature
@@ -534,6 +539,9 @@ sioctl.ctl=0;
 if(pers.preamp != 0)sioctl.ctl|=PERSEUS_SIO_GAINHIGH;
 if(pers.dither != 0)sioctl.ctl|=PERSEUS_SIO_DITHER;
 sdr=0;
+perseus_eeprom_read((unsigned char*)&prodid,
+                                       ADDR_EEPROM_PRODID, sizeof(prodid));
+
 }
 #endif
 
@@ -917,14 +925,14 @@ return 0;
 
 int perseus_eeprom_read(unsigned char *buf, int addr, unsigned char count)
 {
-eeprom_prodid *prodid;
+eeprom_prodid *prod_id;
 int i;
 char s[80];
-prodid=(eeprom_prodid*) buf;
+prod_id=(eeprom_prodid*) buf;
 (void) buf;
 (void) addr;
 (void) count;
-i=perseus_get_product_id(pers_descr,prodid);
+i=perseus_get_product_id(pers_descr,prod_id);
 if(i<0)
   {
   sprintf(s,"get product id error: %s", perseus_errorstr());
@@ -935,6 +943,8 @@ if(i<0)
   lirerr(1193);
   return 1;
   }
+perseus_eeprom_read((unsigned char*)&prodid,
+                                       ADDR_EEPROM_PRODID, sizeof(prodid));
 return 0;
 }
 
@@ -969,6 +979,8 @@ if(i < 0)
   return;
   }
 sdr=0;  
+perseus_eeprom_read((unsigned char*)&prodid,
+                                       ADDR_EEPROM_PRODID, sizeof(prodid));
 }
 
 void perseus_store_att(unsigned char idAtt)
@@ -1061,7 +1073,6 @@ char *ss;
 int *sdr_pi;
 int line;
 char *looking;
-eeprom_prodid prodid;
 FILE *perseus_file;
 looking="Looking for a Perseus on the USB port.";
 settextcolor(12);
@@ -1078,6 +1089,7 @@ lir_refresh_screen();
 line=0;
 if(sdr != -1)
   {
+    if(kill_all_flag)goto pers_errexit;
   lir_text(5,5,"A Perseus is detected on the USB port.");
   lir_text(5,6,"Do you want to use it for RX input (Y/N)?");
 qpers:;
@@ -1104,9 +1116,6 @@ qpers:;
     ui.rx_rf_channels=1;
     ui.rx_ad_channels=2;
     ui.rx_admode=0;
-    perseus_eeprom_read((unsigned char*)&prodid,
-                                       ADDR_EEPROM_PRODID, sizeof(prodid));
-    if(kill_all_flag)goto pers_errexit;
     sprintf(s,"Microtelecom product code: 0x%04X", prodid.prodcode);
     lir_text(2,10,s);
     SNDLOG"%s\n",s);
@@ -1120,6 +1129,7 @@ qpers:;
 				(unsigned short)prodid.signature[0]);
     lir_text(2,11,s);
     SNDLOG"%s\n",s);
+    pers.serno=prodid.sn;
     sprintf(s,"Hardware version/revision: %d.%d",
                          (unsigned)prodid.hwver, (unsigned)prodid.hwrel);
     lir_text(2,12,s);
@@ -1263,7 +1273,9 @@ void perseus_input(void)
 {
 int rxin_local_workload_reset;
 int i, j, errcod;
-char s[80];
+char s[128];
+int *sdr_pi;
+FILE *perseus_file;
 double dt1, read_start_time, total_reads;
 int timing_loop_counter,timing_loop_counter_max,initial_skip_flag;
 float t1;
@@ -1304,6 +1316,44 @@ i=read_sdrpar(perseus_parfil_name, MAX_PERSEUS_PARM,
                                      perseus_parm_text, (int*)((void*)&pers));
 errcod=1080;
 if(i != 0)goto perseus_error_exit;
+if(pers.serno != prodid.sn)
+  {
+  settextcolor(15);
+  sprintf(s,"The parameters in this folder are for serial no %d",
+  pers.serno);
+  lir_text(2,2,"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+  lir_text(2,3,s);
+  sprintf(s,"but the connected Perseus has serial no %d",prodid.sn);
+  lir_text(2,4,s);
+  lir_text(2,5,"Press Y to change parameters to fit the connected unit");
+  lir_text(2,6,"Press N to exit without changing any parameters.");
+  lir_text(2,7,"xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx");
+  lir_refresh_screen();
+  lir_inkey=0;
+  errcod=0;
+  while(toupper(lir_inkey) != 'Y' && toupper(lir_inkey) != 'N') 
+    {
+    
+    lir_sleep(100000);
+    }
+  if(toupper(lir_inkey) == 'N')
+    {
+    errcod=1199;
+    goto perseus_error_exit;
+    }
+  pers.serno=prodid.sn;
+  perseus_file=fopen(perseus_parfil_name,"w");
+  errcod=1210;
+  if(perseus_file == NULL)goto perseus_error_exit;
+  sdr_pi=(int*)(&pers);
+  for(i=0; i<MAX_PERSEUS_PARM; i++)
+    {
+    fprintf(perseus_file,"%s [%d]\n",perseus_parm_text[i],sdr_pi[i]);
+    }
+  parfile_end(perseus_file);
+  }
+input_wait_flag=FALSE;
+  
 if( pers.check != PERSEUS_PAR_VERNR ||
     pers.rate_no < 0 ||
     abs(pers.clock_adjust) > 10000)goto perseus_error_exit;
@@ -1397,10 +1447,10 @@ perseus_error_exit:;
 if(!kill_all_flag && errcod != 0)lirerr(errcod);
 close_perseus();
 perseus_init_error_exit:;
+input_wait_flag=FALSE;
 thread_status_flag[THREAD_PERSEUS_INPUT]=THRFLAG_RETURNED;
-while(thread_command_flag[THREAD_PERSEUS_INPUT] != THRFLAG_NOT_ACTIVE)
+while(thread_command_flag[THREAD_PERSEUS_INPUT] != THRFLAG_KILL)
   {
-  lir_sleep(1000);
+  lir_sleep(10000);
   }
 }
-

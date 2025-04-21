@@ -282,7 +282,7 @@ PCIE9842=Makefile pcie9842.c timing_setup.c input_speed.c globdef.h uidef.h \
 	fft1def.h osnum.h
 PERSEUS=Makefile perseus.c timing_setup.c input_speed.c globdef.h uidef.h \
 	vernr.h thrdef.h sdrdef.h fft1def.h screendef.h options.h bufbars.h \
-	wscreen.h lscreen.h osnum.h
+	wscreen.h lscreen.h osnum.h keyboard_def.h
 POL_GRAPH=Makefile pol_graph.c globdef.h uidef.h screendef.h vernr.h thrdef.h \
 	seldef.h wscreen.h lscreen.h osnum.h fft1def.h
 POWTIM=Makefile powtim.c globdef.h uidef.h sigdef.h fft1def.h fft2def.h \

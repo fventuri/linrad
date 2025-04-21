@@ -1126,14 +1126,16 @@ ichk2=(short int*)tmpbuf2;
 thread_status_flag[THREAD_SDRIP_INPUT]=THRFLAG_ACTIVE;
 while(thread_command_flag[THREAD_SDRIP_INPUT] == THRFLAG_ACTIVE)
   {
-  if(local_att_counter != sdr_att_counter &&
-     ! sys_func_async_start(THRFLAG_SET_SDRIP_ATT) &&
-  	   sys_func_async_join(THRFLAG_SET_SDRIP_ATT))
+  if(local_att_counter != sdr_att_counter)
+    {
+    sys_func(THRFLAG_SET_SDRIP_ATT);
     local_att_counter = sdr_att_counter;
-  if (local_nco_counter != sdr_nco_counter &&
-	! sys_func_async_start(THRFLAG_SET_SDRIP_FREQUENCY) &&
-	sys_func_async_join(THRFLAG_SET_SDRIP_FREQUENCY))
-	local_nco_counter = sdr_nco_counter;
+    }
+  if(local_nco_counter != sdr_nco_counter)
+    {
+    sys_func(THRFLAG_SET_SDRIP_FREQUENCY);
+    local_nco_counter = sdr_nco_counter;
+    }
 recv1_again:;
   i=recv(udp1_fd, tmpbuf1, pkg_size, 0);
   if(kill_all_flag)goto sdrip_udpbuf_exit;

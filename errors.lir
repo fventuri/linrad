@@ -1,4 +1,4 @@
-000079
+000082
 [937]Size of fft larger than 65536.
 Could be caused by some bug related to the use of fft1 version 6
 Change fft1 version manually in the parameter file for the current
@@ -560,10 +560,8 @@ The save file is corrupted. Can not process old data.
 Probable cause: Incorrect calibration file.
 Data was probably saved in uncalibrated mode while calibration was
 present on disk for another sampling rate or input mode.
-[1199]Output can not start.
-
-The parameter "Output delay margin (ms)" may be too small.
-Try to set it large, like 1000 for a whole second.
+[1199]You have selected to not use the first perseus.
+Go to the directory where you have the parameters for this Perseus unit.
 [1200]OSS or alsa-oss is selected for the soundcards.
 The Linrad configure script failed to locate the sound devices
 /dev/dsp or /dev/sound/dsp
@@ -603,9 +601,9 @@ image suppression.
 [1207]s-meter.txt not open.
 [1208]The blocking rx output thread did not respond in time. file:rxout.c 
 [1209]One or more threads failed to start. file:menu.c
-[1210]öÖ
-[1211]öÖ
-[1212]öÖ
+[1210]Failed to reopen par_perseus. File perseus.c
+[1211]Frequency out of range, too low, in call to first mixer. file mix1.c
+[1212]Frequency out of range, too high, in call to first mixer. file mix1.c
 [1213]öÖ
 [1214]öÖ
 [1215]The Win API function QueryPerformanceFrequency() is not supported

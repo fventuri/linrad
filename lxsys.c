@@ -1,6 +1,6 @@
 // Copyright (c) <2012> <Leif Asbrink>
 //
-// Permission is hereby granted, free of charge, to any person 
+// Permission is hereby granted, free of charge, to any pers5~on 
 // obtaining a copy of this software and associated documentation 
 // files (the "Software"), to deal in the Software without restriction, 
 // including without limitation the rights to use, copy, modify, 
@@ -735,9 +735,11 @@ void linrad_thread_create(int no)
 {
 thread_status_flag[no]=THRFLAG_INIT;
 thread_command_flag[no]=THRFLAG_ACTIVE;
-lir_sleep(20000);
+lir_sched_yield();
+lir_sleep(200000);
 pthread_create(&thread_identifier[no],NULL,(void*)thread_routine[no], NULL);
 threads_running=TRUE;
+lir_sched_yield();
 }
 
 void fix_prio(int thread)
@@ -784,7 +786,9 @@ void thread_kill_all(void)
 // Wait until the event is set.
 // Then stop all processing threads so main can write any
 // error code/message and exit.
+thread_status_flag[THREAD_KILL_ALL]=THRFLAG_ACTIVE;
 lir_await_event(EVENT_KILL_ALL);
+thread_status_flag[THREAD_KILL_ALL]=THRFLAG_NOT_ACTIVE;
 kill_all();
 }
 
@@ -1406,6 +1410,8 @@ write_raw_file();
 
 void thread_perseus_input(void)
 {
+input_wait_flag=TRUE;
+lir_sched_yield();
 fix_prio(THREAD_PERSEUS_INPUT);
 perseus_input();
 }

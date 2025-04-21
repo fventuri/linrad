@@ -513,6 +513,7 @@ extern int bg_expand;
 extern int bg_coherent;
 extern int bg_delay;
 extern int bg_twopol;
+extern int bg_ch2_phase;
 extern int bg_ypixels;
 extern float bg_expand_a;
 extern float bg_expand_b;

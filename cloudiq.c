@@ -814,14 +814,16 @@ lir_status=LIR_OK;
 thread_status_flag[THREAD_CLOUDIQ_INPUT]=THRFLAG_ACTIVE;
 while(thread_command_flag[THREAD_CLOUDIQ_INPUT] == THRFLAG_ACTIVE)
   {
-  if(local_att_counter != sdr_att_counter &&
-     ! sys_func_async_start(THRFLAG_SET_CLOUDIQ_ATT) &&
-  	   sys_func_async_join(THRFLAG_SET_CLOUDIQ_ATT))
+  if(local_att_counter != sdr_att_counter)
+    {
+    sys_func(THRFLAG_SET_CLOUDIQ_ATT);
     local_att_counter = sdr_att_counter;
-  if (local_nco_counter != sdr_nco_counter &&
-	! sys_func_async_start(THRFLAG_SET_CLOUDIQ_FREQUENCY) &&
-	sys_func_async_join(THRFLAG_SET_CLOUDIQ_FREQUENCY))
-	local_nco_counter = sdr_nco_counter;
+    }
+  if(local_nco_counter != sdr_nco_counter)
+    {
+    sys_func(THRFLAG_SET_CLOUDIQ_FREQUENCY);
+    local_nco_counter = sdr_nco_counter;
+    }
   ichk=(short int*)tmpbuf;
 recv_again:;
   i=recv(udp_fd, tmpbuf, pkg_size, 0);

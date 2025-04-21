@@ -32,6 +32,7 @@ extern void *extio_handle;
 extern HANDLE extio_handle;
 #endif
 
+extern int input_wait_flag;
 extern double q_time;
 extern MIXER_VARIABLES mix1;
 extern MIXER_VARIABLES mix2;
@@ -694,8 +695,6 @@ void update_snd(int sound_type);
 void welcome_msg(void);
 void do_syscall(void);
 void sys_func(int no);
-bool sys_func_async_start(int no);
-bool sys_func_async_join(int no);
 int read_sdrpar(char *file_name, int max_parm, char **parm_text, int *par);
 int show_rx_input_settings(int *line);
 

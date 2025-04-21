@@ -237,7 +237,6 @@ errstart:;
   }
 sscanf(s,"%02d.%02d.%02d",&i,&j,&k);
 if( i < 0 ||
-    i > 24 ||
     j < 0 ||
     j > 60 ||
     k < 0 ||
@@ -295,7 +294,6 @@ errstop:;
   }
 sscanf(s,"%02d.%02d.%02d",&i,&j,&k);
 if( i < 0 ||
-    i > 24 ||
     j < 0 ||
     j > 60 ||
     k < 0 ||
@@ -766,6 +764,7 @@ else
 msg_filename="errors.lir";
 line=3;
 write_from_msg_file(&line, lir_errcod, screen_mode, ERROR_VERNR);
+lir_sleep(5000000);
 }  
 
 

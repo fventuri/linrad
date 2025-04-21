@@ -77,7 +77,6 @@ int new_bg_twopol;
 
 float make_interleave_ratio(int nn);
 void prepare_mixer(MIXER_VARIABLES *m, int nn);
-static int ch2_signs[3]={1,-1,0};
 
 double iir5_c4(float fq)
 {
@@ -710,7 +709,7 @@ else
   }
 // ********************************************************
 init_memalloc(basebmem, MAX_BASEB_ARRAYS);
-mem(1,&baseb_out,baseband_size*2*baseb_channels*sizeof(float),0);
+mem( 1,&baseb_out,baseband_size*2*baseb_channels*sizeof(float),0);
 if(fft1_correlation_flag > 1)
   {
   mem(202,&d_baseb_carrier,baseband_size*4*sizeof(double),0);
@@ -774,7 +773,7 @@ if(rx_mode == MODE_FM)
   {
   mem(311,&baseb_fm_demod,baseband_size*2*baseb_channels*sizeof(float),0);
   mem(1311,&fm_audiofil_fir,fm_audiofil_size*sizeof(float),0);
-    mem(314,&baseb_fm_phase,baseband_size*baseb_channels*sizeof(float),0);
+  mem(314,&baseb_fm_phase,baseband_size*baseb_channels*sizeof(float),0);
   if(fm_pilot_size > 0)
     {
     if(baseb_channels != 1)
@@ -2514,24 +2513,20 @@ if(leftpressed != BUTTON_RELEASED) return;
 switch (mouse_active_flag-1)
   {
   case BG_YSCALE_EXPAND:
-  bg.yrange/=1.5;
-  make_bg_yfac();
-  goto finish2;
+  bg.yrange/=1.6;
+  break;
       
   case BG_YSCALE_CONTRACT:
   bg.yrange*=1.5;
-  make_bg_yfac();
-  goto finish2;
+  break;
       
   case BG_YZERO_DECREASE:
-  bg.yzero/=1.5;
-  make_bg_yfac();
-  goto finish2;
+  bg.yzero/=1.6;
+  break;
             
   case BG_YZERO_INCREASE:
   bg.yzero*=1.5;
-  make_bg_yfac();
-  goto finish2;
+  break;
 
   case BG_RESOLUTION_DECREASE:
   bg.bandwidth/=2;
@@ -2625,7 +2620,8 @@ switch (mouse_active_flag-1)
        bg_delay == 0 &&
        bg_twopol == 0)
     {
-    new_bg_ch2_phase=bg.ch2_phase+1;
+    new_bg_ch2_phase=bg_ch2_phase+1;
+    new_bg_ch2_phase&=1;
     }
   goto finish2;
 
@@ -3062,7 +3058,7 @@ mouse_active_flag=1;
 
 void init_baseband_sizes(void)
 {
-int bcha, coh, twop, dela;
+int i, bcha, coh, twop, dela;
 if(use_bfo == 0)
   {
 // Make sure delay is zero in AM and FM.
@@ -3195,19 +3191,27 @@ if( bcha != baseb_channels ||
     coh != bg_coherent ||
     twop != bg_twopol ||
     dela != bg_delay)mix2.size=-1;
-bg.ch2_phase=new_bg_ch2_phase;
-if(bg.ch2_phase >= MAX_CH2_PHASES)bg.ch2_phase=0;
-if(rx_mode != MODE_SSB || bg_coherent >= 3)
+bg_ch2_phase=new_bg_ch2_phase;
+if( baseb_channels != 1 || 
+    rx_daout_channels != 2 ||
+    bg_delay != 0 ||
+    bg_twopol != 0)bg_ch2_phase=0;
+if(bg_ch2_phase == 0)
   {
-  if(bg.ch2_phase == MAX_CH2_PHASES-1)bg.ch2_phase=0;
+  da_ch2_sign=1;
   }
-if(  baseb_channels != 1 || 
-     rx_daout_channels != 2 ||
-     bg_delay != 0 ||
-     bg_twopol != 0)bg.ch2_phase=0;
-da_ch2_sign=ch2_signs[bg.ch2_phase];
-genparm[OUTPUT_MODE]=(bg_twopol<<8)+(bg_delay<<7)+(bg_coherent<<4)+
-                     (bg_expand<<2)+(rx_daout_channels<<1)+rx_daout_bytes;
+else
+  {
+  da_ch2_sign=0;
+  }
+i=bg_ch2_phase;              //bit 9
+i=(i<<1)+bg_twopol;          //bit 8
+i=(i<<1)+bg_delay;           //bit 7
+i=(i<<3)+bg_coherent;        //bits 4 to 6
+i=(i<<2)+bg_expand;          //bits 2 and 3
+i=(i<<1)+rx_daout_channels-1;   //bit 1
+i=(i<<1)+rx_daout_bytes-1;      //bit 0
+current_output_mode=i;
 }
 
 void show_bg_maxamp(void)
@@ -3477,7 +3481,7 @@ else
   mem( 2,&fft3_window,fft3_size*sizeof(float),0);
   mem( 5,&fft3_tab,fft3_size*sizeof(COSIN_TABLE)/2,0);
   mem( 3,&fft3_tmp,4*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
-mem( 4,&carr_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
+  mem( 4,&carr_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
   }
 mem(34,&mi2_tmp,2*fft3_size*(ui.rx_rf_channels)*sizeof(float),0);
 mem( 6,&fft3_permute,fft3_size*sizeof(short int),0);
@@ -4002,7 +4006,7 @@ if(fft1_correlation_flag <= 1)
      bg_twopol == 0)
     {
     make_button(ix1,bg.ybottom-2*text_height,
-                 bgbutt,BG_TOGGLE_CH2_PHASE,ch2_phase_symbol[bg.ch2_phase]);
+                 bgbutt,BG_TOGGLE_CH2_PHASE,ch2_phase_symbol[bg_ch2_phase]);
     }
   ix1+=3*text_width/2+2;
   make_button(ix1,bg.ybottom-2*text_height,
@@ -4296,8 +4300,6 @@ if(errcnt < 2)
      bg.fm_subtract > 2 ||
      bg.fm_audio_bw > genparm[DA_OUTPUT_SPEED]/2000. ||
      bg.fm_audio_bw < 1 ||
-     bg.ch2_phase <0 ||
-     bg.ch2_phase >= MAX_CH2_PHASES ||
      bg.agc_attack < 0 ||
      bg.agc_attack > 9 ||
      bg.agc_release < 0 ||
@@ -4320,10 +4322,10 @@ bg_expand=(genparm[OUTPUT_MODE]>>2)&3;                //bit 2 and 3
 new_bg_coherent=(genparm[OUTPUT_MODE]>>4)&7;          //bits 4 to 6
 new_bg_delay=(genparm[OUTPUT_MODE]>>7)&1;             //bit 7
 new_bg_twopol=(genparm[OUTPUT_MODE]>>8)&1;            //bit 8 
+new_bg_ch2_phase=(genparm[OUTPUT_MODE]>>9)&1;         //bit 9 
 new_bg_fm_mode=bg.fm_mode;
 new_bg_fm_subtract=bg.fm_subtract;
 new_bg_agc_flag=bg.agc_flag;
-new_bg_ch2_phase=0;
 baseb_channels=0;
 baseband_sampling_speed=0;
 timf1_to_baseband_speed_ratio=timf1_sampling_speed;

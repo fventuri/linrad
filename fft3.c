@@ -348,6 +348,7 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
           else
             { 
             ib=20*bg_carr_20db_points;
+            if(ib > fft3_size/8)ib=fft3_size/8;
             ia=fft3_size/2-ib;
             ib+=fft3_size/2;
             dt1=0;
@@ -384,6 +385,13 @@ for(ss=0; ss<genparm[MIX1_NO_OF_CHANNELS]; ss++)
               if(fabs(t1) > t2)
                 {
                 t1*=(float)timf3_sampling_speed/fft3_size;
+                if(mix1_selfreq[0]+t1 <= mix1_lowest_fq ||
+                   mix1_selfreq[0]+t1 >= mix1_highest_fq)
+// AFC failed, skip operation
+                  {
+                  corr_afc_count=0;
+                  return;
+                  }                   
                 mix1_selfreq[0]+=t1;
                 add_mix1_cursor(0);
                 corr_afc_count=0;

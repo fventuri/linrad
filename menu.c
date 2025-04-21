@@ -764,7 +764,14 @@ while(thread_status_flag[THREAD_RX_OUTPUT]!=THRFLAG_IDLE ||
   lir_sched_yield();
   }
 if(kill_all_flag) goto normal_rx_x;
+input_wait_flag=FALSE;
 linrad_thread_create(rx_input_thread);
+lir_sched_yield();
+lir_sleep(10000);
+while(input_wait_flag)
+  {
+  lir_sleep(10000);
+  }
 while(!kill_all_flag && 
               thread_status_flag[rx_input_thread] != THRFLAG_ACTIVE)
   {
@@ -776,6 +783,7 @@ while(!kill_all_flag &&
     goto normal_rx_x;
     }
   }
+  
 if(kill_all_flag) goto normal_rx_x;
 if((ui.network_flag&NET_RX_OUTPUT)!=0)linrad_thread_create(THREAD_NETWORK_SEND);
 display_rx_input_source(s);
@@ -865,7 +873,6 @@ for(i=0; i<THREAD_MAX; i++)
 #endif
 local_block_cnt=0;
 no_input_flag=FALSE;
-
 while( !kill_all_flag &&
                thread_status_flag[THREAD_USER_COMMAND]==THRFLAG_ACTIVE &&
                thread_status_flag[rx_input_thread] != THRFLAG_RETURNED)
@@ -1295,8 +1302,12 @@ agn:;
         if( (ui.use_alsa&PORTAUDIO_RX_OUT) != 0 && 
              ui.rx_dadev_no != DISABLED_DEVICE_CODE)
           {
-          pa_get_valid_samplerate(ui.rx_dadev_no,RXDA,&line,&new_sample_rate);
-          genparm[parnum]=new_sample_rate;
+          if(portaudio_start(1))
+            {
+            pa_get_valid_samplerate(ui.rx_dadev_no,RXDA,&line,&new_sample_rate);
+            genparm[parnum]=new_sample_rate;
+            portaudio_stop(1);
+            }
           goto modify_parms_next;
           }
         }  
@@ -1461,7 +1472,6 @@ if(i == FALSE)
   lir_status=LIR_DLL_FAILED;
   return;
   }
-
 // **************************************************************
 // Set fft1_direction positive.
 // The calibration routine does not want to know if the fft1 routine
@@ -3354,14 +3364,6 @@ linrad_thread_stop_and_join(THREAD_SYSCALL);
 free_buffers();
 lir_mutex_destroy();
 show_errmsg(1);
-if(lir_errcod != 0)
-  {
-  lir_inkey=1;
-  while(lir_inkey == 1)
-    {
-    await_keyboard();
-    }
-  }
 command_extio_library(EXTIO_COMMAND_KILL_ALL);
 unload_ftdi_library();
 unload_soft66_library();

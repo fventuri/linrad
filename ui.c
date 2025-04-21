@@ -83,6 +83,8 @@ void win_semaphores(void);
 
 void set_sdrip_att(void);
 void set_sdrip_frequency(void);
+void set_cloudiq_att(void);
+void set_cloudiq_frequency(void);
 void set_netafedri_att(void);
 void set_netafedri_frequency(void);
 
@@ -142,19 +144,39 @@ while(thread_command_flag[THREAD_SYSCALL] != THRFLAG_KILL)
     break;
 
     case THRFLAG_SET_SDRIP_ATT:
+// Let the calling thread know we are processing the command.
+    lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
     set_sdrip_att();
     break;
     
     case THRFLAG_SET_SDRIP_FREQUENCY:
+// Let the calling thread know we are processing the command.
+    lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
     set_sdrip_frequency();
     break;
 
     case THRFLAG_SET_NETAFEDRI_ATT:
+// Let the calling thread know we are processing the command.
+    lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
     set_netafedri_att();
     break;
     
     case THRFLAG_SET_NETAFEDRI_FREQUENCY:
+// Let the calling thread know we are processing the command.
+    lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
     set_netafedri_frequency();
+    break;
+
+    case THRFLAG_SET_CLOUDIQ_ATT:
+// Let the calling thread know we are processing the command.
+    lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
+    set_cloudiq_att();
+    break;
+    
+    case THRFLAG_SET_CLOUDIQ_FREQUENCY:
+// Let the calling thread know we are processing the command.
+    lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
+    set_cloudiq_frequency();
     break;
 
     case THRFLAG_CALIBRATE_BLADERF_RX:
@@ -179,7 +201,8 @@ void sys_func(int no)
 {
 // Wait until the thread flag is THRFLAG_SEM_WAIT 
 // and it was set by this thread to THRFLAG_SEM_SET atomically.
-while (! lir_set_thread_flag_if(THREAD_SYSCALL, THRFLAG_SEM_WAIT, THRFLAG_SEM_SET))
+while ( !lir_set_thread_flag_if(THREAD_SYSCALL, THRFLAG_SEM_WAIT, 
+                                                           THRFLAG_SEM_SET))
   {
   lir_sleep(3000);
   if(kill_all_flag)return;
@@ -192,41 +215,11 @@ lir_set_event(EVENT_SYSCALL);
 // and it was set by this thread to THRFLAG_SEMFINISHED atomically.
 while (!lir_set_thread_flag_if(THREAD_SYSCALL, THRFLAG_SEMCLEAR, THRFLAG_SEMFINISHED))
   {
-  lir_sleep(3000);
+  lir_sleep(300);
   if(kill_all_flag)return;
   }
 // Wake
 lir_set_event(EVENT_SYSCALL);
-}
-
-bool sys_func_async_start(int no)
-{
-if (lir_set_thread_flag_if(THREAD_SYSCALL, THRFLAG_SEM_WAIT, THRFLAG_SEM_SET)) {
-  // The "SEM_WAIT" lock was acquired, this is the only thread, which may set the command and raise the event.
-  // Following line is enclosed between two memory barrier, one caused by lir_set_thread_flag_if,
-  // the other caused by lir_set_event, and we are alone inside a critical section THRFLAG_SEM_SET.
-  // The following line is therefore safe to call.
-  thread_command_flag[THREAD_SYSCALL] = no;
-  lir_set_event(EVENT_SYSCALL);
-  return true;
-} else
-  return false;
-}
-
-bool sys_func_async_join(int no)
-{
-if (lir_set_thread_flag_if(THREAD_SYSCALL, THRFLAG_SEMCLEAR, THRFLAG_SEMFINISHED)) {
-  // The command was processed by the syscall thread. This thread has acquired the "SEMCLEAR" lock.
-  if (thread_command_flag[THREAD_SYSCALL] == no) {
-    thread_command_flag[THREAD_SYSCALL] = THRFLAG_ACTIVE;
-    lir_set_event(EVENT_SYSCALL);
-	return true;
-  }
-  // The command, which finished, is not THRFLAG_SET_NETAFEDRI_ATT. Raise the critical section
-  // and let someone else finish the command.
-  lir_set_thread_flag(THREAD_SYSCALL, THRFLAG_SEMCLEAR);
-}
-return false;
 }
 
 void show_snd(int n, char* txt)
@@ -865,9 +858,9 @@ while(keyboard_buffer_ptr == keyboard_buffer_used)
     if(kill_all_flag) return;
     }
   }
-
 lir_inkey = keyboard_buffer[keyboard_buffer_used];
 keyboard_buffer_used=(keyboard_buffer_used+1)&(KEYBOARD_BUFFER_SIZE-1);
+lir_sched_yield();
 lir_sleep(10000);
 }
 
@@ -933,13 +926,18 @@ while(thread_command_flag[THREAD_USER_COMMAND] == THRFLAG_ACTIVE)
 // Get input from the user and do whatever.......
   if( usercontrol_mode != USR_NORMAL_RX)lir_refresh_screen();
   aw_keyb();
+  if(input_wait_flag && lir_inkey != X_ESC_SYM)goto ignore;
   process_current_lir_inkey();
   lir_sleep(5000);
   if(kill_all_flag)
     {
     goto user_error_exit;
     }
-  if(numinput_flag != TEXT_PARM)
+  if(numinput_flag != 0)
+    {
+    get_numinput_chars();
+    }
+  else
     {
     if(lir_inkey == 'X')
       {
@@ -971,13 +969,6 @@ while(thread_command_flag[THREAD_USER_COMMAND] == THRFLAG_ACTIVE)
       fft1corr_reset_flag++;
       goto ignore;
       }
-    }
-  if(numinput_flag != 0)
-    {
-    get_numinput_chars();
-    }
-  else
-    {
     switch(usercontrol_mode)
       {
       case USR_NORMAL_RX:

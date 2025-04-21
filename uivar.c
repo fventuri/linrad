@@ -26,6 +26,8 @@
 #include "uidef.h"
 #include "thrdef.h"
 
+int input_wait_flag;
+
 MIXER_VARIABLES mix1;
 MIXER_VARIABLES mix2;
 
@@ -342,6 +344,7 @@ char *rxmodes[MAX_RX_MODE]={"Weak signal CW",
 #define E 1000000
 #define F 11025
 #define H 200
+#define J 1023
 #define M 8000
 #define N 10000
 #define P 48000
@@ -362,7 +365,7 @@ int genparm[MAX_GENPARM+2];
 int genparm_min[MAX_GENPARM]=
  {  0,0,0,0, 0,1, 0,0,0,0,H, 2, 0,0,0, 2, 0,0,  0, 0,0,0,1, 0,1,1, 2,  0,B5, 0,0, 0,0};
 int genparm_max[MAX_GENPARM]=
- {  E,9,B,Q, D,E,99,3,1,C,E,99,10,4,G,16, D,2,800,B5,1,E,H,12,A,9, P,  N, E, H,9,99,9};
+ {  E,9,B,Q, D,E,99,3,1,C,E,99,10,4,G,16, D,2,800,B5,1,E,H,12,A,9, P,  N, E, J,9,99,9};
 int genparm_default[MAX_RX_MODE][MAX_GENPARM]={
 // Weak signal CW
  { 2500,2,0,0, 4,D, 0,0,0,0,K, 6, 2,2,0, 8,20,1,150,A1,0,0,5, 6,1,2,20,200, P, 1,3, 0,0},
@@ -712,11 +715,10 @@ char *bg_intpar_text[MAX_BG_INTPAR]={"ytop",                //1
                                      "FM mode",             //20
                                      "FM subtract",         //21
                                      "FM factor",           //22
-                                     "ch2 phase",           //23
-                                     "Squelch level",       //24
-                                     "Squelch time",        //25
-                                     "Squelch point",       //26
-                                     "check"};              //27
+                                     "Squelch level",       //23
+                                     "Squelch time",        //24
+                                     "Squelch point",       //25
+                                     "check"};              //26
 
 char *bg_floatpar_text[MAX_BG_FLOATPAR]={"filter flat",          //1
                                          "filter curved",        //2

@@ -79,6 +79,7 @@ char numinput_txt[MAX_TEXTPAR_CHARS+1];
 unsigned char button_color;
 int no_of_scro;
 
+int current_output_mode;
 int wg_flag;
 int hg_flag;
 int ag_flag;
@@ -270,7 +271,7 @@ int s_meter_avg_filled_flag;
 
 char *sg_xscales[2]={"lin","log"};
 char sg_modes[NO_SG_MODES]={'B','P','A','C'}; 
-char ch2_phase_symbol[MAX_CH2_PHASES]={'+','-','c'};
+char ch2_phase_symbol[2]={'+','-'};
 char vg_modes[2]={'A','H'};
 char vg_clears[2]={'C','S'};
 

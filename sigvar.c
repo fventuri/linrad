@@ -584,6 +584,7 @@ int bg_expand;
 int bg_coherent;
 int bg_delay;
 int bg_twopol;
+int bg_ch2_phase;
 int bg_ypixels;
 float bg_expand_a;
 float bg_expand_b;

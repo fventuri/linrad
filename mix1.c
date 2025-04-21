@@ -786,12 +786,12 @@ int k;
 int fftx_pnt;
 if(fq<mix1_lowest_fq)
   {
-  lirerr(1421);
+  lirerr(1211);
   return;
   }
 if(fq>mix1_highest_fq)
   {
-  lirerr(1420);
+  lirerr(1212);
   return;
   }
 // Find out what point in fft1/fft2 to pick as the center

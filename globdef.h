@@ -1032,7 +1032,6 @@ int filter_shift;
 int fm_mode;
 int fm_subtract;
 int fm_audio_bw;
-int ch2_phase;
 int squelch_level;
 int squelch_time;
 int squelch_point;
@@ -1052,7 +1051,7 @@ float waterfall_gain;
 float waterfall_zero;
 float oscill_gain;
 } BG_PARMS;
-#define MAX_BG_INTPAR 27
+#define MAX_BG_INTPAR 26
 extern char *bg_intpar_text[MAX_BG_INTPAR];
 #define MAX_BG_FLOATPAR 14
 extern char *bg_floatpar_text[MAX_BG_FLOATPAR];

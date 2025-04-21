@@ -360,28 +360,12 @@ await_narrowband_processing:;
   if(kill_all_flag) goto exit2;
   if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_IDLE)goto idle;
   if(thread_command_flag[THREAD_RX_OUTPUT] == THRFLAG_KILL)goto exit2;
-  if(t1*baseband_sampling_speed > 3*baseb_output_block )//|| k<2)
-    {
-    if(recent_time-dasync_time > 2)
-      {
-      lirerr(1199);
-      goto exit2;
-      }
-    goto await_narrowband_processing;
-    }
   baseb_fx=0;
   daout_pa=0;
   daout_px=0;
   daout_py=0;
   snd[RXDA].min_valid_frames=snd[RXDA].tot_frames;
   min_daout_samps=baseband_size;
-  lir_sleep(3000);
-  make_timing_info();
-  t1=total_wttim-da_wait_time-min_wttim;
-  if(t1*baseband_sampling_speed > 3*baseb_output_block )//|| k<2)
-    {
-    goto await_narrowband_processing;
-    }
   }
 if(da_start_bytes == -1)
   {
