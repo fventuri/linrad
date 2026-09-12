@@ -59,8 +59,9 @@ CFL	= -O2 -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
 @DARWIN@ @OCLPROGS32@ -DSERVER=@MAKE_SERVER@ -DHAVE_SVGALIB=@CONSOLE32_OK@ \
 -DHAVE_CUFFT=@CUFFT32_OK@ \
 -Wreturn-type -Wformat @M32@ -Wunused -Wcomment -Wchar-subscripts -Wshadow \
--Wuninitialized -Wparentheses -Wstrict-prototypes -Werror -ffast-math \
--Wundef -fomit-frame-pointer -c -o
+-Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
+-Wno-error=unused-but-set-variable -ffast-math -Wundef \
+-fomit-frame-pointer -c -o
 
 CFLN	= -O2 -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
 -DHAVE_SHM=@LIBXEXT32_OK@ -DHAVE_SVGALIB=@CONSOLE32_OK@ -Wimplicit \
@@ -68,8 +69,9 @@ CFLN	= -O2 -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
 @DARWIN@ @OCLPROGS32@ -DSERVER=@MAKE_SERVER@ -DHAVE_CUFFT=@CUFFT32_OK@ \
 -Wconversion \
 -Wreturn-type -Wformat @M32@ -Wunused -Wcomment -Wchar-subscripts -Wshadow \
--Wuninitialized -Wparentheses -Wstrict-prototypes -Werror -ffast-math \
--Wundef -fomit-frame-pointer -c -o
+-Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
+-Wno-error=unused-but-set-variable -ffast-math -Wundef \
+-fomit-frame-pointer -c -o
 
 CFLOCL	= -O2 -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
 -DHAVE_SHM=@LIBXEXT32_OK@ -Wimplicit -Wbad-function-cast -DOSSD=@OSSHDR32@ \
@@ -77,14 +79,15 @@ CFLOCL	= -O2 -DOSNUM=1 @X11_32_INC@ -W -Wall -DCPU=@CPU@ @OSSINC32@ \
 @DARWIN@ -DSERVER=@MAKE_SERVER@ -DHAVE_SVGALIB=@CONSOLE32_OK@ \
 @OCLPROGS32@ -DCL_USE_DEPRECATED_OPENCL_1_2_APIS -DHAVE_CUFFT=@CUFFT32_OK@ \
 -Wreturn-type -Wformat @M32@ -Wunused -Wcomment -Wchar-subscripts -Wshadow \
--Wuninitialized -Wparentheses -Werror -ffast-math \
--Wundef -fomit-frame-pointer -c -o
+-Wuninitialized -Wparentheses -Werror -Wno-error=unused-but-set-variable \
+-ffast-math -Wundef -fomit-frame-pointer -c -o
 
 CFW	= -O2 -DOSNUM=2 -W -Wall -Wimplicit -DIA64=0 -DHAVE_CUFFT=0 \
 -DCPU=CPU_INTEL -DSERVER=@MAKE_SERVER@ -DHAVE_OSS=0 -DOPENCL_PRESENT=0 \
 @M32@ -Wreturn-type -Wformat -Wunused -Wcomment -Wchar-subscripts \
 -Wshadow -Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
--ffast-math -Wundef -fomit-frame-pointer -c -o
+-Wno-error=unused-but-set-variable -ffast-math -Wundef \
+-fomit-frame-pointer -c -o
 
 # -fsyntax-only -pedantic -pedantic-errors -w -Wextra -Wall -Waddress -Waggrega
 
@@ -93,13 +96,15 @@ CFWN	= -O2 -DOSNUM=2 -W -Wall -Wimplicit -DIA64=0 -DHAVE_CUFFT=0 \
 @M32@ -Wreturn-type -Wformat -Wunused -Wcomment -Wchar-subscripts \
 -Wconversion \
 -Wshadow -Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
--ffast-math -Wundef -fomit-frame-pointer -c -o
+-Wno-error=unused-but-set-variable -ffast-math -Wundef \
+-fomit-frame-pointer -c -o
 
 CFW64	= -O2 -DOSNUM=2 -W -Wall -Wimplicit -DIA64=1 -DHAVE_CUFFT=0 \
 -DCPU=CPU_INTEL -DSERVER=@MAKE_SERVER@ -DHAVE_OSS=0 -DOPENCL_PRESENT=0 \
 @M64@ -Wreturn-type -Wformat -Wunused -Wcomment -Wchar-subscripts \
 -Wshadow -Wuninitialized -Wparentheses -Wstrict-prototypes -Werror \
--ffast-math -Wundef -fomit-frame-pointer -c -o
+-Wno-error=unused-but-set-variable -ffast-math -Wundef \
+-fomit-frame-pointer -c -o
 
 CFL64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 -DCPU=@CPU@ -DHAVE_SHM=@LIBXEXT64_OK@ -DHAVE_X11=@X11_64_ALL_OK@ \
@@ -107,8 +112,8 @@ CFL64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 @OCLPROGS64@ -DHAVE_CUFFT=@CUFFT64_OK@ \
 -Wimplicit -Wreturn-type -Wformat @M64@ -Wunused -Wcomment -DOSSD=@OSSHDR64@ \
 -Wchar-subscripts -Wshadow -Wuninitialized -Wparentheses @OSSINC64@ \
--Wstrict-prototypes -Werror -ffast-math -Wundef -fomit-frame-pointer \
--c -o
+-Wstrict-prototypes -Werror -Wno-error=unused-but-set-variable \
+-ffast-math -Wundef -fomit-frame-pointer -c -o
 
 CFLN64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 -DCPU=@CPU@ -DHAVE_SHM=@LIBXEXT64_OK@ -DHAVE_SVGALIB=@CONSOLE64_OK@ \
@@ -116,8 +121,8 @@ CFLN64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 -DHAVE_CUFFT=@CUFFT64_OK@ -DOSSD=@OSSHDR64@ @OSSINC64@ @OCLPROGS64@ \
 -Wconversion -Wimplicit -Wreturn-type -Wformat @M64@ -Wunused -Wcomment \
 -Wchar-subscripts -Wshadow -Wuninitialized -Wparentheses \
--Wstrict-prototypes -Werror -ffast-math -Wundef -fomit-frame-pointer \
--c -o
+-Wstrict-prototypes -Werror -Wno-error=unused-but-set-variable \
+-ffast-math -Wundef -fomit-frame-pointer -c -o
 
 CFLOCL64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 -DCPU=@CPU@ -DHAVE_SHM=@LIBXEXT64_OK@ -DHAVE_X11=@X11_64_ALL_OK@ \
@@ -125,8 +130,8 @@ CFLOCL64	= -O2 -DOSNUM=1 @X11_64_INC@ -W -Wall -DHAVE_OSS=@OSS64_H@ \
 @OCLPROGS64@ -DCL_USE_DEPRECATED_OPENCL_1_2_APIS -DHAVE_CUFFT=@CUFFT64_OK@ \
 -Wimplicit -Wreturn-type -Wformat @M64@ -Wunused -Wcomment -DOSSD=@OSSHDR64@ \
 -Wchar-subscripts -Wshadow -Wuninitialized -Wparentheses @OSSINC64@ \
--Werror -ffast-math -Wundef -fomit-frame-pointer \
--c -o
+-Werror -Wno-error=unused-but-set-variable -ffast-math -Wundef \
+-fomit-frame-pointer -c -o
 
 # Define dependencies for routines used both in Linux and Windows
 

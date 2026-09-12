@@ -1618,7 +1618,7 @@ y=sg_y0-1;
 x1=sg.xleft+text_width;
 x2=sg_last_xpixel;
 sg_first_logfreq=0.6*(float)bg_carr_20db_points/(fft3_size);
-t1=12.0/sg_siz;
+t1=17.0/sg_siz;
 if(t1 > sg_first_logfreq)sg_first_logfreq=t1;
 sg_first_logpoint=0.5+sg_first_logfreq*sg_siz;;
 sg_first_logfreq*=baseband_sampling_speed;
@@ -1978,6 +1978,11 @@ zz:;
   sprintf(s,"Avg %7.2f",10*logsum_pn/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
   fprintf( stderr,"\n%d PN= %.2f",sg_corrnum,10*logsum_pn/logsum_n);
+  if(dmp != NULL)
+    {
+    fprintf(dmp1,"\n%d PN= %.2f",sg_corrnum,10*logsum_pn/logsum_n);
+    fflush(dmp1);
+    }
   break;
 
   case 2:
