@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="530" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <rect x="230" y="30"  width="300" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="130" width="300" height="60" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="242" width="300" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="342" width="300" height="60" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="90"  y="452" width="230" height="48" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="440" y="452" width="230" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="380" y="60"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>fft1 spectrum (complex, per bin)</tspan></text>
+ <text x="380" y="155" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">Route each bin by liminfo[]</tspan><tspan x="380" dy="15">into strong slot (limited) &#183; weak slot</tspan></text>
+ <text x="380" y="272" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Dual back-FFT &#8212; both slots, one pass</tspan></text>
+ <text x="380" y="367" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">timf2, per sample:</tspan><tspan x="380" dy="15">[ weak (I,Q) | strong (I,Q) ]</tspan></text>
+ <text x="205" y="481" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>weak part &#8594; noise blanker</tspan></text>
+ <text x="555" y="481" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>weak + strong summed &#8594; 2nd FFT</tspan></text>
+
+ <path d="m380 78v52"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 190v52" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 290v52" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- fork -->
+ <path d="m380 402v28" fill="none" stroke="#000000"/>
+ <path d="m205 430h350" fill="none" stroke="#000000"/>
+ <path d="m205 430v22" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m555 430v22" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- annotations -->
+ <text x="545" y="150" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan x="545">liminfo &lt; 0: strong</tspan><tspan x="545" dy="15">== 0: weak</tspan><tspan x="545" dy="15">&gt; 0: strong &#215; factor</tspan></text>
+ <text x="545" y="320" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan x="545">+ per-sample power</tspan><tspan x="545" dy="15">&#8594; timf2_pwr[]</tspan></text>
+</svg>

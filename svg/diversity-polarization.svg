@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="380" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <!-- signal path (top) -->
+ <rect x="30"  y="60"  width="90"  height="44" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="30"  y="150" width="90"  height="44" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="180" y="70"  width="210" height="114" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="450" y="70"  width="180" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="450" y="150" width="180" height="44" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="75"  y="87"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>X (ch 1)</tspan></text>
+ <text x="75"  y="177" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Y (ch 2)</tspan></text>
+ <text x="285" y="112" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="285" font-weight="bold">Combine &#8594; A, B</tspan><tspan x="285" dy="17">A = c1&#183;X + c2&#183;Y + c3&#183;(jY)</tspan><tspan x="285" dy="17">c1&#178; + c2&#178; + c3&#178; = 1</tspan></text>
+ <text x="540" y="97"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>A &#8212; main (all signal)</tspan></text>
+ <text x="540" y="177" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>B &#8212; orthogonal (noise)</tspan></text>
+
+ <path d="m120 82h60"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m120 172h60" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m390 92h60"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m390 172h60" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m630 92h60"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <text x="700" y="88" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>to</tspan><tspan x="700" dy="15">demod</tspan></text>
+
+ <!-- adaptation loop (bottom) -->
+ <rect x="450" y="270" width="180" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="240" y="270" width="180" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="40"  y="270" width="170" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="540" y="292" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="540">Covariance</tspan><tspan x="540" dy="15">a2, b2, re, im</tspan></text>
+ <text x="330" y="292" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="330">Integrate 32 frames,</tspan><tspan x="330" dy="15">validate r2&#8804;0.2, noi2&#8804;0.12</tspan></text>
+ <text x="125" y="300" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Update c1, c2, c3</tspan></text>
+
+ <!-- A,B down into covariance -->
+ <path d="m540 114v40h-5v116" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m560 194v76"        fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m450 297h-30" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m240 297h-30" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <!-- feedback to combine (dashed) -->
+ <path d="m125 270v-138h55" fill="none" marker-end="url(#Arrow1L)" stroke="#808080" stroke-dasharray="4, 3"/>
+ <text x="132" y="245" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>adapt</tspan><tspan x="132" dy="15">(pg.adapt=0)</tspan></text>
+</svg>

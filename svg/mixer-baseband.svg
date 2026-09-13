@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="330" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <rect x="20"  y="118" width="130" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="85" y="140" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="85">fft3 bins</tspan><tspan x="85" dy="15">(around 0 Hz)</tspan></text>
+
+ <!-- top path: audio filter -->
+ <rect x="210" y="50"  width="150" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="400" y="50"  width="170" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="610" y="50"  width="130" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="285" y="79" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>&#215; bg_filterfunc</tspan></text>
+ <text x="485" y="79" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>inverse FFT + overlap-add</tspan></text>
+ <text x="675" y="79" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>baseb_raw</tspan></text>
+
+ <!-- bottom path: carrier filter -->
+ <rect x="210" y="192" width="150" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="400" y="192" width="170" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="610" y="192" width="130" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="285" y="214" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="285">&#215; bg_carrfilter</tspan><tspan x="285" dy="15">(narrow)</tspan></text>
+ <text x="485" y="221" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>inverse FFT</tspan></text>
+ <text x="675" y="214" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="675">carrier</tspan><tspan x="675" dy="15">(coh CW / AM)</tspan></text>
+
+ <!-- arrows -->
+ <path d="m150 138 30 0 0 -64 30 0" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m150 152 30 0 0 64 30 0"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m360 74h40"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m570 74h40"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m360 216h40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m570 216h40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- notes -->
+ <text x="380" y="285" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>Two channels: polarization combine (c1,c2,c3) applied per bin in the same multiply</tspan><tspan x="380" dy="15">&#8594; baseb_raw (main) + baseb_raw_orthog.   mixer_mode 2: time-domain FIR instead.</tspan></text>
+</svg>

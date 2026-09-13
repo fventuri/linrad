@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="470" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <rect x="230" y="30"  width="300" height="48" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="118" width="300" height="60" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="218" width="300" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="306" width="300" height="60" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="406" width="300" height="48" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="380" y="60"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>baseb_out (complex baseband)</tspan></text>
+ <text x="380" y="143" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">Fractional resample to D/A rate</tspan><tspan x="380" dy="15">cubic Lagrange (4-point) + optional IIR-5</tspan></text>
+ <text x="380" y="247" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>AGC gain + squelch</tspan></text>
+ <text x="380" y="331" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">BFO / demodulation</tspan><tspan x="380" dy="15">rx_mode: SSB &#183; CW &#183; AM &#183; FM</tspan></text>
+ <text x="380" y="435" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>D/A output (daout)</tspan></text>
+
+ <path d="m380 78v40"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 178v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 266v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 366v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+</svg>

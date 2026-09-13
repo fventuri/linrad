@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="230" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <text x="380" y="32" fill="#000000" font-family="Roboto Condensed" font-size="16px" text-anchor="middle"><tspan>Circular buffer &#8212; one creator, one consumer</tspan></text>
+ <text x="380" y="54" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>size = mask + 1   &#183;   valid data = px &#8230; pa   &#183;   wrap: p = (p + n) &amp; mask</tspan></text>
+
+ <!-- buffer -->
+ <rect x="60" y="86" width="640" height="44" fill="none" stroke="#000000"/>
+ <rect x="300" y="87" width="180" height="42" fill="#dce6f0" stroke="none"/>
+ <text x="390" y="113" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>valid data</tspan></text>
+ <text x="180" y="113" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>consumed / stale</tspan></text>
+ <text x="590" y="113" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>free</tspan></text>
+
+ <!-- pointers -->
+ <path d="m300 178v-44" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m480 178v-44" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <text x="300" y="196" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="300">px</tspan><tspan x="300" dy="15" fill="#808080">consumer reads next</tspan></text>
+ <text x="480" y="196" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="480">pa</tspan><tspan x="480" dy="15" fill="#808080">creator writes next</tspan></text>
+</svg>
