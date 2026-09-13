@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="660" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <rect x="160" y="20"  width="440" height="48" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="160" y="88"  width="440" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="160" y="156" width="440" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="160" y="224" width="440" height="48" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="160" y="292" width="440" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="160" y="360" width="440" height="48" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="160" y="428" width="440" height="48" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="160" y="496" width="440" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="160" y="564" width="440" height="48" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="380" y="49"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Microphone &#8594; mictimf</tspan></text>
+ <text x="380" y="117" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>FFT 1: window &#183; frequency-shift &#183; filter &#8594; micfft (passband @ bin 0)</tspan></text>
+ <text x="380" y="185" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Frequency-domain muting  (step 2)</tspan></text>
+ <text x="380" y="253" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>IFFT 2 &#8594; cliptimf  &#183;  AGC + clip + mute  (step 4)</tspan></text>
+ <text x="380" y="321" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>FFT 3 &#8594; clipfft  &#183;  band-limit filter  (step 5)</tspan></text>
+ <text x="380" y="389" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>IFFT 4 &#8594; alctimf  &#183;  ALC detector (fast attack / slow release)  (step 6)</tspan></text>
+ <text x="380" y="457" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Apply ALC &#8212; peak power &#8804; 1.00  (step 7)</tspan></text>
+ <text x="380" y="525" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Resample &#8594; FFT 5 / IFFT 6 clean &#8594; tx_resamp  (step 8)</tspan></text>
+ <text x="380" y="593" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Output soundcard (I/Q)</tspan></text>
+
+ <path d="m380 68v20"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 136v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 204v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 272v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 340v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 408v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 476v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 544v20" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- bracket: six FFTs -->
+ <path d="m140 88v456" fill="none" stroke="#808080"/>
+ <path d="m140 88h8"   fill="none" stroke="#808080"/>
+ <path d="m140 544h8"  fill="none" stroke="#808080"/>
+ <text transform="rotate(-90 126 316)" x="126" y="316" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>six FFTs, 50% overlap</tspan></text>
+
+ <!-- legend -->
+ <rect x="160" y="622" width="18" height="14" fill="#dce6f0" stroke="#bf2334"/>
+ <text x="186" y="634" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>speech processor: AGC &#183; clipping &#183; ALC</tspan></text>
+</svg>

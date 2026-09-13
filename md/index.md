@@ -34,6 +34,9 @@ source"** panel pointing at the functions and lines it refers to.
 1. [Calibration](/calibration/) — hardware filter correction and I/Q balance
 1. [The network interface (and MAP65)](/network-map65/) — multicasting pipeline
    stages between machines and to decoders
+1. [Wide graph and waterfall](/wide-graph/) — the main display and how tuning drives
+   the receiver
+1. [The transmit path](/transmit/) — the six-FFT SSB speech processor and CW keying
 1. [Source file map](/file-map/) — which source file does what
 1. [Links and references](/links/)
 
