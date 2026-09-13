@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="420" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <rect x="250" y="30"  width="260" height="44" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="110" width="340" height="60" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="198" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="380" y="57"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>baseb_raw (I/Q)</tspan></text>
+ <text x="380" y="135" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">FM detector: d(phase)/dt</tspan><tspan x="380" dy="15">(atan2 or windowed-FFT peak, fmfix)</tspan></text>
+ <text x="380" y="225" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Split composite (low-pass / subcarrier filters)</tspan></text>
+
+ <!-- three WFM outputs -->
+ <rect x="30"  y="300" width="210" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="275" y="296" width="210" height="60" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="520" y="300" width="210" height="48" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="135" y="329" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Mono  L+R</tspan></text>
+ <text x="380" y="321" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">Stereo  L&#8722;R</tspan><tspan x="380" dy="15">19 kHz pilot &#8594; 38 kHz</tspan></text>
+ <text x="625" y="329" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>RDS  57 kHz</tspan></text>
+
+ <path d="m380 74v36"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 170v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- fork -->
+ <path d="m380 242v28" fill="none" stroke="#000000"/>
+ <path d="m135 270h490" fill="none" stroke="#000000"/>
+ <path d="m135 270v30" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 270v26" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m625 270v30" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <text x="380" y="386" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>L+R and L&#8722;R &#8594; L/R audio with de-emphasis.   NBFM / no pilot: detector output &#8594; audio directly (nbfm).</tspan></text>
+ <text x="380" y="404" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>fm_subtract mode removes the dominant carrier to cut adjacent-channel intermodulation.</tspan></text>
+</svg>

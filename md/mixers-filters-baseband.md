@@ -155,3 +155,10 @@ network.
 | polarization combine | `mix2.c` | spatial/polarization combination (2 ch) |
 | cubic Lagrange + IIR5 | `rxout.c` | fractional resampling / anti-image |
 | FM de-emphasis / pilot / RDS FIRs | `fm.c` | WFM broadcast |
+
+## Related
+
+Baseband subsystems covered separately:
+[Coherent CW and Morse decoding](/coherent-cw/) ·
+[Spur removal](/spur-removal/) ·
+[FM and wideband-FM](/fm/).

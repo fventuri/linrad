@@ -27,6 +27,10 @@ source"** panel pointing at the functions and lines it refers to.
    RF channels for optimum signal-to-noise
 1. [Mixers, filters, baseband and output](/mixers-filters-baseband/) — tuning, the
    baseband filter, AGC, demodulation and resampling
+1. [Coherent CW and Morse decoding](/coherent-cw/) — coherent carrier extraction
+   and Morse-to-ASCII
+1. [Spur removal](/spur-removal/) — cancelling stable carriers from the spectrum
+1. [FM and wideband-FM](/fm/) — FM detection, stereo composite and RDS
 1. [Source file map](/file-map/) — which source file does what
 1. [Links and references](/links/)
 

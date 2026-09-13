@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="600" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <!-- three input bandwidths -->
+ <rect x="30"  y="20" width="220" height="40" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="270" y="20" width="220" height="40" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="510" y="20" width="220" height="40" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="140" y="45" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>baseb &#8212; selected BW</tspan></text>
+ <text x="380" y="45" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>baseb_carrier &#8212; narrow</tspan></text>
+ <text x="620" y="45" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>baseb_wb &#8212; &#8805;2&#215; wide</tspan></text>
+
+ <path d="m140 60v24" fill="none" stroke="#000000"/>
+ <path d="m620 60v24" fill="none" stroke="#000000"/>
+ <path d="m380 60v24" fill="none" stroke="#000000"/>
+ <path d="m140 84h480" fill="none" stroke="#000000"/>
+ <path d="m380 84v16" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- pipeline -->
+ <rect x="210" y="100" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="172" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="244" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="316" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="388" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="460" width="340" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="210" y="532" width="340" height="44" fill="#dce6f0" stroke="#bf2334"/>
+
+ <text x="380" y="127" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Align phases to carrier (signal &#8594; I, chirp &#8594; Q)</tspan></text>
+ <text x="380" y="199" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Find Morse clock &#8594; cwbit_pts (keying_spectrum)</tspan></text>
+ <text x="380" y="271" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Build ideal dash waveform</tspan></text>
+ <text x="380" y="343" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Collect average dash shape (power detector)</tspan></text>
+ <text x="380" y="415" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Fit dashes/dots; wideband shape + phase drift</tspan></text>
+ <text x="380" y="487" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Guess regions &amp; characters (alphabet, best S/N)</tspan></text>
+ <text x="380" y="559" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan font-weight="bold">ASCII output</tspan></text>
+
+ <path d="m380 144v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 216v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 288v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 360v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 432v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 504v28" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- cw_detect_flag states -->
+ <text x="565" y="165" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>cw_detect_flag:</tspan></text>
+ <text x="565" y="199" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>SEARCH_SPEED</tspan></text>
+ <text x="565" y="343" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>WAVEFORM_ESTABLISHED</tspan></text>
+ <text x="565" y="415" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan x="565">PARTS_FITTED /</tspan><tspan x="565" dy="15">LIMITS_FOUND</tspan></text>
+ <text x="565" y="487" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan x="565">REGION /</tspan><tspan x="565" dy="15">ASCII_FITTED</tspan></text>
+</svg>
