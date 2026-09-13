@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="380" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <text x="120" y="38" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>pipeline tap points</tspan></text>
+
+ <!-- tap points -->
+ <rect x="30" y="54"  width="200" height="34" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="30" y="102" width="200" height="34" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="30" y="150" width="200" height="34" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="30" y="198" width="200" height="34" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="30" y="246" width="200" height="34" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="130" y="76"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>RAW 16/18/24  (0/1/2)</tspan></text>
+ <text x="130" y="124" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>FFT1  (3)</tspan></text>
+ <text x="130" y="172" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>TIMF2  (4)</tspan></text>
+ <text x="130" y="220" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>FFT2  (5)</tspan></text>
+ <text x="130" y="268" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>BASEBAND  (6)</tspan></text>
+
+ <!-- multicast box -->
+ <rect x="300" y="54" width="190" height="226" fill="#dce6f0" stroke="#bf2334"/>
+ <text x="395" y="120" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="395" font-weight="bold">Network multicast</tspan><tspan x="395" dy="24">groups 239.255.0.0&#8211;15</tspan><tspan x="395" dy="18">port 50000&#8211;65000</tspan><tspan x="395" dy="18">+ format offset</tspan><tspan x="395" dy="24">any IP: par_netsend_ip</tspan></text>
+
+ <!-- consumers -->
+ <rect x="560" y="80"  width="180" height="70" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="560" y="196" width="180" height="70" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+ <text x="650" y="108" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="650">Another Linrad</tspan><tspan x="650" dy="16">RAW / FFT1 / TIMF2</tspan><tspan x="650" dy="16">as input</tspan></text>
+ <text x="650" y="224" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="650">MAP65 &amp; other</tspan><tspan x="650" dy="16">wideband decoders</tspan></text>
+
+ <!-- arrows tap -> multicast -->
+ <path d="m230 71h70"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m230 119h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m230 167h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m230 215h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m230 263h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- arrows multicast -> consumers -->
+ <path d="m490 115h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m490 231h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <text x="380" y="320" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>Formats can be sent simultaneously. RAW/FFT1 network input lets several PCs share one</tspan><tspan x="380" dy="15">receiver, or split the processing across machines (same base port, different group).</tspan></text>
+</svg>

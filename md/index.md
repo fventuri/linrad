@@ -31,6 +31,9 @@ source"** panel pointing at the functions and lines it refers to.
    and Morse-to-ASCII
 1. [Spur removal](/spur-removal/) — cancelling stable carriers from the spectrum
 1. [FM and wideband-FM](/fm/) — FM detection, stereo composite and RDS
+1. [Calibration](/calibration/) — hardware filter correction and I/Q balance
+1. [The network interface (and MAP65)](/network-map65/) — multicasting pipeline
+   stages between machines and to decoders
 1. [Source file map](/file-map/) — which source file does what
 1. [Links and references](/links/)
 
