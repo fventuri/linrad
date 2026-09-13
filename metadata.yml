@@ -1,0 +1,10 @@
+site_title: Linrad Notes
+
+description: Notes on the internal DSP of Linrad, the SDR receiver by Leif Åsbrink, SM5BSZ
+
+source: https://github.com/fventuri/linrad/tree/main
+issues: https://github.com/fventuri/linrad/issues
+
+linrad_home: https://sm5bsz.com/linuxdsp/linrad.htm
+linrad_sourceforge: https://sourceforge.net/projects/linrad/
+linrad_group: https://groups.google.com/g/linrad

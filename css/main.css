@@ -1,0 +1,192 @@
+*,
+:after,
+:before {
+  box-sizing: border-box;
+}
+
+* {
+  margin: 0;
+}
+
+html {
+  font-family:
+    Calibri,
+    Liberation Sans,
+    DejaVu Sans,
+    sans-serif;
+  -webkit-text-size-adjust: none;
+  -moz-text-size-adjust: none;
+  text-size-adjust: none;
+}
+
+code,
+pre {
+  font-family:
+    Consolas,
+    Liberation Mono,
+    DejaVu Sans Mono,
+    monospace;
+}
+
+body {
+  line-height: 1.5;
+  margin: auto;
+  max-width: 100ch;
+  padding-bottom: 2em;
+}
+
+article {
+  background-color: #fff;
+  border-radius: 0.5em;
+  padding: 2em 1em;
+}
+
+article > * + * {
+  margin-top: 1em;
+}
+
+h1,
+h2 {
+  font-weight: normal;
+  line-height: 1.2;
+}
+
+h1 {
+  font-size: 225%;
+}
+
+h2 {
+  font-size: 150%;
+}
+
+h3 {
+  font-size: 120%;
+  font-weight: normal;
+}
+
+ol,
+ul {
+  padding-left: 2em;
+}
+
+ol {
+  list-style: decimal outside;
+}
+
+ul {
+  list-style: disc outside;
+}
+
+li {
+  padding-left: 0.25em;
+}
+
+li > p {
+  margin-top: 1em;
+}
+
+ol > li::marker {
+  color: #808080;
+}
+
+ul > li::marker {
+  color: #a9a9a9;
+}
+
+a {
+  color: #bf2334;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+body,
+code,
+pre,
+tbody tr:nth-child(odd) {
+  background-color: #f5f5f5;
+}
+
+code,
+pre {
+  border-radius: 0.25em;
+}
+
+code {
+  padding: 0.1em 0.25em;
+  white-space: nowrap;
+}
+
+pre {
+  overflow-x: auto;
+  padding: 0.5em 1em;
+}
+
+pre code {
+  padding: 0;
+  white-space: pre;
+}
+
+table {
+  border-collapse: collapse;
+}
+
+td,
+th {
+  border: 1px solid #d3d3d3;
+  padding: 0.25em 0.5em;
+  text-align: start;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+header {
+  justify-content: space-between;
+  padding: 0.5em 1em;
+}
+
+header,
+header div {
+  column-gap: 1em;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+/* "In the source" two-layer detail blocks */
+details {
+  background-color: #f5f5f5;
+  border: 1px solid #dce6f0;
+  border-left: 3px solid #bf2334;
+  border-radius: 0.25em;
+  padding: 0.5em 1em;
+}
+
+details[open] > summary {
+  margin-bottom: 0.5em;
+}
+
+details > summary {
+  cursor: pointer;
+  color: #bf2334;
+}
+
+details > * + * {
+  margin-top: 0.5em;
+}
+
+@media print {
+  header {
+    display: none;
+  }
+  details {
+    break-inside: avoid;
+  }
+  details > summary {
+    color: #000;
+  }
+}

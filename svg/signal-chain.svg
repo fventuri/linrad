@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="760" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <!-- boxes -->
+ <rect x="230" y="20"  width="300" height="42" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="102" width="300" height="42" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="184" width="300" height="42" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="266" width="300" height="42" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="230" y="348" width="300" height="42" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="430" width="300" height="42" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="512" width="300" height="42" fill="#dce6f0" stroke="#bf2334"/>
+ <rect x="230" y="594" width="300" height="42" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="230" y="676" width="300" height="42" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <!-- box labels -->
+ <text x="380" y="46"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Input &#8212; A/D &#183; network &#183; file</tspan></text>
+ <text x="380" y="128" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>First FFT</tspan></text>
+ <text x="380" y="197" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">Strong / weak split</tspan><tspan x="380" dy="15" fill="#808080">(liminfo)</tspan></text>
+ <text x="380" y="279" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">Back FFT &#8594; timf2</tspan><tspan x="380" dy="15" font-weight="bold">Noise blanker</tspan></text>
+ <text x="380" y="374" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Second FFT &#8594; AFC / spur removal</tspan></text>
+ <text x="380" y="456" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>First mixer &#8212; tune + decimate</tspan></text>
+ <text x="380" y="525" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="380">Third FFT + second mixer</tspan><tspan x="380" dy="15" font-weight="bold">baseband filter + adaptive polarization</tspan></text>
+ <text x="380" y="620" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Demod &#183; AGC &#183; BFO &#183; resample</tspan></text>
+ <text x="380" y="702" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>D/A output</tspan></text>
+
+ <!-- arrows -->
+ <path d="m380 62v40"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 144v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 226v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 308v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 390v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 472v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 554v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m380 636v40" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <!-- buffer labels on the arrows -->
+ <text x="545" y="78"  fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">timf1</tspan><tspan x="545" dy="15" fill="#808080">raw I/Q, 1&#8211;2 RF ch</tspan></text>
+ <text x="545" y="160" fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">fft1</tspan><tspan x="545" dy="15" fill="#808080">spectrum / waterfall</tspan></text>
+ <text x="545" y="250" fill="#808080" font-family="Roboto Condensed" font-size="14px"><tspan>two interleaved slots</tspan></text>
+ <text x="545" y="324" fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">timf2</tspan><tspan x="545" dy="15" fill="#808080">impulse noise removed</tspan></text>
+ <text x="545" y="414" fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">fft2</tspan><tspan x="545" dy="15" fill="#808080">fine resolution</tspan></text>
+ <text x="545" y="496" fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">timf3</tspan><tspan x="545" dy="15" fill="#808080">tuned &amp; decimated</tspan></text>
+ <text x="545" y="578" fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">baseb</tspan><tspan x="545" dy="15" fill="#808080">complex baseband</tspan></text>
+ <text x="545" y="660" fill="#000000" font-family="Roboto Condensed" font-size="14px"><tspan x="545">daout</tspan><tspan x="545" dy="15" fill="#808080">audio to D/A</tspan></text>
+
+ <!-- stage-group brackets on the left -->
+ <path d="m150 102v306" fill="none" stroke="#808080"/>
+ <path d="m150 102h8"   fill="none" stroke="#808080"/>
+ <path d="m150 408h8"   fill="none" stroke="#808080"/>
+ <text transform="rotate(-90 138 255)" x="138" y="255" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>wideband DSP</tspan></text>
+ <path d="m150 430v206" fill="none" stroke="#808080"/>
+ <path d="m150 430h8"   fill="none" stroke="#808080"/>
+ <path d="m150 636h8"   fill="none" stroke="#808080"/>
+ <text transform="rotate(-90 138 533)" x="138" y="533" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>narrowband DSP</tspan></text>
+
+ <!-- legend -->
+ <rect x="230" y="736" width="18" height="14" fill="#dce6f0" stroke="#bf2334"/>
+ <text x="256" y="748" fill="#808080" font-family="Roboto Condensed" font-size="14px"><tspan>covered in depth in these notes</tspan></text>
+</svg>

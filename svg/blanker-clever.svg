@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="620" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <!-- input label -->
+ <text x="330" y="24" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>input: weak-signal part of timf2  +  per-sample power timf2_pwr[]</tspan></text>
+
+ <!-- main-flow boxes -->
+ <rect x="170" y="40"  width="320" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="170" y="118" width="320" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="170" y="196" width="320" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="170" y="274" width="320" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="170" y="352" width="320" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="170" y="430" width="320" height="54" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="170" y="508" width="320" height="54" fill="#dce6f0" stroke="#bf2334"/>
+
+ <!-- reject boxes -->
+ <rect x="560" y="118" width="180" height="54" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="560" y="430" width="180" height="54" fill="none" stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <!-- main-flow labels -->
+ <text x="330" y="72"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Find next power peak above clever_bln_limit</tspan></text>
+ <text x="330" y="150" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Isolated single pulse? shape &amp; width OK?</tspan></text>
+ <text x="330" y="228" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Estimate pulse polarization &#8594; C1, C2, C3</tspan></text>
+ <text x="330" y="295" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="330">De-rotate phase, sub-sample position (parabolic)</tspan><tspan x="330" dy="15">&#8594; select stored reference pulse shape</tspan></text>
+ <text x="330" y="373" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="330">Subtract scaled reference pulse from both</tspan><tspan x="330" dy="15">channels; rebuild per-sample power</tspan></text>
+ <text x="330" y="462" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Residual power &lt; 50% of original?</tspan></text>
+ <text x="330" y="540" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan font-weight="bold">Mark region fitted</tspan></text>
+
+ <!-- reject labels -->
+ <text x="650" y="150" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Flag bad, leave unchanged</tspan></text>
+ <text x="650" y="451" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan x="650">Restore original data,</tspan><tspan x="650" dy="15">flag bad</tspan></text>
+
+ <!-- down arrows -->
+ <path d="m330 94v24"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m330 172v24" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m330 250v24" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m330 328v24" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m330 406v24" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m330 484v24" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <text x="342" y="190" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>yes</tspan></text>
+ <text x="342" y="502" fill="#808080" font-family="Roboto Condensed" font-size="13px"><tspan>yes</tspan></text>
+
+ <!-- reject branches -->
+ <path d="m490 145h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m490 457h70" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <text x="525" y="139" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>no</tspan></text>
+ <text x="525" y="451" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>no</tspan></text>
+
+ <!-- return spine: fitted -> next peak -->
+ <path d="m330 562v20h-210v-515h50" fill="none" marker-end="url(#Arrow1L)" stroke="#808080"/>
+ <text transform="rotate(-90 108 320)" x="108" y="320" fill="#808080" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>next peak in block</tspan></text>
+</svg>

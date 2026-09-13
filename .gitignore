@@ -1,0 +1,7 @@
+_site/
+.sass-cache/
+
+# PNGs are generated from svg/*.svg at build time (see Makefile).
+# Screenshots that are not generated from SVG should be force-added:
+#   git add -f img/some-screenshot.png
+img/*.png
