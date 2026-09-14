@@ -2,9 +2,18 @@ local meta = {}
 local title = nil
 local stringify = pandoc.utils.stringify
 
-function get_title(h)
+function process_header(h)
   if h.level == 1 and not title then
     title = h.content
+    return h
+  end
+  -- Add a hover-revealed anchor link to each section heading so the
+  -- auto-generated id can be copied and linked to directly.
+  if h.level >= 2 and h.identifier ~= "" then
+    local anchor = pandoc.Link({ pandoc.Str("#") }, "#" .. h.identifier)
+    anchor.classes = { "anchor" }
+    anchor.attributes["aria-hidden"] = "true"
+    table.insert(h.content, anchor)
     return h
   end
 end
@@ -44,7 +53,7 @@ end
 
 return {
   {
-    Header = get_title,
+    Header = process_header,
     Meta = change_meta
   },
   {

@@ -64,6 +64,26 @@ h3 {
   font-weight: normal;
 }
 
+/* Section headings are link targets; keep them clear of the top edge. */
+h2,
+h3 {
+  scroll-margin-top: 0.5em;
+}
+
+/* Hover-revealed "#" anchor link on each section heading. */
+.anchor {
+  margin-left: 0.4em;
+  opacity: 0;
+  font-weight: normal;
+  transition: opacity 0.1s;
+}
+
+h2:hover .anchor,
+h3:hover .anchor,
+.anchor:focus {
+  opacity: 0.6;
+}
+
 ol,
 ul {
   padding-left: 2em;
