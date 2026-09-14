@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="760" height="370" version="1.1" xmlns="http://www.w3.org/2000/svg">
+ <defs>
+  <marker id="Arrow1L" overflow="visible" markerHeight="5" markerWidth="8.75" orient="auto-start-reverse" refX="4.25">
+   <path transform="scale(.5)" d="m0 0-5 5 17.5-5-17.5-5z" fill="context-stroke" fill-rule="evenodd"/>
+  </marker>
+ </defs>
+
+ <rect x="150" y="30"  width="300" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="150" y="110" width="300" height="44" fill="none"    stroke="#bf2334"/>
+ <rect x="150" y="196" width="300" height="44" fill="none"    stroke="#bf2334"/>
+ <rect x="150" y="282" width="300" height="44" fill="#dce6f0" stroke="#000000" stroke-dasharray="3, 3"/>
+ <rect x="530" y="196" width="170" height="44" fill="none"    stroke="#000000" stroke-dasharray="3, 3"/>
+
+ <text x="300" y="57"  fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>fft2 spectrum (or fft1 if no 2nd FFT)</tspan></text>
+ <text x="300" y="137" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Acquire &amp; track carrier peak (parabolic)</tspan></text>
+ <text x="300" y="223" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>Frequency error &#183; AFC_LOCK_RANGE &#183; AFC_MAX_DRIFT</tspan></text>
+ <text x="300" y="309" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>First mixer &#183; fine-tune signal to 0 Hz</tspan></text>
+ <text x="615" y="223" fill="#000000" font-family="Roboto Condensed" font-size="14px" text-anchor="middle"><tspan>AFC graph (AFC_GRAPH)</tspan></text>
+
+ <path d="m300 74v36"   fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m300 154v42"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m300 240v42"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="m450 218h80"  fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+ <path d="M450 304 H620 V52 H450" fill="none" marker-end="url(#Arrow1L)" stroke="#000000"/>
+
+ <text x="575" y="20"  fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>tuned signal &#8594; next transform</tspan></text>
+ <text x="380" y="360" fill="#808080" font-family="Roboto Condensed" font-size="13px" text-anchor="middle"><tspan>AFC_ENABLE: 0 off &#183; 1 on &#183; 2 on + automatic spur removal &#183; works across receive modes</tspan></text>
+</svg>

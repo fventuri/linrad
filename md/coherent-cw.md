@@ -91,4 +91,6 @@ and [`morse.c`]($source$/morse.c). The 11 steps are enumerated in
 The narrow carrier used here is produced by the
 [second mixer](/mixers-filters-baseband/); the coherent phase extraction shares
 the amplitude/phase measurement used for
-[adaptive polarization](/diversity-polarization/).
+[adaptive polarization](/diversity-polarization/). The same recovered carrier phase
+drives the [coherent output modes (Coh1–Coh4)](/coherent-output/) for synchronous
+and binaural listening.

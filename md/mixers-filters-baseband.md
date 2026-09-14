@@ -13,7 +13,10 @@ mixer can center them at 0 Hz. `collect_initial_spectrum()` acquires a signal
 (averaged transforms, peak by parabolic interpolation, initial polarization);
 `make_afc_signoi()` forms the S/N used to validate the track; `make_ag_point()`
 builds the AFC-graph points with noise estimated from filters outside the signal.
-Longer averaging finds weaker signals at the cost of delay.
+Longer averaging finds weaker signals at the cost of delay. AFC runs across all
+receive modes and closes the loop through the first mixer; the tracking loop and
+its `AFC_ENABLE` / `AFC_LOCK_RANGE` / `AFC_MAX_DRIFT` settings have their own
+[AFC](/afc/) page.
 
 <details><summary>In the source</summary>
 

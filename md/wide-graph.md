@@ -61,4 +61,5 @@ first mixer.
 The wide graph is fed by the [first FFT](/channel-split/) and drives the
 [first mixer / narrowband chain](/mixers-filters-baseband/); the selected passband is
 shown in detail on the baseband graph. It is the front end of the whole
-[signal chain](/signal-chain/).
+[signal chain](/signal-chain/). Its waterfall is one of several displays; the
+time-domain [oscilloscopes](/oscilloscopes/) are covered separately.
