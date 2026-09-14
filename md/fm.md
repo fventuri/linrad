@@ -10,20 +10,47 @@ and 57 kHz RDS.
 ## FM detector
 
 The detector computes the instantaneous frequency as the time derivative of the
-baseband phase. The phase is obtained either directly with `atan2`, or, for better
-weak-signal behaviour, from a short windowed FFT that picks the dominant bin and
-interpolates (`fmfix`). With two channels the second channel is detected in
+baseband phase (`fmfix()`). How that phase is estimated is selected by the operator
+with the **FM detection mode**. With two channels the second channel is detected in
 parallel. If the requested audio bandwidth already equals the baseband bandwidth,
 the detector output goes straight to `baseb_out`.
+
+## Detection modes (FM0–FM3)
+
+The `FM` button on the baseband graph cycles `bg.fm_mode` through four states. Mode
+0 differentiates the raw `atan2` phase directly — lowest latency, best on strong
+signals. Modes 1–3 instead estimate the phase from the dominant bin of a short
+windowed FFT (finding the peak and interpolating across it), which rejects
+off-frequency noise and improves weak-signal FM; a larger FFT gives finer frequency
+resolution at the cost of time resolution and computation.
+
+| Button | Phase estimate | FFT size |
+|--------|----------------|----------|
+| **FM0** | direct `atan2`, per sample | — |
+| **FM1** | windowed FFT, dominant bin + interpolation | 8 |
+| **FM2** | windowed FFT | 16 |
+| **FM3** | windowed FFT | 32 |
+
+Internally the button maps to the FFT order `fm_n = bg.fm_mode + 2`, which is then
+forced to 0 (the `atan2` path) when it would be below 3 — so FM0 is `fm_n == 0`
+(`fm_size == 1`) and FM1–FM3 are `fm_n` 3/4/5. Changing the mode rebuilds the
+baseband stage.
 
 <details><summary>In the source</summary>
 
 `detect_fm()` — [fm.c:93]($source$/fm.c#L93) (called from
 [mix2.c:1838]($source$/mix2.c#L1838)); phase/frequency estimator `fmfix()` —
-[fm.c:45]($source$/fm.c#L45) (`atan2` when `fm_n == 0`, otherwise the
-windowed-FFT peak). The audio-bandwidth decision (`use_audio_filter`) is at
-[fm.c:108]($source$/fm.c#L108). BG parameters `fm_mode`, `fm_subtract`,
-`fm_audio_bw` are in [globdef.h:1032]($source$/globdef.h#L1032).
+[fm.c:45]($source$/fm.c#L45): `atan2` when `fm_n == 0` ([fm.c:51]($source$/fm.c#L51)),
+otherwise the windowed-FFT peak with 3-bin interpolation
+([fm.c:64]($source$/fm.c#L64)). The mode → FFT-size mapping
+(`fm_n = bg.fm_mode + 2`, `if(fm_n < 3) fm_n = 0`, `fm_win` = `make_window(4,…)`)
+is at [baseb_graph.c:4138]($source$/baseb_graph.c#L4138); the `FM` button
+(`BG_TOGGLE_FM_MODE`) wraps at `MAX_FM_FFTN-2 == 3`
+([baseb_graph.c:2798]($source$/baseb_graph.c#L2798), label `FM%d`
+[screen.c:2839]($source$/screen.c#L2839); `MAX_FM_FFTN` / `MAX_FM_FFTSIZE`
+[sigdef.h:2]($source$/sigdef.h#L2)). The audio-bandwidth decision
+(`use_audio_filter`) is at [fm.c:108]($source$/fm.c#L108). BG parameters `fm_mode`,
+`fm_subtract`, `fm_audio_bw` are in [globdef.h:1032]($source$/globdef.h#L1032).
 
 </details>
 
