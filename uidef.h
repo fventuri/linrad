@@ -381,10 +381,13 @@ void make_permute(int mo, int nz, int sz, unsigned short int *perm);
 void make_bigpermute(int mo, int nz, int sz, unsigned int *perm);
 void make_window(int i, int size, int n_sin, float *fft1_window);
 void make_d_window(int i, int size, int n_sin, double *d_fft1_window);
+void make_l_window(int i, int size, int n_sin, long double *L_fft1_window);
 void init_fft(int i,int n, int size,
                           COSIN_TABLE *tab, unsigned short int *permute);
 void init_d_fft(int i,int n, int size,
                          D_COSIN_TABLE *tab, unsigned int *permute);
+void init_l_fft(int i,int n, int size,
+                         L_COSIN_TABLE *tab, unsigned int *permute);
 void init_big_fft(int i,int n, int size,
                           COSIN_TABLE *tab, unsigned int *permute);
 
@@ -406,6 +409,8 @@ void d_fftback(int sz, int n, double *x,
                                   D_COSIN_TABLE *sc, unsigned int *pm);
 void d_fftforward(int sz, int n, double *x,
                    D_COSIN_TABLE *sc, unsigned int *pm);
+void l_fftforward(int sz, int n, long double *x,
+                   L_COSIN_TABLE *sc, unsigned int *pm);
 void fft_iqshift(int size, float *x);
 void fft_real_to_hermitian( float *z, int size, int n, COSIN_TABLE *tab);
 void asmbulk_of_dual_dif(int size, int n, float *x,
@@ -562,7 +567,7 @@ void rx_file_input(void);
 void screen_routine(void);
 char lir_inb(int port);
 void lir_outb(char bytedat, int port);
-float lir_random(void);
+double lir_random(void);
 void lir_srandom(void);
 void narrowband_dsp(void);
 void wideband_dsp(void);

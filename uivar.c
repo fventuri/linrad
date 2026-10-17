@@ -763,7 +763,8 @@ char *sg_intpar_text[MAX_SG_INTPAR]={"ytop",            //1
                                      "avg",             //7
                                      "fft_n",           //8
                                      "ymax",            //9
-                                     "check"};          //10
+                                     "smooth",          //10
+                                     "check"};          //11
                                      
 char *sg_floatpar_text[MAX_SG_FLOATPAR]={"xgain",        //1
                                          "ygain"};       //2

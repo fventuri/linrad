@@ -146,13 +146,13 @@ void lir_sync(void)
 // that data is really put to the disk when fflush is called.
 }
 
-float lir_random(void)
+double lir_random(void)
 {
 __int64 n;
 n=(__int64)(RANDOM_FACT)*(__int64)(win_random_seed);
 n=n%(__int64)(RANDOM_MOD);
 win_random_seed=n;
-return (float)(n)/RANDOM_MOD;
+return (double)(n)/RANDOM_MOD;
 }
 
 float lir_noisegen(int level) 

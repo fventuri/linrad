@@ -47,9 +47,8 @@ int max_sg_averages;
 float sg_interleave_ratio;
 int new_averages_flag;
 int old_timf3_pa;
-#define SG_M 8
-#define ZZ 100000000000000.
-
+//something goes wrong in screen.c if smooth_length is set large.
+#define MAX_SMOOTH_LENGTH 75
 void addto_sg_avgpwr(void)
 {
 int i;
@@ -60,10 +59,10 @@ int i;
 // pwr[i+3] = pn channel 1
 for(i=0; i< sg_siz/2; i++)
   {
-  sg_pwrsum[4*i  ]+=sg_pwr[sg_pa+4*i  ];
-  sg_pwrsum[4*i+1]+=sg_pwr[sg_pa+4*i+1];
-  sg_pwrsum[4*i+2]+=sg_pwr[sg_pa+4*i+2];
-  sg_pwrsum[4*i+3]+=sg_pwr[sg_pa+4*i+3];
+  sg_pwrsum[4*i  ]+=Lsg_pwr[sg_pa+4*i  ];
+  sg_pwrsum[4*i+1]+=Lsg_pwr[sg_pa+4*i+1];
+  sg_pwrsum[4*i+2]+=Lsg_pwr[sg_pa+4*i+2];
+  sg_pwrsum[4*i+3]+=Lsg_pwr[sg_pa+4*i+3];
   }
 }
 
@@ -73,13 +72,13 @@ int i;
 for(i=0; i< sg_siz/2; i++)
   {
   sg_pwrsum[4*i  ]+=
-              sg_pwr[sg_pa+4*i  ]-sg_pwr[sg_px+4*i  ];
+              Lsg_pwr[sg_pa+4*i  ]-Lsg_pwr[sg_px+4*i  ];
   sg_pwrsum[4*i+1]+=
-              sg_pwr[sg_pa+4*i+1]-sg_pwr[sg_px+4*i+1];
+              Lsg_pwr[sg_pa+4*i+1]-Lsg_pwr[sg_px+4*i+1];
   sg_pwrsum[4*i+2]+=
-              sg_pwr[sg_pa+4*i+2]-sg_pwr[sg_px+4*i+2];
+              Lsg_pwr[sg_pa+4*i+2]-Lsg_pwr[sg_px+4*i+2];
   sg_pwrsum[4*i+3]+=
-              sg_pwr[sg_pa+4*i+3]-sg_pwr[sg_px+4*i+3];
+              Lsg_pwr[sg_pa+4*i+3]-Lsg_pwr[sg_px+4*i+3];
   }
 sg_px=(sg_px+2*sg_siz)&baseband_mask;
 }
@@ -100,10 +99,10 @@ while(px != sg_pa)
   {
   for(i=0; i< sg_siz/2; i++)
     {
-    sg_pwrsum[4*i  ]+=sg_pwr[px+4*i  ];
-    sg_pwrsum[4*i+1]+=sg_pwr[px+4*i+1];
-    sg_pwrsum[4*i+2]+=sg_pwr[px+4*i+2];
-    sg_pwrsum[4*i+3]+=sg_pwr[px+4*i+3];
+    sg_pwrsum[4*i  ]+=Lsg_pwr[px+4*i  ];
+    sg_pwrsum[4*i+1]+=Lsg_pwr[px+4*i+1];
+    sg_pwrsum[4*i+2]+=Lsg_pwr[px+4*i+2];
+    sg_pwrsum[4*i+3]+=Lsg_pwr[px+4*i+3];
     }
   px=(px+2*sg_siz)&baseband_mask;
   }
@@ -112,39 +111,39 @@ while(px != sg_pa)
 void do_siganal(void)
 {
 int i, j, pa, px;
-double dt1, dt2, dt3, dt4;
-double ch1_ani, ch1_anq, ch2_ani, ch2_anq;
-double ch1_pni, ch1_pnq, ch2_pni, ch2_pnq;
+long double Ldt1, Ldt2, Ldt3, Ldt4;
+long double Lch1_ani, Lch1_anq, Lch2_ani, Lch2_anq;
+long double Lch1_pni, Lch1_pnq, Lch2_pni, Lch2_pnq;
 for(j=0; j<4; j+=2)
   {
   i=0;
   px=baseb_px;
   pa=(px+sg_siz)&baseband_mask;
-  dt1=0;
-  dt2=0;
+  Ldt1=0;
+  Ldt2=0;
   while(px != pa)
     {
-    dt1+=d_baseb[4*px+j  ];
-    sg_tmp[2*i  ]=d_baseb[4*px+j  ];
-    dt2+=d_baseb[4*px+j+1];
-    sg_tmp[2*i+1]=d_baseb[4*px+j+1];
+    Ldt1+=d_baseb[4*px+j  ];
+    Lsg_tmp[2*i  ]=d_baseb[4*px+j  ];
+    Ldt2+=d_baseb[4*px+j+1];
+    Lsg_tmp[2*i+1]=d_baseb[4*px+j+1];
     i++;
     px=(px+1)&baseband_mask;
     }
-  dt3=sqrt(dt1*dt1+dt2*dt2);
-  dt1/=dt3;
-  dt2/=dt3;
+  Ldt3=sqrt(Ldt1*Ldt1+Ldt2*Ldt2);
+  Ldt1/=Ldt3;
+  Ldt2/=Ldt3;
 
-  dt3/=sg_siz;    
+  Ldt3/=sg_siz;    
   for(i=0; i<sg_siz; i++)
     {
-    dt4=((dt1*sg_tmp[2*i  ]+dt2*sg_tmp[2*i+1])-dt3)*
-                                                sg_window[i]/dt3;
-    sg_tmp[2*i+1]=(-dt2*sg_tmp[2*i  ]+dt1*sg_tmp[2*i+1])*
-                                                sg_window[i]/dt3;
-    sg_tmp[2*i  ]=dt4;
+    Ldt4=((Ldt1*Lsg_tmp[2*i  ]+Ldt2*Lsg_tmp[2*i+1])-Ldt3)*
+                                                Lsg_window[i]/Ldt3;
+    Lsg_tmp[2*i+1]=(-Ldt2*Lsg_tmp[2*i  ]+Ldt1*Lsg_tmp[2*i+1])*
+                                                Lsg_window[i]/Ldt3;
+    Lsg_tmp[2*i  ]=Ldt4;
     }
-  d_fftforward(sg_siz, sg.fft_n, sg_tmp, sg_tab, sg_permute);
+  l_fftforward(sg_siz, sg.fft_n, Lsg_tmp, Lsg_tab, sg_permute);
 // separate the AN parts and the PN parts for i=1 to sg_siz-1
 // AN[0]=tmp[0]
 // PN[0]=tmp[sg_siz/2]
@@ -154,67 +153,67 @@ for(j=0; j<4; j+=2)
 // pwr[2*i+j+1]=pn[i]*pn[i] for chan j/2
 // AN
   pa=sg_pa;
-  sg_fft[j  ]=sg_tmp[0];
-  sg_fft[j+1]=0;
+  Lsg_fft[j  ]=Lsg_tmp[0];
+  Lsg_fft[j+1]=0;
 // PN
-  sg_fft[sg_siz+j  ]=sg_tmp[1];
-  sg_fft[sg_siz+j+1]=0;
-  sg_pwr[pa+j  ]=sg_tmp[0]*sg_tmp[0];
-  sg_pwr[pa+j+1]=sg_tmp[1]*sg_tmp[1];
+  Lsg_fft[sg_siz+j  ]=Lsg_tmp[1];
+  Lsg_fft[sg_siz+j+1]=0;
+  Lsg_pwr[pa+j  ]=Lsg_tmp[0]*Lsg_tmp[0];
+  Lsg_pwr[pa+j+1]=Lsg_tmp[1]*Lsg_tmp[1];
   pa=(pa+4)&baseband_mask;
 // Include the sideband power in the first 5 bins into the carrier.
 // The power here also contributes to noise at higher offsets.
 // This may be significant for very large fft sizes.
-  dt2=pow(sg_tmp[0],2);
+  Ldt2=pow(Lsg_tmp[0],2);
   for(i=1; i<6; i++)
     {
-    dt2+=pow(sg_tmp[2*i  ]+sg_tmp[2*(sg_siz-i)  ],2.)+
-         pow(sg_tmp[2*i+1]-sg_tmp[2*(sg_siz-i)+1],2.);
+    Ldt2+=pow(Lsg_tmp[2*i  ]+Lsg_tmp[2*(sg_siz-i)  ],2.)+
+          pow(Lsg_tmp[2*i+1]-Lsg_tmp[2*(sg_siz-i)+1],2.);
     }     
-  dt2=1-dt2;
-  if(dt2 < 0.9)
+  Ldt2=1-Ldt2;
+  if(Ldt2 < 0.9)
     {
 // Skip data when more than 10% of the carrier is not DC.   
     baseb_px=(baseb_px+sg_interleave_points)&baseband_mask;
     return;
     }
-  dt3=sqrt(dt2);
-  sg_fft[j]*=dt3;
+  Ldt3=sqrt(Ldt2);
+  Lsg_fft[j]*=Ldt3;
   for(i=1; i<sg_siz/2; i++)
     {
 // AN
-    sg_pwr[pa+j   ]=dt2*(pow(sg_tmp[2*i  ]+sg_tmp[2*(sg_siz-i)  ],2.)+
-                      pow(sg_tmp[2*i+1]-sg_tmp[2*(sg_siz-i)+1],2.));
-    sg_fft[j+4*i  ]=dt3*(sg_tmp[2*i  ]+sg_tmp[2*(sg_siz-i)  ]);
-    sg_fft[j+4*i+1]=dt3*(sg_tmp[2*i+1]-sg_tmp[2*(sg_siz-i)+1]);
+    Lsg_pwr[pa+j   ]=Ldt2*(pow(Lsg_tmp[2*i  ]+Lsg_tmp[2*(sg_siz-i)  ],2.)+
+                          pow(Lsg_tmp[2*i+1]-Lsg_tmp[2*(sg_siz-i)+1],2.));
+    Lsg_fft[j+4*i  ]=Ldt3*(Lsg_tmp[2*i  ]+Lsg_tmp[2*(sg_siz-i)  ]);
+    Lsg_fft[j+4*i+1]=Ldt3*(Lsg_tmp[2*i+1]-Lsg_tmp[2*(sg_siz-i)+1]);
 //PN
-    sg_pwr[pa+j+1]=dt2*(pow(sg_tmp[2*i  ]-sg_tmp[2*(sg_siz-i)  ],2.)+
-                          pow(sg_tmp[2*i+1]+sg_tmp[2*(sg_siz-i)+1],2.));
-    sg_fft[2*sg_siz+4*i+j  ]=dt3*(sg_tmp[2*i  ]-sg_tmp[2*(sg_siz-i)  ]);
-    sg_fft[2*sg_siz+4*i+j+1]=dt3*(sg_tmp[2*i+1]+sg_tmp[2*(sg_siz-i)+1]);
+    Lsg_pwr[pa+j+1]=Ldt2*(pow(Lsg_tmp[2*i  ]-Lsg_tmp[2*(sg_siz-i)  ],2.)+
+                         pow(Lsg_tmp[2*i+1]+Lsg_tmp[2*(sg_siz-i)+1],2.));
+    Lsg_fft[2*sg_siz+4*i+j  ]=Ldt3*(Lsg_tmp[2*i  ]-Lsg_tmp[2*(sg_siz-i)  ]);
+    Lsg_fft[2*sg_siz+4*i+j+1]=Ldt3*(Lsg_tmp[2*i+1]+Lsg_tmp[2*(sg_siz-i)+1]);
     pa=(pa+4)&baseband_mask;
     }
   }
 sg_corrnum++;
 for(i=0; i<sg_siz/2; i++)
   {
-  ch1_ani=sg_fft[4*i  ];
-  ch2_ani=sg_fft[4*i+2];
-  ch1_anq=sg_fft[4*i+1];
-  ch2_anq=sg_fft[4*i+3];
-  sg_corrsum[2*i  ]+=ch1_ani*ch2_ani+ch1_anq*ch2_anq;
-  sg_corrsum[2*i+1]+=ch1_anq*ch2_ani-ch1_ani*ch2_anq;
-  ch1_pni=sg_fft[4*i+2*sg_siz  ];
-  ch2_pni=sg_fft[4*i+2*sg_siz+2];
-  ch1_pnq=sg_fft[4*i+2*sg_siz+1];
-  ch2_pnq=sg_fft[4*i+2*sg_siz+3];
-  sg_corrsum[2*i+sg_siz  ]+=ch1_pni*ch2_pni+ch1_pnq*ch2_pnq;
-  sg_corrsum[2*i+sg_siz+1]+=ch1_pnq*ch2_pni-ch1_pni*ch2_pnq;
+  Lch1_ani=Lsg_fft[4*i  ];
+  Lch2_ani=Lsg_fft[4*i+2];
+  Lch1_anq=Lsg_fft[4*i+1];
+  Lch2_anq=Lsg_fft[4*i+3];
+  Lsg_corrsum[2*i  ]+=Lch1_ani*Lch2_ani+Lch1_anq*Lch2_anq;
+  Lsg_corrsum[2*i+1]+=Lch1_anq*Lch2_ani-Lch1_ani*Lch2_anq;
+  Lch1_pni=Lsg_fft[4*i+2*sg_siz  ];
+  Lch2_pni=Lsg_fft[4*i+2*sg_siz+2];
+  Lch1_pnq=Lsg_fft[4*i+2*sg_siz+1];
+  Lch2_pnq=Lsg_fft[4*i+2*sg_siz+3];
+  Lsg_corrsum[2*i+sg_siz  ]+=Lch1_pni*Lch2_pni+Lch1_pnq*Lch2_pnq;
+  Lsg_corrsum[2*i+sg_siz+1]+=Lch1_pnq*Lch2_pni-Lch1_pni*Lch2_pnq;
 // correlation between an and pn.
-  sg_anpn_corr[2*i  ]+=ch1_ani*ch2_pni+ch1_anq*ch2_pnq+
-                       ch2_ani*ch1_pni+ch2_anq*ch1_pnq;
-  sg_anpn_corr[2*i+1]+=ch1_anq*ch2_pni-ch1_ani*ch2_pnq+
-                       ch2_anq*ch1_pni-ch2_ani*ch1_pnq;
+  Lsg_anpn_corr[2*i  ]+=Lch1_ani*Lch2_pni+Lch1_anq*Lch2_pnq+
+                       Lch2_ani*Lch1_pni+Lch2_anq*Lch1_pnq;
+  Lsg_anpn_corr[2*i+1]+=Lch1_anq*Lch2_pni-Lch1_ani*Lch2_pnq+
+                       Lch2_anq*Lch1_pni-Lch2_ani*Lch1_pnq;
   }
 sg_numpow++;
 if(sg_valid)
@@ -294,6 +293,16 @@ while(sc[SC_SG_UPDATE] != sd[SC_SG_UPDATE])lir_sleep(10000);
 sg.fft_n=numinput_int_data;
 make_modepar_file(GRAPHTYPE_SG);
 make_siganal_graph(TRUE, TRUE);
+}
+
+void new_sg_smooth(void)
+{
+// Wait for display to finish
+while(sc[SC_SG_UPDATE] != sd[SC_SG_UPDATE])lir_sleep(10000);
+sg.smooth_len=numinput_int_data|1;
+if(sg.smooth_len < 1)sg.smooth_len=1;
+if(sg.smooth_len > MAX_SMOOTH_LENGTH)sg.smooth_len = MAX_SMOOTH_LENGTH;
+make_modepar_file(GRAPHTYPE_SG);
 }
 
 void new_sg_ygain(void)
@@ -438,6 +447,11 @@ sgbutt[SG_NEW_XGAIN].x1=x1;
 sgbutt[SG_NEW_XGAIN].x2=x2;
 sgbutt[SG_NEW_XGAIN].y1=iy1;
 sgbutt[SG_NEW_XGAIN].y2=y2;
+sgbutt[SG_NEW_SMOOTH].x1=sgbutt[SG_NEW_XGAIN].x1-22*text_width/2;
+sgbutt[SG_NEW_SMOOTH].x2=sgbutt[SG_NEW_XGAIN].x1-2;
+sgbutt[SG_NEW_SMOOTH].y1=iy1;
+sgbutt[SG_NEW_SMOOTH].y2=y2;
+
 sg_first_xpixel=sg.xleft+7*text_width;
 }
 
@@ -488,6 +502,10 @@ for(event_no=0; event_no<MAX_SGBUTT; event_no++)
 
       case SG_NEW_XGAIN: 
       msg_no=359;
+      break;
+
+      case SG_NEW_SMOOTH: 
+      msg_no=399;
       break;
       }
     }  
@@ -575,6 +593,16 @@ switch (mouse_active_flag-1)
   leftpressed=BUTTON_IDLE;  
   mouse_active_flag=0;
   sc[SC_SG_UPDATE]++;
+  return;
+
+  case SG_NEW_SMOOTH: 
+  mouse_active_flag=1;
+  numinput_xpix=sgbutt[SG_NEW_SMOOTH].x1+13*text_width/2-1;
+  numinput_ypix=sgbutt[SG_NEW_SMOOTH].y1+2;
+  numinput_chars=4;    
+  erase_numinput_txt();
+  numinput_flag=FIXED_INT_PARM;
+  par_from_keyboard_routine=new_sg_smooth;
   return;
 
   case SG_NEW_FFT_N: 
@@ -689,15 +717,15 @@ if(!restart)
   }
 siganal_handle=chk_free(siganal_handle);
 init_memalloc(siganalmem, MAX_SIGANAL_ARRAYS);
-mem( 1,&sg_fft,sg_siz*4*sizeof(double),0);
-mem( 2,&sg_pwr,baseband_size*4*sizeof(float),0);
+mem( 1,&Lsg_fft,sg_siz*4*sizeof(long double),0);
+mem( 2,&Lsg_pwr,baseband_size*4*sizeof(long double),0);
 mem( 3,&sg_pwrsum, sg_siz*2*sizeof(double),0);
-mem( 4,&sg_corrsum,sg_siz*2*sizeof(double),0);
-mem( 5,&sg_window, sg_siz*sizeof(double),0);
-mem( 6,&sg_tab, sg_siz*sizeof(D_COSIN_TABLE)/2,0);
+mem( 4,&Lsg_corrsum,sg_siz*2*sizeof(long double),0);
+mem( 5,&Lsg_window, sg_siz*sizeof(long double),0);
+mem( 6,&Lsg_tab, sg_siz*sizeof(L_COSIN_TABLE)/2,0);
 mem( 7,&sg_permute,sg_siz*sizeof(unsigned int),0);
-mem( 8,&sg_tmp,sg_siz*2*sizeof(double),0);
-mem( 9,&sg_anpn_corr,sg_siz*sizeof(double),0);
+mem( 8,&Lsg_tmp,sg_siz*2*sizeof(long double),0);
+mem( 9,&Lsg_anpn_corr,sg_siz*sizeof(long double),0);
 mem(10,&sg_ancspectrum,screen_width*sizeof(short int),0);
 mem(11,&sg_pncspectrum,screen_width*sizeof(short int),0);
 mem(12,&sg_anpncorr_ispectrum,screen_width*sizeof(short int),0);
@@ -709,7 +737,11 @@ mem(17,&sg_oldanpncorr_qspectrum,screen_width*sizeof(short int),0);
 mem(18,&sg_an1spectrum,screen_width*sizeof(short int),0);
 mem(19,&sg_pn1spectrum,screen_width*sizeof(short int),0);
 mem(20,&sg_pn2spectrum,screen_width*sizeof(short int),0);
-
+mem(21,&sg_sm_pncspectrum,screen_width*sizeof(short int),0);
+mem(22,&sg_sm_oldpncspectrum,screen_width*sizeof(short int),0);
+mem(23,&sg_sm_pnqspectrum,screen_width*sizeof(short int),0);
+mem(24,&sg_sm_oldpnqspectrum,screen_width*sizeof(short int),0);
+mem(25,&sg_tmpfilt,screen_width*2*sizeof(double),0);
 // ******************************************************************
 siganal_totmem=memalloc(&siganal_handle,"siganal");
 for(i=0; i<screen_width; i++)sg_ancspectrum[i]=sg_y0;
@@ -723,12 +755,12 @@ for(i=0; i<screen_width; i++)sg_oldanpncorr_qspectrum[i]=sg_mode3_ymid;
 for(i=0; i<screen_width; i++)sg_an1spectrum[i]=sg_y0;
 for(i=0; i<screen_width; i++)sg_pn1spectrum[i]=sg_y0;
 for(i=0; i<screen_width; i++)sg_pn2spectrum[i]=sg_y0;
-init_d_fft(0, sg.fft_n, sg_siz, sg_tab, sg_permute);
-make_d_window(4,sg_siz, 8, sg_window);
+init_l_fft(0, sg.fft_n, sg_siz, Lsg_tab, sg_permute);
+make_l_window(4,sg_siz, 8, Lsg_window);
 // init noise power spectra at the zero level
-memset(sg_fft,0,sg_siz*4*sizeof(float));
-memset(sg_corrsum,0,sg_siz*2*sizeof(double));
-memset(sg_anpn_corr,0,sg_siz*sizeof(double));
+memset(Lsg_fft,0,sg_siz*4*sizeof(long double));
+memset(Lsg_corrsum,0,sg_siz*2*sizeof(long double));
+memset(Lsg_anpn_corr,0,sg_siz*sizeof(long double));
 memset(sg_pwrsum,0,sg_siz*2*sizeof(double));
 resume_thread(THREAD_SCREEN);
 fix_sg_xgain();
@@ -762,8 +794,11 @@ sg_default:
   sg.ymax=0;
   sg.ygain=10.0;
   sg.xgain=1.0;
+  sg.smooth_len=1;  
   sg.check=SG_VERNR;
   }
+  
+  
 if(sg.mode < 0 ||
    sg.mode >= NO_SG_MODES ||
    sg.avg < 1 ||
@@ -777,6 +812,9 @@ if(sg.mode < 0 ||
    sg.xscale > 1 ||
    sg.fft_n < 9 ||
    sg.fft_n > 22 ||
+   (sg.smooth_len &1) == 0 ||
+   sg.smooth_len < 1 ||
+   sg.smooth_len > MAX_SMOOTH_LENGTH ||
    sg.check != SG_VERNR)goto sg_default;
 set_ytop2();
 siganal_graph_scro=no_of_scro;
@@ -785,4 +823,3 @@ no_of_scro++;
 sg_flag=1;
 if(no_of_scro >= MAX_SCRO)lirerr(89);
 }
-

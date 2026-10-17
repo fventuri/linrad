@@ -436,24 +436,29 @@ extern int corrpow_reset;
 
 
 extern int fftn_tmp_size;
-extern double *sg_fft;
-extern float *sg_pwr;
+extern long double *Lsg_fft;
+extern long double *Lsg_pwr;
 extern double *sg_pwrsum;
-extern double *sg_corrsum;
-extern double *sg_anpn_corr;
-extern double *sg_window;
-extern D_COSIN_TABLE *sg_tab;
+extern long double *Lsg_corrsum;
+extern long double *Lsg_anpn_corr;
+extern long double *Lsg_window;
+extern L_COSIN_TABLE *Lsg_tab;
 extern unsigned int *sg_permute;
-extern double *sg_tmp;
+extern long double *Lsg_tmp;
 extern void do_siganal(void);
 extern void do_allan(void);
 
 extern short int *sg_ancspectrum;
 extern short int *sg_pncspectrum;
+extern short int *sg_sm_pncspectrum;
+extern short int *sg_sm_pnqspectrum;
 extern short int *sg_anpncorr_ispectrum;
 extern short int *sg_anpncorr_qspectrum;
 extern short int *sg_oldancspectrum;
 extern short int *sg_oldpncspectrum;
+extern short int *sg_sm_oldpncspectrum;
+extern short int *sg_sm_oldpnqspectrum;
+extern double *sg_tmpfilt;
 extern short int *sg_oldanpncorr_ispectrum;
 extern short int *sg_oldanpncorr_qspectrum;
 extern short int *sg_an1spectrum;

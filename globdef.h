@@ -90,7 +90,8 @@ int open_flag;
 #define NO_REDRAW_BLOCKS 16
 // *******************************************
 // Global numerical values
-#define PI_L 3.1415926535897932
+#define  PI_L 3.1415926535897932
+#define LPI_L 3.14159265358979323846L
 #define BIGFLOAT 300000000000000000000000000000000000000.F
 #define BIGDOUBLE 300000000000000000000000000000000000000.
 // Signal power to the power of four may become a very large number.
@@ -741,7 +742,8 @@ extern char *uiparm_text[MAX_UIPARM];
 #define SG_NEW_AVGNUM 8
 #define SG_NEW_MODE 9
 #define SG_NEW_XSCALE 10
-#define MAX_SGBUTT 11
+#define SG_NEW_SMOOTH 11
+#define MAX_SGBUTT 12
 
 // Definitions for type allan_graph
 #define VG_TOP 0
@@ -1091,11 +1093,12 @@ int mode;
 int avg;
 int fft_n;
 int ymax;
+int smooth_len;
 int check;
 float xgain;
 float ygain;
 } SG_PARMS;
-#define MAX_SG_INTPAR 10
+#define MAX_SG_INTPAR 11
 extern char *sg_intpar_text[MAX_SG_INTPAR];
 #define MAX_SG_FLOATPAR 2
 extern char *sg_floatpar_text[MAX_SG_FLOATPAR];
@@ -1324,6 +1327,13 @@ typedef struct {
 double sin;
 double cos;
 }D_COSIN_TABLE;
+
+// ***********************************************
+// Structure used by d_float fft routines (long double)
+typedef struct {
+long double sin;
+long double cos;
+}L_COSIN_TABLE;
 
 // Structure used by MMX fft routines
 typedef struct {

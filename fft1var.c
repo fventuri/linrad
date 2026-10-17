@@ -32,7 +32,7 @@
 //unsigned char max_n;
 //unsigned char mmx;
 //unsigned char simd;
-//unsigned char ocl;
+//unsigned char gpu;
 //unsigned char real2complex;
 //unsigned char parall_fft;    
 //unsigned char doub;

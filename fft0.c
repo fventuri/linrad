@@ -27,8 +27,11 @@
 #include "fft1def.h"
 #include "fft2def.h"
 
-#define SQRTHALF 0.707106781186547524400844362104F
-#define NATLOG 2.7182818285
+#define SQRTHALF 0.707106781186547524400844362104
+#define NATLOG 2.718281828459045235360287471353
+#define LNATLOG 2.718281828459045235360287471353L
+
+
 
 void fft_real_to_hermitian(float *z, int size, int n, COSIN_TABLE *tab)
 {
@@ -748,7 +751,61 @@ for(ia=0; ia < 2*size; ia++)
   }
 }
 
-
+void l_fftforward(int size, 
+             int n, long double *x, 
+             L_COSIN_TABLE *LSinCos, 
+             unsigned int *permute)
+{
+int inc, j2, m2, m1, ja;
+int ia, ib,it;
+long double x1,x2,t1,t2,t3,t4;
+inc=1;
+j2=size;
+m2=2*size;
+for(m1=0; m1<n; m1++)
+  {
+  if( (m1 & 0x111) == 0x111)lir_sched_yield();
+  for(ja=0; ja<=2*size-m2; ja+=m2)
+    {
+    it=0;
+    for(ia=ja; ia<j2+ja; ia+=2)
+      {
+      ib=ia+j2;
+      t1=x[ia];
+      t2=x[ib];
+      x[ia  ]=t1+t2;
+      t3=x[ia+1];
+      t4=x[ib+1];
+      x1=t1-t2;
+      x[ia+1]=t3+t4;
+      x2=t3-t4;
+      x[ib  ]= LSinCos[it].cos*x1-LSinCos[it].sin*x2;
+      x[ib+1]= LSinCos[it].sin*x1+LSinCos[it].cos*x2;
+      it+=inc;
+      }
+    }
+  inc*=2;
+  m2=m2/2;
+  j2=j2/2;
+  }
+for(ia=0; ia < size; ia++)
+  {
+  ib=permute[ia  ];
+  if(ib<ia)
+    {
+    t1=x[2*ia];
+    x[2*ia]=x[2*ib];
+    x[2*ib]=t1;
+    t1=x[2*ia+1];
+    x[2*ia+1]=x[2*ib+1];
+    x[2*ib+1]=t1;
+    }
+  }
+for(ia=0; ia < 2*size; ia++)
+  {
+  x[ia]/=size;
+  }
+}
 
 void big_fftforward(int size, 
              int n, float *x, 
@@ -815,19 +872,22 @@ double x,z,sumsq;
 double e1, e2;
 float t1;
 int i, size;
+// Windows for joining interleaved fourier transforms
+// mo=5 for mix1_fqwin
+// mo=6 for fft3_fqwin_inv
 if(mo == 5 || mo == 6)
   {
   e1=3.2;
   e2=13.0/sz;
   for (i=0; i <= sz/2; i++)
     {
-    win[i]=0.5F*(float)erfc(e1);
+    win[i]=0.5*erfc(e1);
     e1-=e2;
     }
   if(mo == 5)return;
   for (i=0; i < sz/2; i++)
     {
-    win[i]=(float)pow(win[i]+.0005,-2.0);
+    win[i]=pow(win[i]+.0005,-2.0);
     win[sz-i-1]=win[i];
     }
   return;
@@ -847,8 +907,8 @@ if(n==9)
   if(size < 64)e2/=1.7;
   for (i=0; i <= size/2; i++)
     {
-    win[i]=0.5F*(float)erfc(e1);
-    sumsq+=win[i]*win[i];
+    sumsq+=(0.5*erfc(e1))*(0.5*erfc(e1));
+    win[i]=0.5*erfc(e1);
     e1-=e2;
     }
   }
@@ -862,8 +922,8 @@ else
     e2=9.8/size;
     for (i=size/2; i >= 0; i--)
       {
-      win[i]=(float)pow(NATLOG,-e1*e1);
-      sumsq+=win[i]*win[i];
+      sumsq+=(pow(NATLOG,-e1*e1))*pow(NATLOG,-e1*e1);
+      win[i]=pow(NATLOG,-e1*e1);
       e1+=e2;
       }
     }
@@ -872,27 +932,26 @@ else
     x=0;
     for (i=0; i <= size/2; i++)
       {
-      win[i]=(float)pow(sin(x),z);
-      sumsq+=win[i]*win[i];
+      sumsq+=(pow(sin(x),z))*(pow(sin(x),z));
+      win[i]=pow(sin(x),z);
       x+=PI_L/size;
       }
     }  
   }
-if(mo == 5)return;  
 // Produce an inverted window over size/2 points
 if(mo == 3)
   {
   win[0]=1;
   for (i=1; i <= size/2; i++)
     {
-    win[i]=1/win[i];
+    win[i]=1.0/win[i];
     }
   return;
   }
-z=1/sqrt(2*sumsq/size);
+z=1.0/sqrt(2.0*sumsq/size);
 for (i=0; i <= size/2; i++)
   {
-  win[i]*=(float)z;
+  win[i]*=z;
   }
 if(mo == 4)
   {
@@ -926,6 +985,9 @@ double x,z,sumsq;
 double e1, e2;
 double t1;
 int i, size;
+// Windows for joining interleaved fourier transforms
+// mo=5 for mix1_fqwin
+// mo=6 for fft3_fqwin_inv
 if(mo == 5 || mo == 6)
   {
   e1=3.2;
@@ -958,8 +1020,8 @@ if(n==9)
   if(size < 64)e2/=1.7;
   for (i=0; i <= size/2; i++)
     {
+    sumsq+=(0.5*erfc(e1))*(0.5*erfc(e1));
     win[i]=0.5*erfc(e1);
-    sumsq+=win[i]*win[i];
     e1-=e2;
     }
   }
@@ -973,8 +1035,8 @@ else
     e2=9.8/size;
     for (i=size/2; i >= 0; i--)
       {
+      sumsq+=(pow(NATLOG,-e1*e1))*(pow(NATLOG,-e1*e1));
       win[i]=pow(NATLOG,-e1*e1);
-      sumsq+=win[i]*win[i];
       e1+=e2;
       }
     }
@@ -983,13 +1045,124 @@ else
     x=0;
     for (i=0; i <= size/2; i++)
       {
+      sumsq+=(pow(sin(x),z))*(pow(sin(x),z));
       win[i]=pow(sin(x),z);
-      sumsq+=win[i]*win[i];
       x+=PI_L/size;
       }
     }  
   }
-if(mo == 5)return;  
+// Produce an inverted window over size/2 points
+if(mo == 3)
+  {
+  win[0]=1.0;
+  for (i=1; i <= size/2; i++)
+    {
+    win[i]=1/win[i];
+    }
+  return;
+  }
+z=1/sqrt(2*sumsq/size);
+for (i=0; i <= size/2; i++)
+  {
+  win[i]*=z;
+  }
+if(mo == 4)
+  {
+  for(i=size/2+1; i<size; i++)
+    {
+    win[i]=win[size-i];
+    }
+  return;
+  }    
+// Store the data in the order we want to use it
+// This will save time by better cash usage for large transforms.
+if(mo == 1)
+  {
+  t1=win[1];
+  win[1]=win[size/2];  
+  for (i=size/2-1; i >1; i--)
+    {
+    win[2*i]=win[i];
+    }
+  win[2]=t1;  
+  for (i=0; i < size-3; i+=2)
+    {
+    win[i+3]=win[size-i-2];
+    }
+  }
+}
+
+void make_l_window(int mo, int sz, int n, long double *win)
+{
+long double x,z,sumsq;
+long double e1, e2;
+long double t1;
+int i, size;
+// Windows for joining interleaved fourier transforms
+// mo=5 for mix1_fqwin
+// mo=6 for fft3_fqwin_inv
+if(mo == 5 || mo == 6)
+  {
+  e1=3.2;
+  e2=13.0/sz;
+  for (i=0; i <= sz/2; i++)
+    {
+    win[i]=0.5*erfcl(e1);
+    e1-=e2;
+    }
+  if(mo == 5)return;
+  for (i=0; i < sz/2; i++)
+    {
+    win[i]=powl(win[i]+.0005,-2.0);
+    win[sz-i-1]=win[i];
+    }
+  return;
+  }
+if(n == 0)return;
+size=sz;
+z=n;
+if(mo == 2)size=2*sz;
+sumsq=0;
+// Produce a sin power n function over size/2 points for n=1 to 7.
+// In case n equals 9, use the error function erfc instead, start at -192 dB.
+if(n==9)
+  {
+  e1=4.4;
+  e2=40.0/size;
+  if(size < 128)e2/=1.5;
+  if(size < 64)e2/=1.7;
+  for (i=0; i <= size/2; i++)
+    {
+    win[i]=0.5*erfcl(e1);
+    sumsq+=win[i]*win[i];
+    e1-=e2;
+    }
+  }
+else
+  {    
+// In case n equals 8, use a Gaussian.
+  if(n==8)
+    {
+    e1=0;
+    e2=11.5/size;
+    for (i=size/2; i >= 0; i--)
+      {
+      sumsq+=(powl(LNATLOG,-e1*e1))*(powl(LNATLOG,-e1*e1));
+      win[i]=powl(LNATLOG,-e1*e1);
+      e1+=e2;
+      }
+    }
+  else
+    {
+    x=0;
+    for (i=0; i <= size/2; i++)
+      {
+      sumsq+=(powl(sinl(x),z))*(powl(sinl(x),z));
+      win[i]=powl(sinl(x),z);
+      x+=LPI_L/size;
+      }
+    }  
+  }
 // Produce an inverted window over size/2 points
 if(mo == 3)
   {
@@ -1000,7 +1173,7 @@ if(mo == 3)
     }
   return;
   }
-z=1/sqrt(2*sumsq/size);
+z=1/sqrtl(2*sumsq/size);
 for (i=0; i <= size/2; i++)
   {
   win[i]*=z;
@@ -1306,6 +1479,29 @@ for (i=0; i<size/2; i++)
   }
 }
 
+void make_l_sincos(int mo, int sz, L_COSIN_TABLE *tab) 
+{
+int i;
+long double x,step;
+int size;
+if(mo == 2)
+  {
+  size=sz*2;
+  }
+else
+  {
+  size=sz;
+  }  
+x=0;
+step=(long double)(LPI_L/(size/2));
+for (i=0; i<size/2; i++)
+  {
+  tab[i].sin=sinl(x);
+  tab[i].cos=cosl(x);
+  x+=step;
+  }
+}
+
 void init_fft(int mo, int nz, int sz, COSIN_TABLE *tab, 
                                                unsigned short int *perm)
 {
@@ -1318,6 +1514,13 @@ void init_d_fft(int mo, int nz, int sz, D_COSIN_TABLE *tab,
 {
 make_bigpermute(mo, nz, sz, perm);
 make_d_sincos(mo, sz, tab); 
+}
+
+void init_l_fft(int mo, int nz, int sz, L_COSIN_TABLE *tab, 
+                                               unsigned int *perm)
+{
+make_bigpermute(mo, nz, sz, perm);
+make_l_sincos(mo, sz, tab); 
 }
 
 

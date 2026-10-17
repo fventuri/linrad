@@ -241,6 +241,17 @@ vgf_freq=NULL;
 vgf_phase=NULL;
 old_mix1_selfreq=-1;
 old_hwfreq=-2;
+if(dmp3)
+  {
+  long double xl = 1.0L / 3.0L;
+  double xd=xl;
+  float xf=xd;
+  fprintf(dmp3,"long double %.22Lf\n", xl);
+  xd=xl;
+  xf=xd;
+  fprintf(dmp3,"double      %.22f\n", xd);
+  fprintf(dmp3,"float       %.22f\n", xf);
+  }
 }
  
 int skip_calibration(void)

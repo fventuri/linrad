@@ -73,7 +73,7 @@ extern unsigned int sd[MAX_SC];
 #define BG_DBSCALE_COLOR 2
 #define HG_DBSCALE_COLOR 4
 #define MG_DBSCALE_COLOR 41
-#define SG_DBSCALE_COLOR 41
+#define SG_DBSCALE_COLOR 42
 #define VG_DBSCALE_COLOR 41
 #define VGF_FREQSCALE_COLOR 41
 

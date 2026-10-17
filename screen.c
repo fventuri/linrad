@@ -1501,6 +1501,8 @@ sprintf(s,"%c",sg_modes[sg.mode]);
 show_button(&sgbutt[SG_NEW_MODE],s);
 sprintf(s,"%s",sg_xscales[sg.xscale]);
 show_button(&sgbutt[SG_NEW_XSCALE],s);
+sprintf(s,"Smooth%4d",sg.smooth_len);
+show_button(&sgbutt[SG_NEW_SMOOTH],s);
 sprintf(s,"N %2d",sg.fft_n);
 show_button(&sgbutt[SG_NEW_FFT_N],s);
 sprintf(ss,"%2.1f",sg.ygain);
@@ -1752,11 +1754,14 @@ fill_sg_graph();
 show_sg_buttons();
 }
 
+
+int smoothed_present=FALSE;
+
 void update_siganal_graph(void)
 {
 float logsum_pn, logsum_an;
 int logsum_n;
-int i, n, n2, ia, ib, ix, iy, ixold;
+int i, n, nhalf, ia, ib, ix, ix0, ix1, iy, ixold;
 int iya1, iya2, iyac, iyaq;
 int iyp1, iyp2, iypc, iypq;
 int sg_last_point;
@@ -1770,7 +1775,29 @@ char s[80];
 // sg_spectrum is the y-value currently on screen.
 hide_mouse(sg_first_xpixel, sg_last_xpixel, sg.ytop, sg.ybottom);
 fill_sg_graph();
-// Average the spectrum over n points.
+pwrfac=sg_siz/(3.956*baseband_sampling_speed);
+yfac=-20*text_height/sg.ygain;
+sg_last_point=3*sg_siz/8;
+rat=(float)fft3_size/(float)sg_siz;
+if(sg.smooth_len == 1)
+  {
+// Erase the smoothed spectra
+  if(smoothed_present)
+    {
+    smoothed_present=FALSE;
+    for(ix=sg_first_xpixel; ix < sg_last_xpixel; ix++)
+      {
+      sg_sm_oldpncspectrum[ix]=sg_y0-1;
+      sg_sm_pncspectrum[ix]=sg_y0-1;
+      sg_setpixel(ix,sg_sm_pncspectrum[ix],0);
+      }
+    }
+  }
+else
+  {
+  smoothed_present=TRUE;
+  }
+// Average the spectrum over n points. No smoothing.
 if(sg.xscale == 0)
   {
   ix=sg_first_xpixel;
@@ -1792,11 +1819,7 @@ else
     }
   n=ib-ia;
   }
-n2=n/2;
-pwrfac=sg_siz/(3.956*baseband_sampling_speed);
-yfac=-20*text_height/sg.ygain;
-sg_last_point=3*sg_siz/8;
-rat=(float)fft3_size/(float)sg_siz;
+nhalf=n/2;
 logsum_pn=0;
 logsum_an=0;
 logsum_n=0;
@@ -1813,15 +1836,20 @@ zz:;
     pnq=0;
     for(i=ia; i<ib; i++)
       {
-      anc+=sg_corrsum[2*i  ];
-      anq+=sg_corrsum[2*i+1];
-      pnc+=sg_corrsum[sg_siz+2*i  ];
-      pnq+=sg_corrsum[sg_siz+2*i+1];
+      anc+=Lsg_corrsum[2*i  ];
+      anq+=Lsg_corrsum[2*i+1];
+      pnc+=Lsg_corrsum[sg_siz+2*i  ];
+      pnq+=Lsg_corrsum[sg_siz+2*i+1];
+      }
+    if(smoothed_present)
+      {
+      sg_tmpfilt[2*ix  ]=pnc;
+      sg_tmpfilt[2*ix+1]=pnq;
       }
     anc=sqrt(anc*anc+anq*anq);
     pnc=sqrt(pnc*pnc+pnq*pnq);  
-    pnc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    anc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
+    pnc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    anc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
     if(anc < 1.e-25)anc=1.e-25;
     if(pnc < 1.e-25)pnc=1.e-25;
     iyac=yfac*(log10(pwrfac*anc/sg_corrnum)+sg.ymax/10.);
@@ -1870,12 +1898,13 @@ zz:;
         iy=sg_logpix_from_point(ib);
         }
       n=ib-ia;
-      n2=n/2;
+      nhalf=n/2;
       }     
-    }
+    }    
   break;
     
   case 1:    
+  ix0=0;
   while(ib < sg_last_point && ix < sg_last_xpixel)
     {
     pnq=0;
@@ -1884,11 +1913,16 @@ zz:;
     pnc=0;
     for(i=ia; i<ib; i++)
       {
-      pnc+=sg_corrsum[sg_siz+2*i];
-      pnq+=sg_corrsum[sg_siz+2*i+1];
+      pnc+=Lsg_corrsum[sg_siz+2*i];
+      pnq+=Lsg_corrsum[sg_siz+2*i+1];
       pn1+=sg_pwrsum[4*i+1];
       pn2+=sg_pwrsum[4*i+3];
       }   
+    if(smoothed_present)
+      {
+      sg_tmpfilt[2*ix0  ]=pnc;
+      sg_tmpfilt[2*ix0+1]=pnq;
+      }
     pnq=fabs(pnq);
     if(pnc > 0)
       {
@@ -1899,10 +1933,10 @@ zz:;
       pnc_color=3;
       }
     pnc=fabs(pnc);  
-    pnc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    pnq*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    pn1*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    pn2*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
+    pnc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    pnq*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    pn1*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    pn2*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
     if(pnc < 1.e-25)pnc=1.e-25;
     if(pnq < 1.e-25)pnq=1.e-25;
     if(pn1 < 1.e-25)pn1=1.e-25;
@@ -1972,16 +2006,113 @@ zz:;
         iy=sg_logpix_from_point(ib);
         }
       n=ib-ia;
-      n2=n/2;
+      nhalf=n/2;
       }     
+    ix0++;
     }
   sprintf(s,"Avg %7.2f",10*logsum_pn/logsum_n);
   lir_pixwrite(sg_last_xpixel-11*text_width,sg_ytop2+19*text_height/2,s);
   fprintf( stderr,"\n%d PN= %.2f",sg_corrnum,10*logsum_pn/logsum_n);
-  if(dmp != NULL)
+  if(smoothed_present)
     {
-    fprintf(dmp1,"\n%d PN= %.2f",sg_corrnum,10*logsum_pn/logsum_n);
-    fflush(dmp1);
+    if(sg.xscale == 0)
+      {
+      ix=sg_first_xpixel;
+      n=sg_points_per_pixel;
+      ia=(1+sg.smooth_len/2)*sg_points_per_pixel;
+      ib=ia+n;
+      iy=ix+n;
+      ix+=(1+sg.smooth_len/2)*sg_pixels_per_point;  
+      }
+    else
+      {  
+      break;
+      }
+    nhalf=n/2;
+    ixold=ix;
+    ix0=(1+sg.smooth_len/2);
+    while(ib < sg_last_point-sg.smooth_len*sg_points_per_pixel && 
+                                                      ix < sg_last_xpixel)
+      {
+      if(ix0 >= sg.smooth_len)
+        {
+        ix1=ix0-sg.smooth_len/2;
+        pnc=sg_tmpfilt[2*ix1  ];
+        pnq=sg_tmpfilt[2*ix1+1];
+        for(i=1; i<=sg.smooth_len/2; i++)
+          {
+          pnc+=sg_tmpfilt[2*(ix1+i)  ];
+          pnq+=sg_tmpfilt[2*(ix1+i)+1];
+          pnc+=sg_tmpfilt[2*(ix1-i)  ];
+          pnq+=sg_tmpfilt[2*(ix1-i)+1];
+          }
+        pnc/=sg.smooth_len;
+        pnq/=sg.smooth_len;
+        pnq=fabs(pnq);
+        if(pnc > 0)
+          {
+          pnc_color=15;
+          }
+        else
+          {
+          pnc_color=9;
+          }
+        pnc=fabs(pnc);
+        pnc/=n;
+        pnq/=n;
+        pnc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)];
+        pnq*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)];
+        if(pnc < 1.e-25)pnc=1.e-25;
+        if(pnq < 1.e-25)pnq=1.e-25;
+        iypq=yfac*(log10(pwrfac*pnq/sg_corrnum)+sg.ymax/10.);
+        iypc=yfac*(log10(pwrfac*pnc/sg_corrnum)+sg.ymax/10.);
+        if(iypq < 1)iypq=1;
+        if(iypc < 1)iypc=1;
+        iypq+=sg_ytop2+text_height;
+        iypc+=sg_ytop2+text_height;
+        if(iypq > sg_y0-1)iypq=sg_y0-1;
+        if(iypc > sg_y0-1)iypc=sg_y0-1;
+        if(ix != sg_first_xpixel)
+          {
+          sg_line(ixold,sg_sm_oldpncspectrum[ixold],ix,sg_sm_pncspectrum[ix],0);
+          sg_setpixel(ix,sg_sm_oldpnqspectrum[ix],0);
+          sg_sm_oldpncspectrum[ix]=sg_sm_pncspectrum[ix];
+          sg_sm_pncspectrum[ix]=iypc;
+          sg_line(ixold,sg_sm_pncspectrum[ixold],ix,iypc,pnc_color);
+          }
+        else
+          {
+          sg_sm_pncspectrum[ix]=iypc;
+          sg_sm_oldpncspectrum[ix]=sg_sm_pncspectrum[ix];
+          }
+        sg_setpixel(ix,iypq,25);
+        sg_sm_pnqspectrum[ix]=iypq;
+        sg_sm_oldpnqspectrum[ix]=sg_sm_pnqspectrum[ix];
+        ixold=ix;
+        if(sg.xscale == 0)
+          {
+          ib+=n;
+          ia+=n;
+          ix+=sg_pixels_per_point;
+          iy=ix;
+          }
+        else
+          {   
+          ia=ib+1;
+          ib=ia;
+          ix=sg_logpix_from_point(ia);
+          iy=ix;
+          while(ix == iy)
+            {
+            ib+=1;
+            iy=sg_logpix_from_point(ib);
+            }
+          n=ib-ia;
+          nhalf=n/2;
+          }     
+        }
+      ix0++;
+      }
     }
   break;
 
@@ -1996,9 +2127,14 @@ zz:;
       {
       an1+=sg_pwrsum[4*i  ];
       an2+=sg_pwrsum[4*i+2];
-      anc+=sg_corrsum[2*i];
-      anq+=sg_corrsum[2*i+1];
+      anc+=Lsg_corrsum[2*i];
+      anq+=Lsg_corrsum[2*i+1];
       }   
+    if(smoothed_present)
+      {
+      sg_tmpfilt[2*ix  ]=anc;
+      sg_tmpfilt[2*ix+1]=anq;
+      }
     anq=fabs(anq);
     if(anc > 0)
       {
@@ -2009,10 +2145,10 @@ zz:;
       anc_color=41;
       }
     anc=fabs(anc);  
-    anc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    anq*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    an1*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
-    an2*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+n2)*rat)]/n;
+    anc*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    anq*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    an1*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
+    an2*=fft3_fqwin_inv[fft3_size/2+(int)((float)(ia+nhalf)*rat)]/n;
     if(anq < 1.e-25)anq=1.e-25;
     if(an1 < 1.e-25)an1=1.e-25;
     if(an2 < 1.e-25)an2=1.e-25;
@@ -2081,7 +2217,7 @@ zz:;
         iy=sg_logpix_from_point(ib);
         }
       n=ib-ia;
-      n2=n/2;
+      nhalf=n/2;
       }     
     }
   sprintf(s,"Avg %7.2f",10*logsum_an/logsum_n);
@@ -2100,12 +2236,12 @@ zz:;
     pnq=0;
     for(i=ia; i<ib; i++)
       {
-      anc+=sg_corrsum[2*i];
-      anq+=sg_corrsum[2*i+1];
-      pnc+=sg_corrsum[sg_siz+2*i];
-      pnq+=sg_corrsum[sg_siz+2*i+1];
-      anpn_i+=sg_anpn_corr[2*i  ];
-      anpn_q+=sg_anpn_corr[2*i+1];
+      anc+=Lsg_corrsum[2*i];
+      anq+=Lsg_corrsum[2*i+1];
+      pnc+=Lsg_corrsum[sg_siz+2*i];
+      pnq+=Lsg_corrsum[sg_siz+2*i+1];
+      anpn_i+=Lsg_anpn_corr[2*i  ];
+      anpn_q+=Lsg_anpn_corr[2*i+1];
       }
     anpn_i/=sqrt(2*(anc*anc+anq*anq+pnc*pnc+pnq*pnq));  
     anpn_q/=sqrt(2*(anc*anc+anq*anq+pnc*pnc+pnq*pnq));  
@@ -2157,7 +2293,7 @@ zz:;
         iy=sg_logpix_from_point(ib);
         }
       n=ib-ia;
-      n2=n/2;
+      nhalf=n/2;
       }     
     }
   if(sg.xscale == 0)
@@ -2181,7 +2317,7 @@ zz:;
       }
     n=ib-ia;
     }
-  n2=n/2;
+  nhalf=n/2;
   ixold=ix;
   goto zz;
   }

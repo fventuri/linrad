@@ -108,7 +108,8 @@ int newcomer_escflag;
 typedef struct {
 unsigned short int red;
 unsigned short int green;
-unsigned short int blue;unsigned int pixel;
+unsigned short int blue;
+unsigned int pixel;
 short int flag;
 float total;
 }PIXINFO;
@@ -654,9 +655,9 @@ switch (color_depth)
     {
     for(id=0; id<256; id++)
       {
-      t2=(float)(pow((float)(lirpix[il].red-defpix[id].red),2.0)+
-                 pow((float)(lirpix[il].green-defpix[id].green),2.0)+
-                 pow((float)(lirpix[il].blue-defpix[id].blue),2.0));
+      t2=powf((float)(lirpix[il].red-defpix[id].red),2.0)+
+         powf((float)(lirpix[il].green-defpix[id].green),2.0)+
+         powf((float)(lirpix[il].blue-defpix[id].blue),2.0);
       pixdiff[id+il*256]=t2;
       }
     }  
@@ -845,9 +846,9 @@ else
       {
       for(id=0; id<256; id++)
         {
-        t2=(float)(pow((double)(lirpix[il].red-defpix[id].red),2.0)+
-                   pow((double)((lirpix[il].green-defpix[id].green)),2.0)+
-                   pow((double)((lirpix[il].blue-defpix[id].blue)),2.0));
+        t2=powf((float)(lirpix[il].red-defpix[id].red),2.0)+
+           powf((float)((lirpix[il].green-defpix[id].green)),2.0)+
+           powf((float)((lirpix[il].blue-defpix[id].blue)),2.0);
         pixdiff[id+il*256]=t2;
         }
       }  

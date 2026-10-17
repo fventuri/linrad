@@ -1986,4 +1986,5 @@ pair -3 dB, +38 degrees becomes +3 dB, -142 degrees).
 2=Show frequency difference and interchannel phase only.
 3=Show frequencies and differences.
 [398]Enter gain for interchannel phase.
+[399]Enter number of points for moving average filter.
 [0]

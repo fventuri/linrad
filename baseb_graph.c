@@ -3543,6 +3543,7 @@ fft3_px=0;
 fft3_indicator_block=(fft3_mask+1)/INDICATOR_SIZE;
 if(fft1_correlation_flag > 1)
   {
+  fft_cntrl[FFT1_CURMODE].doub=1;
   init_d_fft(1,fft3_n, fft3_size, d_fft3_tab, fft3_bigpermute);
   make_d_window(1,fft3_size, genparm[THIRD_FFT_SINPOW], d_fft3_window);
   make_d_window(6,fft3_size, 4, d_fft3_fqwin_inv);
@@ -3556,7 +3557,7 @@ if(fft1_correlation_flag > 1)
   k=fft3_size-1;
   for(i=0; i<fft3_size/2; i++)
     {
-    d_fft3_fqwin_inv[i]*=0.5*((double)2-erfc(dt1));
+    d_fft3_fqwin_inv[i]*=0.5*(2.0-erfc(dt1));
     d_fft3_fqwin_inv[k]=d_fft3_fqwin_inv[i];
     dt1+=dt2;
     k--;
